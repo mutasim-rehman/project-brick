@@ -1,0 +1,946 @@
+/* ==========================================================================
+   BRICK & AXIS | Modern Architectural 3D Interactive Website
+   Aesthetic inspired by clean isometric industrial & architectural renders
+   ========================================================================== */
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Grotesk', monospace;
+
+  /* Brand Colors inspired by Emons reference screenshots */
+  --brand-red: #ff3322;
+  --brand-red-hover: #e62514;
+  --brand-red-soft: rgba(255, 51, 34, 0.12);
+  --brand-orange: #ff7a45;
+  --brand-teal: #00cec9;
+  --brand-green: #05c46b;
+
+  --bg-clay: #f4f6f9;
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-border: rgba(220, 226, 235, 0.9);
+  --card-shadow: 0 20px 40px -12px rgba(17, 24, 39, 0.12), 0 4px 12px -2px rgba(17, 24, 39, 0.05);
+
+  --text-main: #141b24;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 9999px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: var(--font-sans);
+  background-color: var(--bg-clay);
+  color: var(--text-main);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   Full-Screen WebGL Canvas
+   ========================================================================== */
+#webgl-canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   Scroll Container Spine (Translates scroll distance to progress)
+   ========================================================================== */
+.scroll-container {
+  position: relative;
+  z-index: 2;
+  pointer-events: none; /* Let clicks pass to 3D canvas and HUD */
+}
+
+.scroll-section {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 100px 40px 0 0;
+}
+
+.section-cue {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  opacity: 0.65;
+  transition: opacity 0.3s;
+}
+
+.scroll-section:hover .section-cue {
+  opacity: 1;
+}
+
+.cue-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--brand-red);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.5px;
+}
+
+.section-cue p {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Top Header Navigation Bar (Emons style)
+   ========================================================================== */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 74px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--card-border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.logo-badge {
+  background: var(--brand-red);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 18px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(255, 51, 34, 0.35);
+}
+
+.logo-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+}
+
+.brand-sub {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: 1px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s, transform 0.2s;
+  padding: 6px 0;
+  position: relative;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--brand-red);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--brand-red);
+  border-radius: 2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 8px 13px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.btn-tool:hover {
+  border-color: var(--brand-red);
+  color: var(--brand-red);
+  transform: translateY(-1px);
+}
+
+.btn-tool.active {
+  background: var(--brand-red-soft);
+  border-color: var(--brand-red);
+  color: var(--brand-red);
+  font-weight: 700;
+}
+
+.btn-primary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand-red);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 51, 34, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary-header:hover {
+  background: var(--brand-red-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 51, 34, 0.4);
+}
+
+/* ==========================================================================
+   Floating Phase Narrative Card (Direct Match to Emons style)
+   ========================================================================== */
+.phase-card {
+  position: fixed;
+  bottom: 95px;
+  left: 36px;
+  width: 440px;
+  max-width: calc(100vw - 72px);
+  z-index: 15;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 26px 28px;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  pointer-events: auto;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.phase-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  border: 1.5px solid var(--brand-red);
+  color: var(--text-main);
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand-green);
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-green);
+  box-shadow: 0 0 8px var(--brand-green);
+  animation: pulse-live 2s infinite ease-in-out;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.phase-title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text-main);
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+}
+
+.phase-desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.phase-specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.spec-item {
+  background: rgba(244, 246, 249, 0.9);
+  border: 1px solid rgba(220, 226, 235, 0.8);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.spec-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-light);
+  letter-spacing: 0.5px;
+}
+
+.spec-val {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-primary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--brand-red);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 51, 34, 0.28);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary:hover {
+  background: var(--brand-red-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 51, 34, 0.38);
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.scroll-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.scroll-hint svg {
+  animation: bounce-arrow 1.8s infinite ease-in-out;
+}
+
+@keyframes bounce-arrow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+.pulse-enter {
+  animation: enter-card 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes enter-card {
+  0% { opacity: 0.8; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   Bottom Milestone Timeline Scrubber
+   ========================================================================== */
+.bottom-timeline {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  z-index: 18;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid var(--card-border);
+  padding: 10px 36px 12px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
+  pointer-events: auto;
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.timeline-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-light);
+}
+
+.status-percent {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--brand-red);
+}
+
+.timeline-guide {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.timeline-track-wrap {
+  position: relative;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.timeline-track {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.timeline-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-orange), var(--brand-red));
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+.timeline-nodes-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.timeline-node {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: transform 0.2s ease;
+}
+
+.timeline-node:hover {
+  transform: translateY(-2px);
+}
+
+.node-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.timeline-node:hover .node-dot {
+  border-color: var(--brand-red);
+  transform: scale(1.15);
+}
+
+.timeline-node.completed .node-dot {
+  background: var(--brand-red);
+  border-color: var(--brand-red);
+}
+
+.timeline-node.active .node-dot {
+  background: #fff;
+  border-color: var(--brand-red);
+  box-shadow: 0 0 0 4px var(--brand-red-soft);
+  transform: scale(1.25);
+}
+
+.node-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.timeline-node.active .node-tag {
+  color: var(--brand-red);
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   3D Hotspots Overlay Pins (Match to '+' in reference screenshots 2, 3, 4)
+   ========================================================================== */
+.hotspots-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hotspot-pin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin-top: -16px;
+  margin-left: -16px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.15s ease-out;
+}
+
+.hotspot-pin:hover {
+  transform: scale(1.15);
+}
+
+.pin-core {
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  color: var(--brand-red);
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 2;
+  border: 2px solid var(--brand-red);
+}
+
+.pin-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand-red);
+  opacity: 0.35;
+  animation: pulse-ring 2.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+  z-index: 1;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.pin-label {
+  background: rgba(20, 27, 36, 0.85);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease;
+}
+
+.hotspot-pin:hover .pin-label,
+.hotspot-pin.active .pin-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ==========================================================================
+   Hotspot Detail Modal / Popover
+   ========================================================================== */
+.hotspot-modal {
+  position: fixed;
+  top: 90px;
+  right: 36px;
+  z-index: 25;
+  width: 380px;
+  max-width: calc(100vw - 72px);
+  display: none;
+}
+
+.hotspot-modal.visible {
+  display: block;
+  animation: slide-in-modal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-in-modal {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  box-shadow: var(--card-shadow);
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modal-category {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--brand-red);
+  letter-spacing: 0.5px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-top: 4px;
+}
+
+.btn-close {
+  background: #f1f5f9;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-close:hover {
+  background: #e2e8f0;
+  color: var(--text-main);
+}
+
+.modal-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.modal-spec-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.spec-caption {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--text-light);
+  letter-spacing: 0.5px;
+}
+
+.spec-highlight {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   Slide-Over Project Estimator & Quote Modal
+   ========================================================================== */
+.quote-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.quote-modal-overlay.visible {
+  display: flex;
+}
+
+.quote-modal-content {
+  background: #fff;
+  width: 520px;
+  max-width: 100%;
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.quote-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.quote-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--brand-red);
+  background: var(--brand-red-soft);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.quote-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-top: 6px;
+}
+
+.quote-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.quote-form .form-group {
+  margin-bottom: 16px;
+}
+
+.quote-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--brand-red);
+  background: #fff;
+}
+
+.result-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.result-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.result-stat .label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.result-stat .val {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+@media (max-width: 900px) {
+  .app-header {
+    padding: 0 16px;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .phase-card {
+    left: 16px;
+    bottom: 85px;
+    width: calc(100vw - 32px);
+    padding: 20px;
+  }
+
+  .bottom-timeline {
+    padding: 8px 16px 10px 16px;
+  }
+
+  .node-tag {
+    display: none;
+  }
+
+  .header-right .btn-tool .toggle-label {
+    display: none;
+  }
+
+  .header-right .btn-primary-header span {
+    display: none;
+  }
+}
