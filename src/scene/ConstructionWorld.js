@@ -30,10 +30,10 @@ export class ConstructionWorld {
     const width = this.container.clientWidth || window.innerWidth;
     const height = this.container.clientHeight || window.innerHeight;
 
-    // 1. Scene
+    // 1. Scene with Modern Aqua Atmosphere
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf4f6f9);
-    this.scene.fog = new THREE.FogExp2(0xf4f6f9, 0.008);
+    this.scene.background = new THREE.Color(0xd7f1f5);
+    this.scene.fog = new THREE.FogExp2(0xd7f1f5, 0.007);
 
     // 2. Camera (Telephoto perspective with high-precision logarithmic depth buffer)
     this.camera = new THREE.PerspectiveCamera(38, width / height, 0.8, 350);
@@ -51,7 +51,7 @@ export class ConstructionWorld {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 1.08;
 
     this.container.appendChild(this.renderer.domElement);
 
@@ -66,7 +66,7 @@ export class ConstructionWorld {
     this.controls.enabled = false; // Disabled by default for smooth scroll navigation
     this.controls.userData = { isFreeOrbit: false };
 
-    // 5. Lighting Setup
+    // 5. Lighting Setup (Modern Aqua architectural daylight)
     this.setupLighting();
 
     // 6. Build 3D Models
@@ -76,7 +76,7 @@ export class ConstructionWorld {
     // 7. Construction Timeline Manager
     this.timeline = new ConstructionTimeline(this.elements, this.camera, this.controls);
 
-    // 8. Hotspots Manager
+    // 8. Hotspots Manager (No '+' icons per user request)
     this.hotspots = new HotspotsManager(this.camera, this.container, this.onSelectHotspot);
 
     // 9. Resize Listener
@@ -91,13 +91,13 @@ export class ConstructionWorld {
     this.lightsGroup = new THREE.Group();
     this.lightsGroup.name = 'LightingGroup';
 
-    // Hemisphere Light (Sky ambient + warm ground bounce)
-    this.hemiLight = new THREE.HemisphereLight(0xe8f0fb, 0xe0d8ce, 0.85);
+    // Modern Aqua Hemisphere Light (Luminous cyan sky + cool slate ground bounce)
+    this.hemiLight = new THREE.HemisphereLight(0x7ee7f2, 0xc2dfe6, 0.95);
     this.hemiLight.position.set(0, 50, 0);
     this.lightsGroup.add(this.hemiLight);
 
-    // Directional Sun Light with crisp architectural soft shadows
-    this.sunLight = new THREE.DirectionalLight(0xfff5ea, 1.8);
+    // Crisp Directional Sunlight with soft architectural shadows
+    this.sunLight = new THREE.DirectionalLight(0xf0fcff, 1.85);
     this.sunLight.position.set(55, 65, 45);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.width = 2048;
@@ -114,10 +114,15 @@ export class ConstructionWorld {
 
     this.lightsGroup.add(this.sunLight);
 
-    // Soft fill light from opposite quadrant
-    this.fillLight = new THREE.DirectionalLight(0xdbe6f5, 0.45);
+    // Radiant modern aqua fill light
+    this.fillLight = new THREE.DirectionalLight(0x22d3ee, 0.75);
     this.fillLight.position.set(-40, 30, -35);
     this.lightsGroup.add(this.fillLight);
+
+    // Soft aqua rim back-light for architectural edge definition
+    this.rimLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
+    this.rimLight.position.set(0, 45, -50);
+    this.lightsGroup.add(this.rimLight);
 
     this.scene.add(this.lightsGroup);
   }
@@ -131,21 +136,25 @@ export class ConstructionWorld {
       this.sunLight.intensity = 2.2;
       this.hemiLight.color.setHex(0xffc599);
       this.hemiLight.groundColor.setHex(0x734827);
+      this.fillLight.color.setHex(0xffaa5e);
     } else if (mode === 'night') {
-      this.scene.background.setHex(0x0e131d);
-      this.scene.fog.color.setHex(0x0e131d);
-      this.sunLight.color.setHex(0x3a6073);
-      this.sunLight.intensity = 0.5;
-      this.hemiLight.color.setHex(0x1a2a3a);
-      this.hemiLight.groundColor.setHex(0x080c14);
+      this.scene.background.setHex(0x0a1622);
+      this.scene.fog.color.setHex(0x0a1622);
+      this.sunLight.color.setHex(0x38bdf8);
+      this.sunLight.intensity = 0.55;
+      this.hemiLight.color.setHex(0x0e3646);
+      this.hemiLight.groundColor.setHex(0x05131a);
+      this.fillLight.color.setHex(0x00f2fe);
     } else {
-      // Day default
-      this.scene.background.setHex(0xf4f6f9);
-      this.scene.fog.color.setHex(0xf4f6f9);
-      this.sunLight.color.setHex(0xfff5ea);
-      this.sunLight.intensity = 1.8;
-      this.hemiLight.color.setHex(0xe8f0fb);
-      this.hemiLight.groundColor.setHex(0xe0d8ce);
+      // Modern Aqua Day Default
+      this.scene.background.setHex(0xd7f1f5);
+      this.scene.fog.color.setHex(0xd7f1f5);
+      this.sunLight.color.setHex(0xf0fcff);
+      this.sunLight.intensity = 1.85;
+      this.hemiLight.color.setHex(0x7ee7f2);
+      this.hemiLight.groundColor.setHex(0xc2dfe6);
+      this.fillLight.color.setHex(0x22d3ee);
+      this.fillLight.intensity = 0.75;
     }
   }
 

@@ -24,53 +24,6 @@
             <span class="brand-sub">ENGINEERING & INFRASTRUCTURE</span>
           </div>
         </a>
-
-        <nav class="nav-links">
-          <a href="#phase-1" class="nav-link active">Excavation</a>
-          <a href="#phase-2" class="nav-link">Foundation</a>
-          <a href="#phase-3" class="nav-link">Superstructure</a>
-          <a href="#phase-4" class="nav-link">Logistics Bay</a>
-          <a href="#phase-5" class="nav-link">Curtain Facade</a>
-          <a href="#phase-6" class="nav-link">Turnkey Campus</a>
-        </nav>
-      </div>
-
-      <div class="header-right">
-        <!-- Interactive Controls Bar -->
-        <button id="btn-audio-toggle" class="btn-tool" title="Toggle Construction Sound FX">
-          <span class="icon">🔊</span>
-          <span class="toggle-label">Sound: OFF</span>
-        </button>
-
-        <button id="btn-lighting-toggle" class="btn-tool" title="Cycle Day / Sunset / Night Lighting">
-          <span class="icon">☀️</span>
-          <span class="toggle-label">DAY</span>
-        </button>
-
-        <button id="btn-blueprint-toggle" class="btn-tool" title="Toggle Architectural Wireframe / Blueprint Shader">
-          <span class="icon">📐</span>
-          <span class="toggle-label">Blueprint</span>
-        </button>
-
-        <button id="btn-orbit-toggle" class="btn-tool" title="Toggle Free 3D Orbit Inspection Mode">
-          <span class="icon">🔄</span>
-          <span class="toggle-label">Free 3D Orbit</span>
-        </button>
-
-        <button id="btn-roof-toggle" class="btn-tool" title="Toggle Warehouse Completed Roof vs Cutaway Interior">
-          <span class="icon">🏢</span>
-          <span class="toggle-label">Roof / Cutaway</span>
-        </button>
-
-        <button id="btn-autoplay" class="btn-tool" title="Auto-Play Cinematic Construction Sequence">
-          <span class="icon">▶</span>
-          <span class="toggle-label">Auto Tour</span>
-        </button>
-
-        <button id="btn-open-quote" class="btn-primary-header">
-          <span>Project Calculator</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
       </div>
     </header>
 
@@ -119,40 +72,7 @@
       </section>
     </main>
 
-    <!-- Floating Phase Narrative Card (Direct match to screenshot style!) -->
-    <aside id="phase-card" class="phase-card">
-      <div class="card-header">
-        <span id="phase-badge" class="phase-badge">Phase 01 / 06 • Substructure Works</span>
-        <div class="live-indicator">
-          <span class="live-dot"></span>
-          <span>BIM Model Sync</span>
-        </div>
-      </div>
 
-      <h1 id="phase-title" class="phase-title">Ground Zero: Precision Excavation & Soil Engineering</h1>
-      <p id="phase-desc" class="phase-desc">
-        Deep subterranean trenching, geo-surveying, seismic bedrock anchor drilling, and installation of moisture barrier retaining shoring. Heavy earthmovers prep the 12,000 m² site.
-      </p>
-
-      <div id="phase-specs" class="phase-specs-grid">
-        <!-- Injected dynamically -->
-      </div>
-
-      <div class="card-actions">
-        <button id="phase-cta" class="btn-primary">
-          <span>Inspect Subterranean Core</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
-        <button id="phase-sec-btn" class="btn-secondary">
-          <span>Project Specs</span>
-        </button>
-      </div>
-
-      <div class="scroll-hint">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-        <span>Scroll down to construct next phase</span>
-      </div>
-    </aside>
 
     <!-- Bottom Milestone Timeline Scrubber -->
     <footer class="bottom-timeline">
@@ -200,69 +120,7 @@
       </div>
     </footer>
 
-    <!-- Hotspot Modal / Popover -->
-    <div id="hotspot-modal" class="hotspot-modal">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div>
-            <span id="hotspot-modal-category" class="modal-category">Machinery & Rigging</span>
-            <h3 id="hotspot-modal-title" class="modal-title">Heavy Luffing Tower Crane</h3>
-          </div>
-          <button id="hotspot-modal-close" class="btn-close">&times;</button>
-        </div>
-        <p id="hotspot-modal-desc" class="modal-desc">65m radius high-capacity modular crane with micro-inching placement telemetry for heavy steel and glass hoisting.</p>
-        <div class="modal-spec-box">
-          <span class="spec-caption">ENGINEERING BENCHMARK</span>
-          <p id="hotspot-modal-specs" class="spec-highlight">Max Lift: 18,000 kg • Slewing Speed: 0.9 rpm</p>
-        </div>
-      </div>
-    </div>
 
-    <!-- Slide-Over Project Estimator & Quote Drawer -->
-    <div id="quote-modal" class="quote-modal-overlay">
-      <div class="quote-modal-content">
-        <div class="quote-header">
-          <div>
-            <span class="quote-badge">CLIENT PORTAL</span>
-            <h2>Project Scope & Estimation</h2>
-            <p>Configure architectural parameters for instant structural modeling metrics.</p>
-          </div>
-          <button id="quote-modal-close" class="btn-close">&times;</button>
-        </div>
-
-        <form id="quote-form" class="quote-form">
-          <div class="form-group">
-            <label for="calc-type">Facility Architectural Typology</label>
-            <select id="calc-type" class="form-input">
-              <option value="hybrid">Integrated Logistics Hub & Corporate Headquarters</option>
-              <option value="warehouse">High-Bay Automated Logistics Warehouse</option>
-              <option value="office">Multi-Story Commercial Office Complex</option>
-              <option value="intermodal">Multimodal Freight & Rail Transfer Terminal</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="calc-area">Gross Floor Area (m²)</label>
-            <input type="number" id="calc-area" class="form-input" value="24500" min="2000" max="150000" step="500">
-          </div>
-
-          <div class="form-group">
-            <label for="calc-steel">Structural Framing Standard</label>
-            <select id="calc-steel" class="form-input">
-              <option>Grade S355JR Seismic-Resistant Steel Frame</option>
-              <option>Cast-In-Place Post-Tensioned Concrete Slab</option>
-              <option>Engineered Glulam Mass Timber & Steel Hybrid</option>
-            </select>
-          </div>
-
-          <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">
-            Calculate Structural Breakdown
-          </button>
-        </form>
-
-        <div id="quote-result" class="quote-result-area"></div>
-      </div>
-    </div>
 
     <!-- Application Script Entrypoint -->
     <script type="module" src="./src/main.js"></script>

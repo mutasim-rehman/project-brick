@@ -38,7 +38,7 @@ export class BuildingComponents {
   createMaterials() {
     return {
       ground: new THREE.MeshStandardMaterial({
-        color: 0xf3f5f8,
+        color: 0xeaf6f8,
         roughness: 0.95,
         metalness: 0.05,
         polygonOffset: true,
@@ -1421,23 +1421,36 @@ export class BuildingComponents {
 
   createDetailedWheel(radius, width) {
     const wheelGroup = new THREE.Group();
+    const spinGroup = new THREE.Group();
+    spinGroup.name = 'WheelSpinGroup';
 
     // Black rubber tire with tread bevel
     const tire = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, width, 24), this.materials.rubberTire);
     tire.rotation.x = Math.PI / 2;
     tire.castShadow = true;
-    wheelGroup.add(tire);
+    spinGroup.add(tire);
 
-    // Crisp white/silver hubcap rim (Direct match to Image 2!)
+    // Crisp white/silver hubcap rim
     const rim = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.62, radius * 0.62, width * 1.02, 16), this.materials.truckWhite);
     rim.rotation.x = Math.PI / 2;
-    wheelGroup.add(rim);
+    spinGroup.add(rim);
 
     // Center axle hub
     const hub = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.22, radius * 0.22, width * 1.05, 12), this.materials.steelDark);
     hub.rotation.x = Math.PI / 2;
-    wheelGroup.add(hub);
+    spinGroup.add(hub);
 
+    // 6 Chrome Lug Nuts around the rim (makes rolling rotation clearly visible)
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const lug = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, width * 1.08, 6), this.materials.chrome);
+      lug.rotation.x = Math.PI / 2;
+      lug.position.set(Math.cos(angle) * radius * 0.42, Math.sin(angle) * radius * 0.42, 0);
+      spinGroup.add(lug);
+    }
+
+    wheelGroup.add(spinGroup);
+    wheelGroup.userData.spinGroup = spinGroup;
     return wheelGroup;
   }
 

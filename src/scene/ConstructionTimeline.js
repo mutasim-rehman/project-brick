@@ -536,30 +536,24 @@ export class ConstructionTimeline {
 
           // Realistic wheel rolling as the truck backs into the bay
           if (truck.userData.wheels) {
-            const rollAngle = -zOffset / 0.7; // roll proportional to distance
+            const rollAngle = ((1 - truckProg) * 30) / 0.52;
             truck.userData.wheels.forEach((w) => {
-              if (w.children && w.children[0]) {
-                w.children[0].rotation.z = rollAngle;
-              }
-              if (w.children && w.children[1]) {
-                w.children[1].rotation.z = rollAngle;
+              if (w.userData && w.userData.spinGroup) {
+                w.userData.spinGroup.rotation.z = rollAngle;
               }
             });
           }
         } else {
-          // Highway Transit Truck (truck 2): Drives forward along FRONT ROAD (+X East)
+          // Highway Transit Truck (truck 3): Drives forward along FRONT ROAD (+X East)
           const xOffset = (1 - truckProg) * 60;
           truck.position.x = truck.userData.targetPos.x - xOffset;
           truck.position.z = truck.userData.targetPos.z;
 
           if (truck.userData.wheels) {
-            const rollAngle = truck.position.x / 0.7;
+            const rollAngle = -truck.position.x / 0.52;
             truck.userData.wheels.forEach((w) => {
-              if (w.children && w.children[0]) {
-                w.children[0].rotation.z = rollAngle;
-              }
-              if (w.children && w.children[1]) {
-                w.children[1].rotation.z = rollAngle;
+              if (w.userData && w.userData.spinGroup) {
+                w.userData.spinGroup.rotation.z = rollAngle;
               }
             });
           }
