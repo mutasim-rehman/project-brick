@@ -22,6 +22,7 @@ export class ConstructionTimeline {
     this.currentProgress = 0;
     this.targetProgress = 0;
     this.lastPhaseIndex = -1;
+    this.excavatorTime = 0;
 
     // Cache initial transforms
     this.cacheInitialTransforms();
@@ -115,12 +116,17 @@ export class ConstructionTimeline {
   }
 
   updateFrame(deltaTime) {
+    const dt = deltaTime || 0.016;
+    this.excavatorTime += dt;
+
     // Smooth lerp progress
     const diff = this.targetProgress - this.currentProgress;
     if (Math.abs(diff) > 0.0002) {
       this.currentProgress += diff * 0.12;
-      this.update(this.currentProgress, false);
     }
+
+    // Always run update so active machinery (excavator, crane, particles) operate smoothly in real time
+    this.update(this.currentProgress, false, dt);
 
     // Gentle ambient particle floating
     if (this.elements.particles) {
@@ -133,7 +139,7 @@ export class ConstructionTimeline {
     }
   }
 
-  update(progress, force = false) {
+  update(progress, force = false, dt = 0.016) {
     const t = clamp(progress, 0, 1);
 
     // Detect phase transitions for sound
@@ -145,15 +151,94 @@ export class ConstructionTimeline {
       this.lastPhaseIndex = phaseIdx;
     }
 
-    // 1. Excavation Pit (0.0 to 0.25)
-    if (this.elements.excavation) {
-      // Pit stays, but excavator works during stage 1
-      if (this.elements.excavator) {
-        const exWork = smoothstep(0.0, 0.22, t);
-        this.elements.excavator.visible = t < 0.35;
-        if (this.elements.excavator.visible) {
-          // Animate digging motion
-          this.elements.excavator.rotation.y = (Math.PI / 4) + Math.sin(t * 40) * 0.25;
+    // 1. Excavation Pit & Working Hydraulic Excavator (Realistic Construction Lifecycle)
+    if (this.elements.excavator && this.elements.excavator.root) {
+      const ex = this.elements.excavator;
+
+      if (t < 0.22) {
+        // Phase 1 (0.0 to 0.22): Active Digging at the pit edge
+        ex.root.visible = true;
+        ex.root.position.set(22, 0, 4);
+        ex.root.rotation.y = -Math.PI * 0.75; // Points into the excavation pit
+
+        // Smooth continuous 6.5s realistic digging cycle (dig -> scoop -> lift -> slew -> dump -> return)
+        const cycle = (this.excavatorTime % 6.5) / 6.5;
+
+        if (cycle < 0.35) {
+          // Step A: Dig & scoop in the pit
+          const p = cycle / 0.35;
+          const digSin = Math.sin(p * Math.PI);
+          ex.house.rotation.y = -0.15 + 0.1 * p;
+          ex.boomPivot.rotation.z = -0.18 - digSin * 0.25;
+          ex.stickPivot.rotation.z = 0.45 + p * 0.45;
+          ex.bucketPivot.rotation.z = -0.25 + p * 0.90;
+        } else if (cycle < 0.52) {
+          // Step B: Lift arm with full bucket out of pit
+          const p = (cycle - 0.35) / 0.17;
+          ex.house.rotation.y = -0.05 + p * 0.35;
+          ex.boomPivot.rotation.z = -0.43 + p * 0.35;
+          ex.stickPivot.rotation.z = 0.90 - p * 0.20;
+          ex.bucketPivot.rotation.z = 0.65;
+        } else if (cycle < 0.76) {
+          // Step C: Slew towards soil mound / dump truck & dump earth
+          const p = (cycle - 0.52) / 0.24;
+          ex.house.rotation.y = 0.30 + p * 0.52;
+          ex.boomPivot.rotation.z = -0.08 - p * 0.05;
+          ex.stickPivot.rotation.z = 0.70 + p * 0.10;
+          ex.bucketPivot.rotation.z = 0.65 - p * 1.05; // Dump soil!
+        } else {
+          // Step D: Return slew back to pit
+          const p = (cycle - 0.76) / 0.24;
+          ex.house.rotation.y = 0.82 - p * 0.97;
+          ex.boomPivot.rotation.z = -0.13 - p * 0.05;
+          ex.stickPivot.rotation.z = 0.80 - p * 0.35;
+          ex.bucketPivot.rotation.z = -0.40 + p * 0.15;
+        }
+
+        // Hydraulic cylinders realistic angle & telescoping
+        if (ex.boomCylinders) {
+          const boomAngle = ex.boomPivot.rotation.z;
+          ex.boomCylinders.forEach((cyl) => {
+            cyl.group.rotation.z = Math.PI / 4.8 + boomAngle * 0.68;
+            cyl.piston.position.y = 1.6 + boomAngle * 0.85;
+          });
+        }
+      } else if (t < 0.38) {
+        // Phase 2 (0.22 to 0.38): Excavation done, smooth transit to safe perimeter equipment staging
+        const pTransit = (t - 0.22) / 0.16;
+        ex.root.visible = true;
+
+        ex.root.position.x = 22 + pTransit * 10;
+        ex.root.position.z = 4 + pTransit * 16;
+        ex.root.rotation.y = -Math.PI * 0.75 + pTransit * Math.PI * 0.65;
+
+        // Fold boom into resting travel safety cradle
+        ex.house.rotation.y = 0;
+        ex.boomPivot.rotation.z = -0.32;
+        ex.stickPivot.rotation.z = 0.65;
+        ex.bucketPivot.rotation.z = -0.35;
+
+        if (ex.boomCylinders) {
+          ex.boomCylinders.forEach((cyl) => {
+            cyl.group.rotation.z = Math.PI / 4.8 - 0.32 * 0.68;
+            cyl.piston.position.y = 1.6 - 0.32 * 0.85;
+          });
+        }
+      } else {
+        // Phase 3-6: Remains cleanly parked at perimeter staging zone near site office
+        ex.root.visible = true;
+        ex.root.position.set(32, 0, 20);
+        ex.root.rotation.y = -0.3;
+        ex.house.rotation.y = 0;
+        ex.boomPivot.rotation.z = -0.32;
+        ex.stickPivot.rotation.z = 0.65;
+        ex.bucketPivot.rotation.z = -0.35;
+
+        if (ex.boomCylinders) {
+          ex.boomCylinders.forEach((cyl) => {
+            cyl.group.rotation.z = Math.PI / 4.8 - 0.32 * 0.68;
+            cyl.piston.position.y = 1.6 - 0.32 * 0.85;
+          });
         }
       }
     }
@@ -173,25 +258,31 @@ export class ConstructionTimeline {
       this.elements.core.position.y = (coreProg - 1) * 12;
     }
 
-    // 3. Tower Crane (0.28 to 0.90)
-    if (this.elements.crane) {
+    // 3. Realistic Luffing Tower Crane (0.28 to 0.90)
+    if (this.elements.crane && this.elements.crane.root) {
+      const crane = this.elements.crane;
       const craneProg = smoothstep(0.24, 0.36, t);
-      this.elements.crane.root.visible = craneProg > 0.01 && t < 0.95;
-      this.elements.crane.root.scale.set(1, Math.max(0.01, craneProg), 1);
+      crane.root.visible = craneProg > 0.01 && t < 0.95;
+      crane.root.scale.set(1, Math.max(0.01, craneProg), 1);
 
-      if (this.elements.crane.root.visible) {
-        // Rotate crane slewing jib realistically based on progress
-        const jibAngle = -Math.PI / 4 + Math.sin(t * 18) * 0.8 + t * 2.5;
-        this.elements.crane.slewingHead.rotation.y = jibAngle;
+      if (crane.root.visible) {
+        // Rotate crane slewing head realistically
+        const jibAngle = -Math.PI / 4 + Math.sin(t * 16) * 0.85 + t * 2.2;
+        crane.slewingHead.rotation.y = jibAngle;
 
-        // Slide trolley back and forth along the boom
-        const trolleyZ = -8 - Math.sin(t * 22) * 10;
-        this.elements.crane.trolleyGroup.position.z = trolleyZ;
+        // Slide trolley along triangular lattice jib
+        const trolleyZ = -8 - Math.sin(t * 22) * 11;
+        crane.trolleyGroup.position.z = trolleyZ;
 
-        // Animate suspended beam
-        if (this.elements.crane.suspendedBeam) {
-          this.elements.crane.suspendedBeam.visible = t < 0.65;
-          this.elements.crane.suspendedBeam.rotation.y = jibAngle + Math.sin(t * 30) * 0.15;
+        // Hoist cable raising & lowering block
+        if (crane.blockGroup) {
+          crane.blockGroup.position.y = -10.0 + Math.sin(t * 26) * 3.5;
+        }
+
+        // Suspended steel beam with gentle pendulum swing
+        if (crane.suspendedBeam) {
+          crane.suspendedBeam.visible = t < 0.68;
+          crane.suspendedBeam.rotation.y = Math.PI / 2 + Math.sin(t * 30) * 0.16;
         }
       }
     }
