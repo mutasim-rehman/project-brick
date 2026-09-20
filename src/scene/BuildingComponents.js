@@ -9,6 +9,7 @@ export class BuildingComponents {
       excavation: null,
       foundation: null,
       core: null,
+      coreTiers: [],
       crane: null,
       steelColumns: [],
       steelBeams: [],
@@ -17,6 +18,7 @@ export class BuildingComponents {
       warehouseTrusses: [],
       warehouseRacks: [],
       warehouseBoxes: [],
+      warehouseRoof: null,
       conveyors: [],
       forklift: null,
       facadePanels: [],
@@ -39,6 +41,9 @@ export class BuildingComponents {
         color: 0xf3f5f8,
         roughness: 0.95,
         metalness: 0.05,
+        polygonOffset: true,
+        polygonOffsetFactor: 2,
+        polygonOffsetUnits: 2
       }),
       excavationSoil: new THREE.MeshStandardMaterial({
         color: 0xb59b82,
@@ -192,10 +197,16 @@ export class BuildingComponents {
       asphalt: new THREE.MeshStandardMaterial({
         color: 0x383e48,
         roughness: 0.9,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
       }),
       roadStripe: new THREE.MeshStandardMaterial({
         color: 0xffffff,
         roughness: 0.6,
+        polygonOffset: true,
+        polygonOffsetFactor: -3,
+        polygonOffsetUnits: -3
       }),
       safetyOrange: new THREE.MeshStandardMaterial({
         color: 0xff7733,
@@ -209,6 +220,9 @@ export class BuildingComponents {
       railGravel: new THREE.MeshStandardMaterial({
         color: 0xa4b0be,
         roughness: 0.95,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
       })
     };
   }
@@ -242,16 +256,16 @@ export class BuildingComponents {
     const groundGeo = new THREE.PlaneGeometry(160, 160);
     const ground = new THREE.Mesh(groundGeo, this.materials.ground);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = 0;
+    ground.position.y = 0.0;
     ground.receiveShadow = true;
     terrainGroup.add(ground);
     this.elements.ground = ground;
 
-    // Surrounding asphalt roads
+    // Surrounding asphalt roads (elevated to y = 0.10 to prevent Z-fighting)
     const frontRoadGeo = new THREE.PlaneGeometry(160, 10);
     const frontRoad = new THREE.Mesh(frontRoadGeo, this.materials.asphalt);
     frontRoad.rotation.x = -Math.PI / 2;
-    frontRoad.position.set(0, 0.02, 34);
+    frontRoad.position.set(0, 0.10, 34);
     frontRoad.receiveShadow = true;
     terrainGroup.add(frontRoad);
 
@@ -259,22 +273,22 @@ export class BuildingComponents {
       const stripeGeo = new THREE.PlaneGeometry(4, 0.4);
       const stripe = new THREE.Mesh(stripeGeo, this.materials.roadStripe);
       stripe.rotation.x = -Math.PI / 2;
-      stripe.position.set(x, 0.03, 34);
+      stripe.position.set(x, 0.14, 34);
       terrainGroup.add(stripe);
     }
 
     const sideRoadGeo = new THREE.PlaneGeometry(10, 80);
     const sideRoad = new THREE.Mesh(sideRoadGeo, this.materials.asphalt);
     sideRoad.rotation.x = -Math.PI / 2;
-    sideRoad.position.set(38, 0.02, -5);
+    sideRoad.position.set(38, 0.10, -5);
     sideRoad.receiveShadow = true;
     terrainGroup.add(sideRoad);
 
-    // Logistics loading apron
+    // Logistics loading apron (elevated to y = 0.12)
     const apronGeo = new THREE.PlaneGeometry(44, 22);
     const apron = new THREE.Mesh(apronGeo, this.materials.concrete);
     apron.rotation.x = -Math.PI / 2;
-    apron.position.set(-10, 0.02, 18);
+    apron.position.set(-10, 0.12, 18);
     apron.receiveShadow = true;
     terrainGroup.add(apron);
 
@@ -282,7 +296,7 @@ export class BuildingComponents {
       const lineGeo = new THREE.PlaneGeometry(0.3, 10);
       const line = new THREE.Mesh(lineGeo, this.materials.roadStripe);
       line.rotation.x = -Math.PI / 2;
-      line.position.set(-26 + i * 10, 0.03, 20);
+      line.position.set(-26 + i * 10, 0.15, 20);
       terrainGroup.add(line);
     }
 
@@ -293,20 +307,20 @@ export class BuildingComponents {
     const pitGroup = new THREE.Group();
     pitGroup.name = 'ExcavationPitGroup';
 
-    // Excavation trench
-    const pitFloorGeo = new THREE.BoxGeometry(32, 1.2, 28);
+    // Excavation trench (recessed cleanly below ground level at y = -0.75, top at y = -0.05)
+    const pitFloorGeo = new THREE.BoxGeometry(31.6, 1.4, 27.6);
     const pitFloor = new THREE.Mesh(pitFloorGeo, this.materials.excavationSoil);
-    pitFloor.position.set(12, -0.6, 2);
+    pitFloor.position.set(12, -0.75, 2);
     pitFloor.receiveShadow = true;
     pitGroup.add(pitFloor);
 
-    // Trench sloped soil embankments
-    const wallNorth = new THREE.Mesh(new THREE.BoxGeometry(32.8, 1.4, 0.8), this.materials.excavationSoil);
-    wallNorth.position.set(12, -0.4, -12);
+    // Trench sloped soil embankments (top at y = 0.0)
+    const wallNorth = new THREE.Mesh(new THREE.BoxGeometry(32.8, 1.2, 0.8), this.materials.excavationSoil);
+    wallNorth.position.set(12, -0.60, -12);
     pitGroup.add(wallNorth);
 
-    const wallEast = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.4, 28.8), this.materials.excavationSoil);
-    wallEast.position.set(28, -0.4, 2);
+    const wallEast = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 28.8), this.materials.excavationSoil);
+    wallEast.position.set(28, -0.60, 2);
     pitGroup.add(wallEast);
 
     // Perimeter safety fences with striped warning rails
@@ -388,30 +402,60 @@ export class BuildingComponents {
       }
     }
 
-    // Shear Core (stairwell & elevator shaft)
+    // Modular Shear Core constructed floor-by-floor (5 distinct vertical tiers)
     const coreGroup = new THREE.Group();
     coreGroup.name = 'ReinforcedCoreGroup';
+    const coreTiers = [];
 
-    const coreGeo = new THREE.BoxGeometry(6.5, 24, 6.5);
-    const coreMesh = new THREE.Mesh(coreGeo, this.materials.concreteCore);
-    coreMesh.position.set(7, 12, 0);
-    coreMesh.castShadow = true;
-    coreMesh.receiveShadow = true;
-    coreGroup.add(coreMesh);
+    const tierCount = 5;
+    const tierHeight = 4.2;
 
-    // Striking vertical red architectural core fin (matching screenshot 5)
-    const redAccentGeo = new THREE.BoxGeometry(6.6, 24, 2.4);
-    const redAccent = new THREE.Mesh(redAccentGeo, this.materials.coreRedAccent);
-    redAccent.position.set(7, 12, 2.1);
-    redAccent.castShadow = true;
-    coreGroup.add(redAccent);
+    for (let floor = 0; floor < tierCount; floor++) {
+      const tierGroup = new THREE.Group();
+      tierGroup.name = `CoreTier_${floor + 1}`;
+      const yCenter = 0.9 + floor * tierHeight + tierHeight / 2;
 
-    // Elevator doors
-    for (let floor = 0; floor < 5; floor++) {
-      const doorGeo = new THREE.BoxGeometry(1.6, 2.4, 0.1);
-      const door = new THREE.Mesh(doorGeo, this.materials.steelDark);
-      door.position.set(7, 2 + floor * 4.2, 3.32);
-      coreGroup.add(door);
+      // Concrete core block for this floor
+      const coreBlock = new THREE.Mesh(
+        new THREE.BoxGeometry(6.4, tierHeight, 6.4),
+        this.materials.concreteCore
+      );
+      coreBlock.position.set(7, yCenter, 0);
+      coreBlock.castShadow = true;
+      coreBlock.receiveShadow = true;
+      tierGroup.add(coreBlock);
+
+      // Red architectural accent fin (front corner element, proud by 0.08 in Z to eliminate coplanar face fight)
+      const redAccent = new THREE.Mesh(
+        new THREE.BoxGeometry(6.5, tierHeight, 2.22),
+        this.materials.coreRedAccent
+      );
+      redAccent.position.set(7, yCenter, 2.18);
+      redAccent.castShadow = true;
+      tierGroup.add(redAccent);
+
+      // Elevator door on this level
+      const door = new THREE.Mesh(
+        new THREE.BoxGeometry(1.6, 2.4, 0.1),
+        this.materials.steelDark
+      );
+      door.position.set(7, 0.9 + floor * tierHeight + 1.2, 3.32);
+      tierGroup.add(door);
+
+      // Top floor architectural parapet cap (eliminates top face red-and-grey coplanar fighting)
+      if (floor === tierCount - 1) {
+        const roofCap = new THREE.Mesh(
+          new THREE.BoxGeometry(6.65, 0.25, 6.65),
+          this.materials.concreteCore
+        );
+        roofCap.position.set(7, yCenter + tierHeight / 2 + 0.125, 0);
+        roofCap.castShadow = true;
+        roofCap.receiveShadow = true;
+        tierGroup.add(roofCap);
+      }
+
+      coreGroup.add(tierGroup);
+      coreTiers.push(tierGroup);
     }
 
     fGroup.add(coreGroup);
@@ -419,6 +463,7 @@ export class BuildingComponents {
 
     this.elements.foundation = slab;
     this.elements.core = coreGroup;
+    this.elements.coreTiers = coreTiers;
   }
 
   // ==========================================================================
@@ -430,21 +475,23 @@ export class BuildingComponents {
     craneGroup.position.set(22, 0, -6);
 
     // 1. Base Foundation & Yellow Perimeter Safety Railing
+    const baseGroup = new THREE.Group();
     const baseSlab = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.8, 5.2), this.materials.concrete);
     baseSlab.position.y = 0.4;
     baseSlab.castShadow = true;
-    craneGroup.add(baseSlab);
+    baseGroup.add(baseSlab);
 
     // Base yellow ballast weights
     const baseBallast = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.0, 4.2), this.materials.craneGrey);
     baseBallast.position.y = 1.1;
     baseBallast.castShadow = true;
-    craneGroup.add(baseBallast);
+    baseGroup.add(baseBallast);
 
     // Yellow safety railing around base (matching Image 1)
     const baseRailing = this.createPerimeterRailing(4.8, 4.8, 0.9, this.materials.craneYellow);
     baseRailing.position.y = 1.6;
-    craneGroup.add(baseRailing);
+    baseGroup.add(baseRailing);
+    craneGroup.add(baseGroup);
 
     // 2. Telescopic Climbing Collar / Cage (lower section in Image 1)
     const collarHeight = 9.0;
@@ -761,6 +808,9 @@ export class BuildingComponents {
 
     this.elements.crane = {
       root: craneGroup,
+      baseGroup,
+      collarGroup,
+      mastGroup,
       slewingHead,
       trolleyGroup,
       blockGroup,
@@ -1336,12 +1386,14 @@ export class BuildingComponents {
     const wheelY = 0.55;
     const wheelRadius = 0.52;
     const wheelWidth = 0.38;
+    const wheels = [];
 
     // Front wheels (Single per side)
     [-1.25, 1.25].forEach((wz) => {
       const wheel = this.createDetailedWheel(wheelRadius, wheelWidth);
       wheel.position.set(5.6, wheelY, wz);
       truck.add(wheel);
+      wheels.push(wheel);
     });
 
     // Rear Tandem Dual Wheels (2 sets of dual tires per side = 8 rear wheels!)
@@ -1351,6 +1403,7 @@ export class BuildingComponents {
         const wheel = this.createDetailedWheel(wheelRadius, wheelWidth * 0.85);
         wheel.position.set(axleX, wheelY, wz);
         truck.add(wheel);
+        wheels.push(wheel);
       });
 
       // Right side dual tires
@@ -1358,9 +1411,11 @@ export class BuildingComponents {
         const wheel = this.createDetailedWheel(wheelRadius, wheelWidth * 0.85);
         wheel.position.set(axleX, wheelY, wz);
         truck.add(wheel);
+        wheels.push(wheel);
       });
     });
 
+    truck.userData.wheels = wheels;
     return truck;
   }
 
@@ -1535,6 +1590,104 @@ export class BuildingComponents {
     whGroup.add(forkliftGroup);
     this.elements.forklift = forkliftGroup;
 
+    // ==========================================================================
+    // Warehouse Completed Roof Envelope & Loading Dock Portals (Phase 6 Finish)
+    // ==========================================================================
+    const roofGroup = new THREE.Group();
+    roofGroup.name = 'WarehouseCompletedRoof';
+
+    // Standing seam insulated roof panels spanning across the trusses
+    const roofDeckGeo = new THREE.BoxGeometry(32.4, 0.45, 26.6);
+    const roofDeck = new THREE.Mesh(roofDeckGeo, this.materials.concreteCore);
+    roofDeck.position.set(0, 10.4, 0);
+    roofDeck.castShadow = true;
+    roofGroup.add(roofDeck);
+
+    // Longitudinal translucent polycarbonate skylight bands (raised to y = 10.66, cleanly atop roof deck at 10.625)
+    [-5, 5].forEach((skylightZ) => {
+      const skylight = new THREE.Mesh(
+        new THREE.BoxGeometry(30.0, 0.16, 2.4),
+        this.materials.glassFacade
+      );
+      skylight.position.set(0, 10.66, skylightZ);
+      roofGroup.add(skylight);
+    });
+
+    // Rooftop solar PV panels on warehouse roof (mounted on stanchions at y = 11.08 to prevent deck clipping)
+    for (let rx = -12; rx <= 12; rx += 4.5) {
+      [-9, 0, 9].forEach((rz) => {
+        const stanchion = new THREE.Mesh(
+          new THREE.BoxGeometry(0.08, 0.4, 1.8),
+          this.materials.steelSilver
+        );
+        stanchion.position.set(rx, 10.8, rz);
+        roofGroup.add(stanchion);
+
+        const solarModule = new THREE.Mesh(
+          new THREE.BoxGeometry(3.6, 0.08, 2.2),
+          this.materials.solarCell
+        );
+        solarModule.rotation.x = -Math.PI / 10;
+        solarModule.position.set(rx, 11.08, rz);
+        solarModule.castShadow = true;
+        roofGroup.add(solarModule);
+      });
+    }
+
+    // Front Loading Dock Wall with 3 Roll-up Shutter Portals (facing the apron)
+    const frontWallGroup = new THREE.Group();
+    const frontWallUpper = new THREE.Mesh(
+      new THREE.BoxGeometry(32, 5.0, 0.6),
+      this.materials.concreteCore
+    );
+    frontWallUpper.position.set(0, 7.8, 13);
+    frontWallUpper.castShadow = true;
+    frontWallGroup.add(frontWallUpper);
+
+    // Red corporate fascia header band (matching screenshot 1 & 5)
+    const frontRedBand = new THREE.Mesh(
+      new THREE.BoxGeometry(32.2, 1.4, 0.7),
+      this.materials.coreRedAccent
+    );
+    frontRedBand.position.set(0, 9.4, 13);
+    frontWallGroup.add(frontRedBand);
+
+    // 3 Loading Bay Door Portals
+    const dockBayX = [-11, -3, 5];
+    dockBayX.forEach((dx) => {
+      // Dark rollup shutter door
+      const door = new THREE.Mesh(
+        new THREE.BoxGeometry(4.2, 4.4, 0.2),
+        this.materials.steelDark
+      );
+      door.position.set(dx, 2.8, 13.05);
+      door.castShadow = true;
+      frontWallGroup.add(door);
+
+      // Yellow/black safety dock shelter perimeter frame
+      const shelter = new THREE.Mesh(
+        new THREE.BoxGeometry(4.6, 4.8, 0.4),
+        this.materials.safetyOrange
+      );
+      shelter.position.set(dx, 3.0, 13.2);
+      frontWallGroup.add(shelter);
+
+      // Rubber dock bumpers
+      [-1.9, 1.9].forEach((bx) => {
+        const bumper = new THREE.Mesh(
+          new THREE.BoxGeometry(0.3, 0.9, 0.3),
+          this.materials.rubberTire
+        );
+        bumper.position.set(dx + bx, 0.7, 13.35);
+        frontWallGroup.add(bumper);
+      });
+    });
+
+    roofGroup.add(frontWallGroup);
+    roofGroup.visible = false; // Controlled by timeline / cutaway toggle
+    whGroup.add(roofGroup);
+    this.elements.warehouseRoof = roofGroup;
+
     root.add(whGroup);
   }
 
@@ -1696,7 +1849,7 @@ export class BuildingComponents {
     const storyHeight = 4.2;
     const baseElevation = 0.9;
 
-    // South Facade
+    // South Facade (Hung at z = 14.35, cleanly outside structural column envelope at z = 14.225)
     for (let floor = 0; floor < stories; floor++) {
       const yPos = baseElevation + floor * storyHeight + storyHeight / 2;
 
@@ -1704,7 +1857,7 @@ export class BuildingComponents {
         new THREE.PlaneGeometry(23.5, storyHeight - 0.4),
         this.materials.glassLit
       );
-      interiorLightPlane.position.set(12, yPos, 13.8);
+      interiorLightPlane.position.set(12, yPos, 14.05);
       interiorLightPlane.visible = false;
       towerGroup.add(interiorLightPlane);
       this.elements.officeInteriorLights.push(interiorLightPlane);
@@ -1712,7 +1865,7 @@ export class BuildingComponents {
       for (let col = 0; col < 6; col++) {
         const xPos = 1.8 + col * 4.0;
         const panelGroup = new THREE.Group();
-        panelGroup.position.set(xPos, yPos, 14.1);
+        panelGroup.position.set(xPos, yPos, 14.35);
 
         const glass = new THREE.Mesh(new THREE.BoxGeometry(3.8, storyHeight - 0.2, 0.08), this.materials.glassFacade);
         glass.castShadow = true;
@@ -1729,14 +1882,14 @@ export class BuildingComponents {
       }
     }
 
-    // East Facade
+    // East Facade (Hung at x = 24.35, cleanly outside structural column envelope at x = 24.225)
     for (let floor = 0; floor < stories; floor++) {
       const yPos = baseElevation + floor * storyHeight + storyHeight / 2;
 
       for (let col = 0; col < 5; col++) {
         const zPos = -6 + col * 4.4;
         const panelGroup = new THREE.Group();
-        panelGroup.position.set(24.2, yPos, zPos);
+        panelGroup.position.set(24.35, yPos, zPos);
         panelGroup.rotation.y = Math.PI / 2;
 
         const glass = new THREE.Mesh(new THREE.BoxGeometry(4.2, storyHeight - 0.2, 0.08), this.materials.glassFacade);
@@ -1753,12 +1906,12 @@ export class BuildingComponents {
     // Modern Red Entrance Canopy (Ground floor)
     const canopyGeo = new THREE.BoxGeometry(8, 0.35, 4.5);
     const canopy = new THREE.Mesh(canopyGeo, this.materials.coreRedAccent);
-    canopy.position.set(12, 4.5, 16.2);
+    canopy.position.set(12, 4.5, 16.5);
     canopy.castShadow = true;
     towerGroup.add(canopy);
 
     const entranceGlass = new THREE.Mesh(new THREE.BoxGeometry(6, 3.8, 0.1), this.materials.glassLit);
-    entranceGlass.position.set(12, 2.5, 14.2);
+    entranceGlass.position.set(12, 2.5, 14.4);
     towerGroup.add(entranceGlass);
 
     root.add(towerGroup);
@@ -1770,11 +1923,11 @@ export class BuildingComponents {
     const roofY = 0.9 + 5 * 4.2;
 
     const parapetS = new THREE.Mesh(new THREE.BoxGeometry(24.6, 1.0, 0.4), this.materials.concrete);
-    parapetS.position.set(12, roofY + 0.5, 14.1);
+    parapetS.position.set(12, roofY + 0.5, 14.35);
     roofGroup.add(parapetS);
 
     const parapetE = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.0, 22.6), this.materials.concrete);
-    parapetE.position.set(24.1, roofY + 0.5, 3);
+    parapetE.position.set(24.35, roofY + 0.5, 3);
     roofGroup.add(parapetE);
 
     // Solar PV Panels
@@ -1826,21 +1979,21 @@ export class BuildingComponents {
 
     const ballast = new THREE.Mesh(new THREE.PlaneGeometry(160, 14), this.materials.railGravel);
     ballast.rotation.x = -Math.PI / 2;
-    ballast.position.y = 0.02;
+    ballast.position.y = 0.10;
     ballast.receiveShadow = true;
     railGroup.add(ballast);
 
-    // Dual Tracks
+    // Dual Tracks (clean vertical layering: ballast at y=0.10, ties at y=0.16, rails at y=0.28)
     [-3, 3].forEach((trackZ) => {
       [-0.8, 0.8].forEach((railOffset) => {
         const rail = new THREE.Mesh(new THREE.BoxGeometry(160, 0.15, 0.1), this.materials.railTrack);
-        rail.position.set(0, 0.2, trackZ + railOffset);
+        rail.position.set(0, 0.28, trackZ + railOffset);
         railGroup.add(rail);
       });
 
       for (let rx = -75; rx <= 75; rx += 1.8) {
         const tie = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 2.2), this.materials.steelDark);
-        tie.position.set(rx, 0.08, trackZ);
+        tie.position.set(rx, 0.16, trackZ);
         railGroup.add(tie);
       }
     });
@@ -1907,23 +2060,24 @@ export class BuildingComponents {
     const fleetGroup = new THREE.Group();
     fleetGroup.name = 'VehicleFleet';
 
-    // Detailed Trucks matching Image 2 & reference screenshots
-    // Truck 1: Blue & White (matching Image 2)
+    // Truck 1: Blue & White (matching Image 2) - Parked at Loading Dock Bay 1, FACING SOUTH (+Z) towards the road!
     const truck1 = this.createDeliveryTruck(this.materials.truckBlue);
-    truck1.position.set(-16, 0, 24);
+    truck1.position.set(-14, 0.10, 22);
+    truck1.rotation.y = -Math.PI / 2; // Cab faces South (+Z)
     fleetGroup.add(truck1);
     this.elements.trucks.push(truck1);
 
-    // Truck 2: Red & White (Emons style)
+    // Truck 2: Red & White (Emons style) - Parked at Loading Dock Bay 2, FACING SOUTH (+Z)
     const truck2 = this.createDeliveryTruck(this.materials.truckRed);
-    truck2.position.set(-5, 0, 24);
+    truck2.position.set(-5, 0.10, 22);
+    truck2.rotation.y = -Math.PI / 2; // Cab faces South (+Z)
     fleetGroup.add(truck2);
     this.elements.trucks.push(truck2);
 
-    // Truck 3: Highway transit truck
+    // Truck 3: Highway transit truck driving along front highway (z = 34), FACING EAST (+X)
     const truck3 = this.createDeliveryTruck(this.materials.truckBlue);
-    truck3.position.set(38, 0, 8);
-    truck3.rotation.y = Math.PI / 2;
+    truck3.position.set(38, 0.08, 34);
+    truck3.rotation.y = 0; // Cab faces East (+X along road)
     fleetGroup.add(truck3);
     this.elements.trucks.push(truck3);
 

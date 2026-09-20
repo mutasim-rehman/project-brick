@@ -23,6 +23,7 @@ export class ConstructionTimeline {
     this.targetProgress = 0;
     this.lastPhaseIndex = -1;
     this.excavatorTime = 0;
+    this.manualCutawayOverride = null;
 
     // Cache initial transforms
     this.cacheInitialTransforms();
@@ -105,6 +106,27 @@ export class ConstructionTimeline {
     this.elements.trucks.forEach((truck) => {
       truck.userData.targetPos = truck.position.clone();
     });
+
+    if (this.elements.coreTiers) {
+      this.elements.coreTiers.forEach((tier) => {
+        tier.userData.targetY = tier.position.y;
+      });
+    }
+
+    if (this.elements.warehouseRoof) {
+      this.elements.warehouseRoof.userData.targetY = this.elements.warehouseRoof.position.y;
+    }
+  }
+
+  toggleWarehouseRoof() {
+    if (!this.elements.warehouseRoof) return false;
+    if (this.manualCutawayOverride === null) {
+      this.manualCutawayOverride = !this.elements.warehouseRoof.visible;
+    } else {
+      this.manualCutawayOverride = !this.manualCutawayOverride;
+    }
+    this.elements.warehouseRoof.visible = this.manualCutawayOverride;
+    return this.elements.warehouseRoof.visible;
   }
 
   setProgress(p, instant = false) {
@@ -208,9 +230,9 @@ export class ConstructionTimeline {
         const pTransit = (t - 0.22) / 0.16;
         ex.root.visible = true;
 
-        ex.root.position.x = 22 + pTransit * 10;
-        ex.root.position.z = 4 + pTransit * 16;
-        ex.root.rotation.y = -Math.PI * 0.75 + pTransit * Math.PI * 0.65;
+        ex.root.position.x = 22 + pTransit * 13;
+        ex.root.position.z = 4 + pTransit * 4;
+        ex.root.rotation.y = -Math.PI * 0.75 + pTransit * (Math.PI * 0.25);
 
         // Fold boom into resting travel safety cradle
         ex.house.rotation.y = 0;
@@ -225,10 +247,10 @@ export class ConstructionTimeline {
           });
         }
       } else {
-        // Phase 3-6: Remains cleanly parked at perimeter staging zone near site office
+        // Phase 3-6: Cleanly parked at equipment staging bay (35, 0, 8), clear of site office container
         ex.root.visible = true;
-        ex.root.position.set(32, 0, 20);
-        ex.root.rotation.y = -0.3;
+        ex.root.position.set(35, 0, 8);
+        ex.root.rotation.y = -Math.PI / 2;
         ex.house.rotation.y = 0;
         ex.boomPivot.rotation.z = -0.32;
         ex.stickPivot.rotation.z = 0.65;
@@ -243,46 +265,110 @@ export class ConstructionTimeline {
       }
     }
 
-    // 2. Foundation & Concrete Core (0.12 to 0.42)
+    // 2. Foundation & Modular Concrete Core (0.10 to 0.38)
     if (this.elements.foundation) {
-      const fProg = smoothstep(0.10, 0.24, t);
+      const fProg = smoothstep(0.10, 0.22, t);
       this.elements.foundation.visible = fProg > 0.01;
-      this.elements.foundation.scale.set(1, Math.max(0.01, fProg), 1);
-      this.elements.foundation.position.y = 0.45 * fProg;
+      if (this.elements.foundation.visible) {
+        // Substructure concrete raft sets squarely onto bedrock
+        const fallOffset = (1 - fProg) * 3.0;
+        this.elements.foundation.position.y = 0.45 - fallOffset;
+        this.elements.foundation.scale.set(1, 1, 1);
+      }
     }
 
-    if (this.elements.core) {
+    // Modular Shear Core: 5 distinct vertical floor tiers assemble sequentially (no rubber stretching from ground!)
+    if (this.elements.coreTiers && this.elements.coreTiers.length > 0) {
+      const tierStarts = [0.16, 0.20, 0.24, 0.28, 0.32];
+      const tierDuration = 0.05;
+
+      this.elements.coreTiers.forEach((tier, idx) => {
+        const start = tierStarts[idx] || (0.16 + idx * 0.04);
+        const tierProg = smoothstep(start, start + tierDuration, t);
+        tier.visible = tierProg > 0.01;
+        if (tier.visible) {
+          tier.scale.set(1, 1, 1);
+          // Solid slipform tier sets firmly into place (2.0m vertical placement)
+          const slideY = (1 - tierProg) * 2.0;
+          tier.position.y = -slideY;
+        }
+      });
+    } else if (this.elements.core) {
       const coreProg = smoothstep(0.18, 0.38, t);
       this.elements.core.visible = coreProg > 0.01;
-      this.elements.core.scale.set(1, Math.max(0.01, coreProg), 1);
-      this.elements.core.position.y = (coreProg - 1) * 12;
+      this.elements.core.scale.set(1, 1, 1);
     }
 
-    // 3. Realistic Luffing Tower Crane (0.28 to 0.90)
+    // 3. Realistic Modular Tower Crane Erection & Operation (0.24 to 0.94 - NO 2D squashing!)
     if (this.elements.crane && this.elements.crane.root) {
       const crane = this.elements.crane;
-      const craneProg = smoothstep(0.24, 0.36, t);
-      crane.root.visible = craneProg > 0.01 && t < 0.95;
-      crane.root.scale.set(1, Math.max(0.01, craneProg), 1);
+      crane.root.scale.set(1, 1, 1); // NEVER squash into 2D!
 
-      if (crane.root.visible) {
-        // Rotate crane slewing head realistically
-        const jibAngle = -Math.PI / 4 + Math.sin(t * 16) * 0.85 + t * 2.2;
-        crane.slewingHead.rotation.y = jibAngle;
-
-        // Slide trolley along triangular lattice jib
-        const trolleyZ = -8 - Math.sin(t * 22) * 11;
-        crane.trolleyGroup.position.z = trolleyZ;
-
-        // Hoist cable raising & lowering block
-        if (crane.blockGroup) {
-          crane.blockGroup.position.y = -10.0 + Math.sin(t * 26) * 3.5;
+      if (t < 0.24) {
+        crane.root.visible = false;
+      } else if (t < 0.28) {
+        // Stage 1: Base concrete pad and climbing collar set in place at ground level
+        crane.root.visible = true;
+        if (crane.baseGroup) crane.baseGroup.visible = true;
+        if (crane.collarGroup) {
+          crane.collarGroup.visible = true;
+          crane.collarGroup.position.y = 1.6;
+        }
+        if (crane.mastGroup) crane.mastGroup.visible = false;
+        if (crane.slewingHead) crane.slewingHead.visible = false;
+      } else if (t < 0.34) {
+        // Stage 2: Modular lattice mast climbs vertically through the collar at full 3D volume
+        crane.root.visible = true;
+        if (crane.baseGroup) crane.baseGroup.visible = true;
+        if (crane.collarGroup) {
+          crane.collarGroup.visible = true;
+          crane.collarGroup.position.y = 1.6 + 6.0;
+        }
+        if (crane.mastGroup) {
+          crane.mastGroup.visible = true;
+          const climbProg = smoothstep(0.28, 0.34, t);
+          crane.mastGroup.position.y = 1.6 - (1 - climbProg) * 26;
+        }
+        if (crane.slewingHead) crane.slewingHead.visible = false;
+      } else {
+        // Stage 3 & 4: Mast fully erect, slewing head & jibs locked on top, active operation
+        crane.root.visible = t < 0.96;
+        if (crane.baseGroup) crane.baseGroup.visible = true;
+        if (crane.collarGroup) {
+          crane.collarGroup.visible = true;
+          crane.collarGroup.position.y = 1.6 + 8.0;
+        }
+        if (crane.mastGroup) {
+          crane.mastGroup.visible = true;
+          crane.mastGroup.position.y = 1.6;
+        }
+        if (crane.slewingHead) {
+          crane.slewingHead.visible = true;
+          const headProg = smoothstep(0.34, 0.38, t);
+          crane.slewingHead.position.y = (1.6 + 32) + (1 - headProg) * 4;
         }
 
-        // Suspended steel beam with gentle pendulum swing
-        if (crane.suspendedBeam) {
-          crane.suspendedBeam.visible = t < 0.68;
-          crane.suspendedBeam.rotation.y = Math.PI / 2 + Math.sin(t * 30) * 0.16;
+        if (crane.root.visible && crane.slewingHead) {
+          // Dynamic slewing rotation over front staging and superstructure (avoids clipping into core)
+          const jibAngle = 0.30 + Math.sin(t * 12) * 0.55;
+          crane.slewingHead.rotation.y = jibAngle;
+
+          // Slide trolley along triangular lattice jib within structural frame boundaries
+          if (crane.trolleyGroup) {
+            const trolleyZ = -12 - Math.sin(t * 16) * 7.5;
+            crane.trolleyGroup.position.z = trolleyZ;
+          }
+
+          // Hoist cable raising & lowering block
+          if (crane.blockGroup) {
+            crane.blockGroup.position.y = -9.5 + Math.sin(t * 20) * 2.8;
+          }
+
+          // Suspended steel beam with gentle pendulum swing
+          if (crane.suspendedBeam) {
+            crane.suspendedBeam.visible = t < 0.68;
+            crane.suspendedBeam.rotation.y = Math.PI / 2 + Math.sin(t * 24) * 0.12;
+          }
         }
       }
     }
@@ -413,20 +499,71 @@ export class ConstructionTimeline {
       hvac.visible = hProg > 0.01;
     });
 
-    // 7. Completed Campus Handover & Lighting (0.88 to 1.0)
+    // Warehouse Completed Roof & Loading Dock Portals Enclosure (Phase 5 & 6)
+    if (this.elements.warehouseRoof) {
+      if (this.manualCutawayOverride !== null) {
+        this.elements.warehouseRoof.visible = this.manualCutawayOverride;
+        this.elements.warehouseRoof.position.y = 0;
+      } else {
+        // Encloses cleanly at Phase 5 & 6 (t >= 0.76)
+        const rProg = smoothstep(0.76, 0.86, t);
+        this.elements.warehouseRoof.visible = rProg > 0.01;
+        if (this.elements.warehouseRoof.visible) {
+          const slideY = (1 - rProg) * 3.5;
+          this.elements.warehouseRoof.position.y = slideY;
+        }
+      }
+    }
+
+    // 7. Completed Campus Handover & Delivery Fleet (0.82 to 1.0)
     // Turn on interior warm lights through the glass
     const lightsOn = t >= 0.89;
     this.elements.officeInteriorLights.forEach((light) => {
       light.visible = lightsOn;
     });
 
-    // Delivery trucks arriving
+    // Delivery trucks arriving realistically along their travel direction
     this.elements.trucks.forEach((truck, idx) => {
-      const truckProg = smoothstep(0.82 + idx * 0.04, 0.96 + idx * 0.04, t);
+      const truckProg = smoothstep(0.82 + idx * 0.05, 0.96 + idx * 0.05, t);
       truck.visible = truckProg > 0.01;
       if (truck.visible) {
-        const offset = (1 - truckProg) * 35;
-        truck.position.x = truck.userData.targetPos.x - offset;
+        if (idx < 2) {
+          // Dock Trucks (Blue & Red): Arrive along Z-axis from SOUTH road (+Z) backing into dock bay!
+          // From z = 52 (front road/apron entry) to z = 22 (dock parking position)
+          const zOffset = (1 - truckProg) * 30; // 30 units along Z
+          truck.position.z = truck.userData.targetPos.z + zOffset;
+          truck.position.x = truck.userData.targetPos.x;
+
+          // Realistic wheel rolling as the truck backs into the bay
+          if (truck.userData.wheels) {
+            const rollAngle = -zOffset / 0.7; // roll proportional to distance
+            truck.userData.wheels.forEach((w) => {
+              if (w.children && w.children[0]) {
+                w.children[0].rotation.z = rollAngle;
+              }
+              if (w.children && w.children[1]) {
+                w.children[1].rotation.z = rollAngle;
+              }
+            });
+          }
+        } else {
+          // Highway Transit Truck (truck 2): Drives forward along FRONT ROAD (+X East)
+          const xOffset = (1 - truckProg) * 60;
+          truck.position.x = truck.userData.targetPos.x - xOffset;
+          truck.position.z = truck.userData.targetPos.z;
+
+          if (truck.userData.wheels) {
+            const rollAngle = truck.position.x / 0.7;
+            truck.userData.wheels.forEach((w) => {
+              if (w.children && w.children[0]) {
+                w.children[0].rotation.z = rollAngle;
+              }
+              if (w.children && w.children[1]) {
+                w.children[1].rotation.z = rollAngle;
+              }
+            });
+          }
+        }
       }
     });
 

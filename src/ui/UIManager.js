@@ -26,8 +26,10 @@ export class UIManager {
     this.progressFill = document.getElementById('timeline-progress-bar');
     this.progressPercent = document.getElementById('timeline-percent');
     this.timelineNodes = document.querySelectorAll('.timeline-node');
+    this.navLinks = document.querySelectorAll('.nav-link');
 
     this.btnOrbit = document.getElementById('btn-orbit-toggle');
+    this.btnRoof = document.getElementById('btn-roof-toggle');
     this.btnBlueprint = document.getElementById('btn-blueprint-toggle');
     this.btnLighting = document.getElementById('btn-lighting-toggle');
     this.btnAudio = document.getElementById('btn-audio-toggle');
@@ -84,6 +86,16 @@ export class UIManager {
         this.btnOrbit.classList.toggle('active', isFree);
         this.btnOrbit.querySelector('.toggle-label').textContent = isFree ? 'Free 3D Orbit (Active)' : 'Guided Tour';
         sound.playClick(isFree ? 650 : 450);
+      });
+    }
+
+    // Warehouse roof / cutaway toggle
+    if (this.btnRoof) {
+      this.btnRoof.addEventListener('click', () => {
+        const isRoofVisible = this.world.toggleWarehouseRoof();
+        this.btnRoof.classList.toggle('active', isRoofVisible);
+        this.btnRoof.querySelector('.toggle-label').textContent = isRoofVisible ? 'Roof Enclosed' : 'Cutaway Interior';
+        sound.playClick(isRoofVisible ? 620 : 480);
       });
     }
 
@@ -308,6 +320,14 @@ export class UIManager {
         node.classList.remove('active', 'completed');
       }
     });
+
+    // 4. Synchronize Header Navigation Links
+    if (this.navLinks) {
+      this.navLinks.forEach((link, idx) => {
+        const linkPhaseId = idx + 1;
+        link.classList.toggle('active', linkPhaseId === this.currentPhaseId);
+      });
+    }
   }
 
   renderPhase(phase) {

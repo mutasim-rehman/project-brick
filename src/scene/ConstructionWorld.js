@@ -35,20 +35,21 @@ export class ConstructionWorld {
     this.scene.background = new THREE.Color(0xf4f6f9);
     this.scene.fog = new THREE.FogExp2(0xf4f6f9, 0.008);
 
-    // 2. Camera (Telephoto perspective for crisp isometric look)
-    this.camera = new THREE.PerspectiveCamera(38, width / height, 0.5, 500);
+    // 2. Camera (Telephoto perspective with high-precision logarithmic depth buffer)
+    this.camera = new THREE.PerspectiveCamera(38, width / height, 0.8, 350);
     this.camera.position.set(34, 26, 38);
 
-    // 3. Renderer
+    // 3. Renderer with Logarithmic Depth Buffer to eliminate Z-fighting
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: 'high-performance',
-      alpha: false
+      alpha: false,
+      logarithmicDepthBuffer: true
     });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
 
@@ -153,7 +154,10 @@ export class ConstructionWorld {
 
     const blueprintMat = new THREE.MeshBasicMaterial({
       color: 0x00f2fe,
-      wireframe: true
+      wireframe: true,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1
     });
 
     this.scene.traverse((obj) => {
@@ -188,6 +192,13 @@ export class ConstructionWorld {
       this.timeline.interpolateCamera(this.timeline.currentProgress);
     }
     return this.isFreeOrbit;
+  }
+
+  toggleWarehouseRoof() {
+    if (this.timeline) {
+      return this.timeline.toggleWarehouseRoof();
+    }
+    return false;
   }
 
   onResize() {
