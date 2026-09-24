@@ -346,25 +346,25 @@ export class BuildingComponents {
     this.elements.siteDirt = siteDirt;
 
     // Surrounding asphalt roads (elevated to y = 0.10 to prevent Z-fighting)
-    const frontRoadGeo = new THREE.PlaneGeometry(160, 10);
+    const frontRoadGeo = new THREE.PlaneGeometry(520, 10);
     const frontRoad = new THREE.Mesh(frontRoadGeo, this.materials.asphalt);
     frontRoad.rotation.x = -Math.PI / 2;
     frontRoad.position.set(0, 0.10, 34);
     frontRoad.receiveShadow = true;
     terrainGroup.add(frontRoad);
 
-    for (let x = -70; x <= 70; x += 8) {
-      const stripeGeo = new THREE.PlaneGeometry(4, 0.4);
-      const stripe = new THREE.Mesh(stripeGeo, this.materials.roadStripe);
-      stripe.rotation.x = -Math.PI / 2;
-      stripe.position.set(x, 0.14, 34);
-      terrainGroup.add(stripe);
-    }
+    const stripeGeo = new THREE.PlaneGeometry(4, 0.4);
+    stripeGeo.rotateX(-Math.PI / 2);
+    const stripeXs = [];
+    for (let x = -256; x <= 256; x += 8) stripeXs.push(x);
+    const stripes = new THREE.InstancedMesh(stripeGeo, this.materials.roadStripe, stripeXs.length);
+    stripeXs.forEach((x, i) => stripes.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.14, 34)));
+    terrainGroup.add(stripes);
 
-    const sideRoadGeo = new THREE.PlaneGeometry(10, 80);
+    const sideRoadGeo = new THREE.PlaneGeometry(10, 250);
     const sideRoad = new THREE.Mesh(sideRoadGeo, this.materials.asphalt);
     sideRoad.rotation.x = -Math.PI / 2;
-    sideRoad.position.set(38, 0.10, -5);
+    sideRoad.position.set(38, 0.10, -90);
     sideRoad.receiveShadow = true;
     terrainGroup.add(sideRoad);
 
@@ -2289,26 +2289,25 @@ export class BuildingComponents {
     railGroup.name = 'RailAndGantryIntermodal';
     railGroup.position.set(0, 0, -26);
 
-    const ballast = new THREE.Mesh(new THREE.PlaneGeometry(160, 14), this.materials.railGravel);
+    const ballast = new THREE.Mesh(new THREE.PlaneGeometry(520, 14), this.materials.railGravel);
     ballast.rotation.x = -Math.PI / 2;
     ballast.position.y = 0.10;
     ballast.receiveShadow = true;
     railGroup.add(ballast);
 
     // Dual Tracks (clean vertical layering: ballast at y=0.10, ties at y=0.16, rails at y=0.28)
+    const tiePositions = [];
     [-3, 3].forEach((trackZ) => {
       [-0.8, 0.8].forEach((railOffset) => {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(160, 0.15, 0.1), this.materials.railTrack);
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(520, 0.15, 0.1), this.materials.railTrack);
         rail.position.set(0, 0.28, trackZ + railOffset);
         railGroup.add(rail);
       });
-
-      for (let rx = -75; rx <= 75; rx += 1.8) {
-        const tie = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 2.2), this.materials.steelDark);
-        tie.position.set(rx, 0.16, trackZ);
-        railGroup.add(tie);
-      }
+      for (let rx = -258; rx <= 258; rx += 1.8) tiePositions.push([rx, trackZ]);
     });
+    const ties = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.1, 2.2), this.materials.steelDark, tiePositions.length);
+    tiePositions.forEach(([x, z], i) => ties.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.16, z)));
+    railGroup.add(ties);
 
     // Massive Red Portal Gantry Crane (matching screenshot 3)
     const gantryGroup = new THREE.Group();
