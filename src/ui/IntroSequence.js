@@ -113,6 +113,7 @@ export class IntroSequence {
   }
 
   finish() {
+    gsap.ticker.lagSmoothing(500, 33);
     document.documentElement.classList.remove('is-intro');
     if (this.loader) this.loader.remove();
     this.loader = null;
