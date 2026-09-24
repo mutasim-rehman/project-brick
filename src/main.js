@@ -1,6 +1,7 @@
 import './style.css';
 import { ConstructionWorld } from './scene/ConstructionWorld.js';
 import { UIManager } from './ui/UIManager.js';
+import { IntroSequence } from './ui/IntroSequence.js';
 import { sound } from './audio/SoundEffects.js';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -19,6 +20,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Initialize UI Manager
   uiManager = new UIManager(world);
+  if (import.meta.env.DEV) window.__world = world;
+
+  // Cinematic landing sequence; waits for shader compilation so the reveal never stutters
+  const intro = new IntroSequence(world);
+  const ready = world.renderer
+    .compileAsync(world.scene, world.camera)
+    .catch(() => {});
+  intro.play(ready);
 
   // Smooth Scroll Controller
   let ticking = false;
@@ -32,6 +41,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Update UI HUD & timeline progress bar
     uiManager.onScrollUpdate(progress);
+    intro.onScroll(progress);
 
     ticking = false;
   };

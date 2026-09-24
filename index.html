@@ -11,8 +11,49 @@
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
+    <!-- Blueprint preloader: wiped away to reveal the drone fly-in -->
+    <div id="intro-loader" class="intro-loader" aria-hidden="true">
+      <div class="loader-grid"></div>
+      <div class="loader-center">
+        <svg class="loader-blueprint" viewBox="0 0 320 170" fill="none">
+          <path class="bp-draw bp-faint" d="M10 150 H310" />
+          <path class="bp-draw" d="M40 150 V92 H132 V150" />
+          <path class="bp-draw bp-faint" d="M40 118 H132 M72 92 V150 M104 92 V150" />
+          <path class="bp-draw" d="M150 150 V40 H236 V150" />
+          <path class="bp-draw bp-faint" d="M150 62 H236 M150 84 H236 M150 106 H236 M150 128 H236" />
+          <path class="bp-draw bp-faint" d="M172 40 V150 M193 40 V150 M214 40 V150" />
+          <path class="bp-draw bp-accent" d="M262 150 V22 M254 22 H316 M262 22 L282 8 L316 22 M296 22 V58" />
+          <path class="bp-draw bp-accent" d="M254 22 H242 V30 H254" />
+          <path class="bp-draw bp-faint" d="M262 40 L270 48 M262 56 L270 64 M262 72 L270 80 M262 88 L270 96 M262 104 L270 112 M262 120 L270 128" />
+        </svg>
+        <div class="loader-brand">
+          <span class="logo-badge">BRICK</span>
+          <span class="loader-name">AXIS CONSTRUCT</span>
+        </div>
+        <div class="loader-bar"><span id="loader-bar-fill"></span></div>
+        <div class="loader-meta">
+          <span id="loader-status">Surveying site</span>
+          <span><span id="loader-count">000</span>%</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 3D Canvas Viewport -->
     <div id="webgl-canvas-container"></div>
+
+    <!-- Landing hero copy (fades as the construction story begins) -->
+    <section id="hero-overlay" class="hero-overlay">
+      <div class="hero-kicker"><span class="hero-live-dot"></span>Live site &middot; Stage 01 of 06</div>
+      <h1 class="hero-title">
+        <span class="hero-line"><span>From first excavation</span></span>
+        <span class="hero-line"><span>to <em>finished campus.</em></span></span>
+      </h1>
+      <p class="hero-sub">Scroll to build a next-gen industrial headquarters &mdash; groundwork, structure, envelope and handover, engineered in real time.</p>
+      <div class="hero-scroll">
+        <span class="hero-mouse"><span class="hero-wheel"></span></span>
+        <span>Scroll to build</span>
+      </div>
+    </section>
 
     <!-- Top Navigation Bar (Emons-inspired modern architectural header) -->
     <header class="app-header">
