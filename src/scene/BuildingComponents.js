@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import { createNoiseTexture, createSiteDirtTexture } from './SiteEnvironment.js';
+
+// Excavation footprint shared by the terrain cut-out, pit, raft foundation and timeline
+export const PIT = { x0: -2, x1: 27, z0: -11, z1: 15, depth: 2.6 };
+export const DIG_STRIPS = 8;
 
 // Procedural 3D model generator with high-fidelity mechanical details for the excavator, tower crane, warehouse, trucks, and infrastructure
 export class BuildingComponents {
@@ -6,23 +11,34 @@ export class BuildingComponents {
     this.materials = this.createMaterials();
     this.elements = {
       ground: null,
+      siteDirt: null,
       excavation: null,
+      digStrips: [],
+      soilMounds: [],
+      earthmover: null,
+      rebar: null,
       foundation: null,
+      pileCaps: [],
       core: null,
       coreTiers: [],
+      coreFormwork: null,
       crane: null,
       steelColumns: [],
       steelBeams: [],
       floorSlabs: [],
+      laydownSteel: null,
       warehouseWalls: [],
       warehouseTrusses: [],
       warehouseRacks: [],
       warehouseBoxes: [],
       warehouseRoof: null,
       conveyors: [],
+      conveyorParcels: [],
       forklift: null,
       facadePanels: [],
       officeInteriorLights: [],
+      entrance: [],
+      parapets: [],
       solarPanels: [],
       hvacUnits: [],
       trees: [],
@@ -30,28 +46,71 @@ export class BuildingComponents {
       railGantry: null,
       trains: [],
       fencing: [],
-      excavator: null,
-      particles: null
+      excavator: null
     };
   }
 
   createMaterials() {
+    const groundNoise = createNoiseTexture(256, 0.08, 1 / 10);
+    const soilNoise = createNoiseTexture(256, 0.22, 1 / 5);
+    const concreteNoise = createNoiseTexture(256, 0.06, 1 / 6);
+
     return {
       ground: new THREE.MeshStandardMaterial({
         color: 0xeaf6f8,
+        map: groundNoise,
         roughness: 0.95,
         metalness: 0.05,
         polygonOffset: true,
         polygonOffsetFactor: 2,
         polygonOffsetUnits: 2
       }),
+      siteDirt: new THREE.MeshStandardMaterial({
+        map: createSiteDirtTexture(),
+        roughness: 1.0,
+        metalness: 0.0,
+        transparent: true,
+        opacity: 1,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1
+      }),
       excavationSoil: new THREE.MeshStandardMaterial({
         color: 0xb59b82,
+        map: soilNoise,
         roughness: 0.98,
         metalness: 0.0,
       }),
+      digSoil: new THREE.MeshStandardMaterial({
+        color: 0xa3876a,
+        roughness: 1.0,
+        metalness: 0.0,
+      }),
+      pitWallSoil: new THREE.MeshStandardMaterial({
+        color: 0x8f735a,
+        map: soilNoise,
+        roughness: 1.0,
+        metalness: 0.0,
+      }),
+      rebar: new THREE.MeshStandardMaterial({
+        color: 0x8a4a2b,
+        roughness: 0.55,
+        metalness: 0.7,
+      }),
+      formwork: new THREE.MeshStandardMaterial({
+        color: 0xf2a33a,
+        roughness: 0.7,
+        metalness: 0.05,
+      }),
+      pourConcrete: new THREE.MeshStandardMaterial({
+        color: 0xdde2ea,
+        map: concreteNoise,
+        roughness: 0.85,
+        metalness: 0.1,
+      }),
       concrete: new THREE.MeshStandardMaterial({
         color: 0xdde2ea,
+        map: concreteNoise,
         roughness: 0.85,
         metalness: 0.1,
       }),
@@ -242,45 +301,70 @@ export class BuildingComponents {
     this.buildRailAndGantryCrane(root);
     this.buildVehiclesAndMachinery(root);
     this.buildLandscapingAndTrees(root);
-    this.buildSparksAndAtmosphere(root);
 
     scene.add(root);
     this.root = root;
     return this.elements;
   }
 
+  // Flat ground rectangle (XZ) with the excavation footprint punched out
+  createGroundWithPit(x0, x1, z0, z1) {
+    const shape = new THREE.Shape();
+    shape.moveTo(x0, -z1);
+    shape.lineTo(x1, -z1);
+    shape.lineTo(x1, -z0);
+    shape.lineTo(x0, -z0);
+    shape.lineTo(x0, -z1);
+
+    const hole = new THREE.Path();
+    hole.moveTo(PIT.x0, -PIT.z1);
+    hole.lineTo(PIT.x0, -PIT.z0);
+    hole.lineTo(PIT.x1, -PIT.z0);
+    hole.lineTo(PIT.x1, -PIT.z1);
+    hole.lineTo(PIT.x0, -PIT.z1);
+    shape.holes.push(hole);
+
+    const geo = new THREE.ShapeGeometry(shape);
+    geo.rotateX(-Math.PI / 2);
+    return geo;
+  }
+
   buildTerrainAndRoads(root) {
     const terrainGroup = new THREE.Group();
 
-    // Main base ground
-    const groundGeo = new THREE.PlaneGeometry(160, 160);
-    const ground = new THREE.Mesh(groundGeo, this.materials.ground);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = 0.0;
+    // Main base ground (large enough to dissolve into the horizon fog)
+    const ground = new THREE.Mesh(this.createGroundWithPit(-300, 300, -300, 300), this.materials.ground);
     ground.receiveShadow = true;
     terrainGroup.add(ground);
     this.elements.ground = ground;
 
+    // Compacted construction-site earth, faded out at handover to reveal the finished grounds
+    const siteDirt = new THREE.Mesh(this.createGroundWithPit(-40, 33, -19, 29), this.materials.siteDirt);
+    siteDirt.position.y = 0.03;
+    siteDirt.receiveShadow = true;
+    terrainGroup.add(siteDirt);
+    this.elements.siteDirt = siteDirt;
+
     // Surrounding asphalt roads (elevated to y = 0.10 to prevent Z-fighting)
-    const frontRoadGeo = new THREE.PlaneGeometry(160, 10);
+    const frontRoadGeo = new THREE.PlaneGeometry(520, 10);
     const frontRoad = new THREE.Mesh(frontRoadGeo, this.materials.asphalt);
     frontRoad.rotation.x = -Math.PI / 2;
     frontRoad.position.set(0, 0.10, 34);
     frontRoad.receiveShadow = true;
     terrainGroup.add(frontRoad);
 
-    for (let x = -70; x <= 70; x += 8) {
-      const stripeGeo = new THREE.PlaneGeometry(4, 0.4);
-      const stripe = new THREE.Mesh(stripeGeo, this.materials.roadStripe);
-      stripe.rotation.x = -Math.PI / 2;
-      stripe.position.set(x, 0.14, 34);
-      terrainGroup.add(stripe);
-    }
+    const stripeGeo = new THREE.PlaneGeometry(4, 0.4);
+    stripeGeo.rotateX(-Math.PI / 2);
+    const stripeXs = [];
+    for (let x = -256; x <= 256; x += 8) stripeXs.push(x);
+    const stripes = new THREE.InstancedMesh(stripeGeo, this.materials.roadStripe, stripeXs.length);
+    stripeXs.forEach((x, i) => stripes.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.14, 34)));
+    terrainGroup.add(stripes);
 
-    const sideRoadGeo = new THREE.PlaneGeometry(10, 80);
+    const sideRoadGeo = new THREE.PlaneGeometry(10, 250);
     const sideRoad = new THREE.Mesh(sideRoadGeo, this.materials.asphalt);
     sideRoad.rotation.x = -Math.PI / 2;
-    sideRoad.position.set(38, 0.10, -5);
+    sideRoad.position.set(38, 0.10, -90);
     sideRoad.receiveShadow = true;
     terrainGroup.add(sideRoad);
 
@@ -307,72 +391,145 @@ export class BuildingComponents {
     const pitGroup = new THREE.Group();
     pitGroup.name = 'ExcavationPitGroup';
 
-    // Excavation trench (recessed cleanly below ground level at y = -0.75, top at y = -0.05)
-    const pitFloorGeo = new THREE.BoxGeometry(31.6, 1.4, 27.6);
-    const pitFloor = new THREE.Mesh(pitFloorGeo, this.materials.excavationSoil);
-    pitFloor.position.set(12, -0.75, 2);
+    const pitW = PIT.x1 - PIT.x0;
+    const pitD = PIT.z1 - PIT.z0;
+    const pitCx = (PIT.x0 + PIT.x1) / 2;
+    const pitCz = (PIT.z0 + PIT.z1) / 2;
+
+    // Formation level at the bottom of the dig
+    const pitFloor = new THREE.Mesh(new THREE.BoxGeometry(pitW, 0.4, pitD), this.materials.pitWallSoil);
+    pitFloor.position.set(pitCx, -PIT.depth - 0.2, pitCz);
     pitFloor.receiveShadow = true;
     pitGroup.add(pitFloor);
 
-    // Trench sloped soil embankments (top at y = 0.0)
-    const wallNorth = new THREE.Mesh(new THREE.BoxGeometry(32.8, 1.2, 0.8), this.materials.excavationSoil);
-    wallNorth.position.set(12, -0.60, -12);
-    pitGroup.add(wallNorth);
+    // Undisturbed soil, excavated strip by strip (bottom-anchored so the timeline can lower each strip)
+    const stripW = pitW / DIG_STRIPS;
+    for (let i = 0; i < DIG_STRIPS; i++) {
+      const stripGeo = new THREE.BoxGeometry(stripW, PIT.depth, pitD);
+      stripGeo.translate(0, PIT.depth / 2, 0);
+      const strip = new THREE.Mesh(stripGeo, this.materials.digSoil);
+      strip.position.set(PIT.x1 - stripW * (i + 0.5), -PIT.depth, pitCz);
+      strip.receiveShadow = true;
+      strip.castShadow = true;
+      pitGroup.add(strip);
+      this.elements.digStrips.push(strip);
+    }
 
-    const wallEast = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 28.8), this.materials.excavationSoil);
-    wallEast.position.set(28, -0.60, 2);
-    pitGroup.add(wallEast);
-
-    // Perimeter safety fences with striped warning rails
-    const fenceGroup = new THREE.Group();
-    const postGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.2, 8);
-    const fenceCoords = [
-      [-5, -13], [0, -13], [5, -13], [10, -13], [15, -13], [20, -13], [25, -13], [29, -13],
-      [29, -8], [29, -3], [29, 2], [29, 7], [29, 12], [29, 17],
-      [-5, 17], [0, 17], [5, 17], [10, 17], [15, 17], [20, 17], [25, 17], [29, 17]
+    // Exposed earth faces around the cut
+    const wallT = 0.4;
+    const walls = [
+      [pitW + wallT * 2, pitCx, PIT.z0 - wallT / 2, true],
+      [pitW + wallT * 2, pitCx, PIT.z1 + wallT / 2, true],
+      [pitD, PIT.x0 - wallT / 2, pitCz, false],
+      [pitD, PIT.x1 + wallT / 2, pitCz, false]
     ];
-
-    fenceCoords.forEach(([x, z]) => {
-      const post = new THREE.Mesh(postGeo, this.materials.safetyOrange);
-      post.position.set(x, 0.6, z);
-      post.castShadow = true;
-      fenceGroup.add(post);
+    walls.forEach(([len, x, z, alongX]) => {
+      const geo = alongX
+        ? new THREE.BoxGeometry(len, PIT.depth, wallT)
+        : new THREE.BoxGeometry(wallT, PIT.depth, len);
+      const wall = new THREE.Mesh(geo, this.materials.pitWallSoil);
+      wall.position.set(x, -PIT.depth / 2 - 0.01, z);
+      wall.receiveShadow = true;
+      pitGroup.add(wall);
     });
+
+    // Soldier-pile shoring (steel H-piles) lining the excavation perimeter
+    const pileGeo = new THREE.BoxGeometry(0.22, PIT.depth + 0.5, 0.22);
+    const pilePositions = [];
+    for (let x = PIT.x0; x <= PIT.x1 + 0.01; x += 2.4) {
+      pilePositions.push([x, PIT.z0 - 0.1], [x, PIT.z1 + 0.1]);
+    }
+    for (let z = PIT.z0 + 2.4; z < PIT.z1; z += 2.4) {
+      pilePositions.push([PIT.x0 - 0.1, z], [PIT.x1 + 0.1, z]);
+    }
+    const piles = new THREE.InstancedMesh(pileGeo, this.materials.steelDark, pilePositions.length);
+    const m = new THREE.Matrix4();
+    pilePositions.forEach(([x, z], i) => {
+      m.makeTranslation(x, -PIT.depth / 2 + 0.25, z);
+      piles.setMatrixAt(i, m);
+    });
+    piles.castShadow = true;
+    pitGroup.add(piles);
+    this.elements.shoringPiles = piles;
+
+    // Perimeter safety fence: posts with continuous mesh panels
+    const fenceGroup = new THREE.Group();
+    const postGeo = new THREE.CylinderGeometry(0.07, 0.07, 1.6, 8);
+    const fenceMesh = new THREE.MeshStandardMaterial({
+      color: 0xff7733,
+      roughness: 0.6,
+      transparent: true,
+      opacity: 0.55,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const fx0 = PIT.x0 - 1.5, fx1 = PIT.x1 + 1.2, fz0 = PIT.z0 - 1.5, fz1 = PIT.z1 + 1.5;
+    const fenceRuns = [
+      [[fx0, fz0], [fx1, fz0]],
+      [[fx1, fz0], [fx1, -3]],
+      [[fx1, 8], [fx1, fz1]],
+      [[fx0, fz1], [fx1, fz1]]
+    ];
+    fenceRuns.forEach(([[ax, az], [bx, bz]]) => {
+      const len = Math.hypot(bx - ax, bz - az);
+      const steps = Math.max(1, Math.round(len / 3));
+      for (let s = 0; s <= steps; s++) {
+        const post = new THREE.Mesh(postGeo, this.materials.safetyOrange);
+        post.position.set(ax + ((bx - ax) * s) / steps, 0.8, az + ((bz - az) * s) / steps);
+        post.castShadow = true;
+        fenceGroup.add(post);
+      }
+      const panel = new THREE.Mesh(new THREE.PlaneGeometry(len, 1.2), fenceMesh);
+      panel.position.set((ax + bx) / 2, 0.75, (az + bz) / 2);
+      panel.rotation.y = -Math.atan2(bz - az, bx - ax);
+      fenceGroup.add(panel);
+    });
+    this.elements.fencing.push(fenceGroup);
 
     // Site office modular container
     const officeBoxGeo = new THREE.BoxGeometry(6, 2.5, 2.6);
     const officeBox = new THREE.Mesh(officeBoxGeo, this.materials.truckWhite);
-    officeBox.position.set(33, 1.25, 22);
+    officeBox.position.set(47, 1.25, 20);
     officeBox.castShadow = true;
     pitGroup.add(officeBox);
 
     const officeTrim = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.2, 2.8), this.materials.coreRedAccent);
-    officeTrim.position.set(33, 2.5, 22);
+    officeTrim.position.set(47, 2.5, 20);
     pitGroup.add(officeTrim);
 
     const officeBox2 = new THREE.Mesh(officeBoxGeo, this.materials.concrete);
-    officeBox2.position.set(33, 3.85, 22);
+    officeBox2.position.set(47, 3.85, 20);
     officeBox2.castShadow = true;
     pitGroup.add(officeBox2);
 
-    // Excavated soil stockpile mound (where excavator dumps earth)
-    const soilMound = new THREE.Mesh(new THREE.ConeGeometry(4.2, 2.2, 14), this.materials.excavationSoil);
-    soilMound.position.set(25, 1.1, -6);
-    soilMound.castShadow = true;
-    soilMound.receiveShadow = true;
-    pitGroup.add(soilMound);
+    // Spoil heaps that grow as the dig deepens (bottom-anchored cones)
+    [[36.5, -16.5, 4.2, 2.4], [33.2, -19.5, 2.8, 1.5]].forEach(([x, z, r, h]) => {
+      const geo = new THREE.ConeGeometry(r, h, 18, 3);
+      geo.translate(0, h / 2, 0);
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i);
+        if (y > 0.01 && y < h - 0.01) {
+          const jitter = 1 + Math.sin(i * 12.9898) * 0.08;
+          pos.setX(i, pos.getX(i) * jitter);
+          pos.setZ(i, pos.getZ(i) * jitter);
+        }
+      }
+      geo.computeVertexNormals();
+      const mound = new THREE.Mesh(geo, this.materials.excavationSoil);
+      mound.position.set(x, 0, z);
+      mound.castShadow = true;
+      mound.receiveShadow = true;
+      pitGroup.add(mound);
+      this.elements.soilMounds.push(mound);
+    });
 
-    const soilMoundSmall = new THREE.Mesh(new THREE.ConeGeometry(2.6, 1.4, 10), this.materials.excavationSoil);
-    soilMoundSmall.position.set(22, 0.7, -9);
-    soilMoundSmall.castShadow = true;
-    soilMoundSmall.receiveShadow = true;
-    pitGroup.add(soilMoundSmall);
-
-    // Heavy 6x6 articulated earthmover dump truck parked at soil mound
+    // Heavy 6x6 earthmover dump truck waiting beside the excavator, cab facing north up the haul road
     const earthmover = this.createEarthmoverDumpTruck();
-    earthmover.position.set(27, 0, -8);
-    earthmover.rotation.y = -Math.PI / 3.5;
+    earthmover.position.set(35.2, 0, -6.5);
+    earthmover.rotation.y = Math.PI / 2;
     pitGroup.add(earthmover);
+    this.elements.earthmover = earthmover;
 
     pitGroup.add(fenceGroup);
     root.add(pitGroup);
@@ -383,22 +540,58 @@ export class BuildingComponents {
     const fGroup = new THREE.Group();
     fGroup.name = 'FoundationAndCoreGroup';
 
-    // Substructure Concrete Raft Foundation slab
-    const slabGeo = new THREE.BoxGeometry(30, 0.9, 26);
-    const slab = new THREE.Mesh(slabGeo, this.materials.concrete);
-    slab.position.set(12, 0.45, 2);
+    const pitW = PIT.x1 - PIT.x0;
+    const pitD = PIT.z1 - PIT.z0;
+    const pitCx = (PIT.x0 + PIT.x1) / 2;
+    const pitCz = (PIT.z0 + PIT.z1) / 2;
+    const raftTop = 0.9;
+
+    // Two-layer reinforcement cage laid on the formation level before the pour
+    const bars = [];
+    [-PIT.depth + 0.35, raftTop - 0.3].forEach((y) => {
+      for (let z = PIT.z0 + 0.6; z < PIT.z1; z += 1.1) bars.push({ y, z, alongX: true });
+      for (let x = PIT.x0 + 0.6; x < PIT.x1; x += 1.1) bars.push({ y: y + 0.07, x, alongX: false });
+    });
+    const barGeoX = new THREE.CylinderGeometry(0.035, 0.035, pitW - 0.6, 5);
+    barGeoX.rotateZ(Math.PI / 2);
+    const rebar = new THREE.InstancedMesh(barGeoX, this.materials.rebar, bars.length);
+    const m = new THREE.Matrix4();
+    const rotY = new THREE.Matrix4().makeRotationY(Math.PI / 2);
+    const scaleZ = (pitD - 0.6) / (pitW - 0.6);
+    bars.forEach((b, i) => {
+      if (b.alongX) {
+        m.makeTranslation(pitCx, b.y, b.z);
+      } else {
+        m.makeScale(scaleZ, 1, 1).premultiply(rotY).setPosition(b.x, b.y, pitCz);
+      }
+      rebar.setMatrixAt(i, m);
+    });
+    rebar.count = 0;
+    rebar.userData.total = bars.length;
+    fGroup.add(rebar);
+    this.elements.rebar = rebar;
+
+    // Monolithic raft poured from formation level up to finished floor (bottom-anchored for the rising pour)
+    const raftH = raftTop + PIT.depth;
+    const slabGeo = new THREE.BoxGeometry(pitW, raftH, pitD);
+    slabGeo.translate(0, raftH / 2, 0);
+    const slab = new THREE.Mesh(slabGeo, this.materials.pourConcrete);
+    slab.position.set(pitCx, -PIT.depth, pitCz);
+    slab.userData.fullHeight = raftH;
     slab.castShadow = true;
     slab.receiveShadow = true;
     fGroup.add(slab);
 
     // Pile cap pads
     const padGeo = new THREE.BoxGeometry(2.4, 0.5, 2.4);
+    padGeo.translate(0, 0.25, 0);
     for (let x = -10; x <= 10; x += 10) {
       for (let z = -8; z <= 8; z += 8) {
         const pad = new THREE.Mesh(padGeo, this.materials.concrete);
-        pad.position.set(12 + x, 0.95, 2 + z);
+        pad.position.set(12 + x, raftTop, 2 + z);
         pad.castShadow = true;
         fGroup.add(pad);
+        this.elements.pileCaps.push(pad);
       }
     }
 
@@ -410,6 +603,15 @@ export class BuildingComponents {
     const tierCount = 5;
     const tierHeight = 4.2;
 
+    // Slip-formed concrete is revealed below a rising clip plane (y <= constant)
+    const coreClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 100);
+    const clipMats = {
+      concrete: this.materials.concreteCore.clone(),
+      red: this.materials.coreRedAccent.clone(),
+      door: this.materials.steelDark.clone()
+    };
+    Object.values(clipMats).forEach((mat) => { mat.clippingPlanes = [coreClip]; });
+
     for (let floor = 0; floor < tierCount; floor++) {
       const tierGroup = new THREE.Group();
       tierGroup.name = `CoreTier_${floor + 1}`;
@@ -418,7 +620,7 @@ export class BuildingComponents {
       // Concrete core block for this floor
       const coreBlock = new THREE.Mesh(
         new THREE.BoxGeometry(6.4, tierHeight, 6.4),
-        this.materials.concreteCore
+        clipMats.concrete
       );
       coreBlock.position.set(7, yCenter, 0);
       coreBlock.castShadow = true;
@@ -428,7 +630,7 @@ export class BuildingComponents {
       // Red architectural accent fin (front corner element, proud by 0.08 in Z to eliminate coplanar face fight)
       const redAccent = new THREE.Mesh(
         new THREE.BoxGeometry(6.5, tierHeight, 2.22),
-        this.materials.coreRedAccent
+        clipMats.red
       );
       redAccent.position.set(7, yCenter, 2.18);
       redAccent.castShadow = true;
@@ -437,7 +639,7 @@ export class BuildingComponents {
       // Elevator door on this level
       const door = new THREE.Mesh(
         new THREE.BoxGeometry(1.6, 2.4, 0.1),
-        this.materials.steelDark
+        clipMats.door
       );
       door.position.set(7, 0.9 + floor * tierHeight + 1.2, 3.32);
       tierGroup.add(door);
@@ -446,7 +648,7 @@ export class BuildingComponents {
       if (floor === tierCount - 1) {
         const roofCap = new THREE.Mesh(
           new THREE.BoxGeometry(6.65, 0.25, 6.65),
-          this.materials.concreteCore
+          clipMats.concrete
         );
         roofCap.position.set(7, yCenter + tierHeight / 2 + 0.125, 0);
         roofCap.castShadow = true;
@@ -457,6 +659,27 @@ export class BuildingComponents {
       coreGroup.add(tierGroup);
       coreTiers.push(tierGroup);
     }
+
+    // Climbing slip-form: timber-faced shutters, working deck and handrail riding on the wet concrete
+    const formwork = new THREE.Group();
+    const fwH = 1.4;
+    [[0, 3.45, 7.3, 0.3], [0, -3.45, 7.3, 0.3], [3.45, 0, 0.3, 6.6], [-3.45, 0, 0.3, 6.6]].forEach(([dx, dz, w, d]) => {
+      const shutter = new THREE.Mesh(new THREE.BoxGeometry(w, fwH, d), this.materials.formwork);
+      shutter.position.set(dx, -fwH / 2 + 0.3, dz);
+      shutter.castShadow = true;
+      formwork.add(shutter);
+    });
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.12, 8.6), this.materials.steelDark);
+    deck.position.y = -fwH + 0.2;
+    formwork.add(deck);
+    const deckRail = this.createPerimeterRailing(8.4, 8.4, 0.9, this.materials.craneYellow);
+    deckRail.position.y = -fwH + 0.26;
+    formwork.add(deckRail);
+    formwork.position.set(7, 0.9, 0);
+    formwork.visible = false;
+    fGroup.add(formwork);
+    this.elements.coreFormwork = formwork;
+    this.elements.coreClip = coreClip;
 
     fGroup.add(coreGroup);
     root.add(fGroup);
@@ -472,7 +695,7 @@ export class BuildingComponents {
   buildTowerCrane(root) {
     const craneGroup = new THREE.Group();
     craneGroup.name = 'TowerCrane';
-    craneGroup.position.set(22, 0, -6);
+    craneGroup.position.set(22, 0.9, -6);
 
     // 1. Base Foundation & Yellow Perimeter Safety Railing
     const baseGroup = new THREE.Group();
@@ -577,6 +800,18 @@ export class BuildingComponents {
       rung.position.set(0, y + 0.6, 0);
       mastGroup.add(rung);
     }
+    // Mast sections are revealed below a clip plane as the crane climbs with the building
+    const mastClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 100);
+    const mastMats = new Map();
+    mastGroup.traverse((obj) => {
+      if (!obj.isMesh) return;
+      if (!mastMats.has(obj.material)) {
+        const mat = obj.material.clone();
+        mat.clippingPlanes = [mastClip];
+        mastMats.set(obj.material, mat);
+      }
+      obj.material = mastMats.get(obj.material);
+    });
     craneGroup.add(mastGroup);
 
     // 4. Slewing Ring & Turntable Deck
@@ -617,7 +852,7 @@ export class BuildingComponents {
     cabRoof.position.y = 1.84;
     cabGroup.add(cabRoof);
 
-    const cabBeacon = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.15), this.materials.amberMarker);
+    const cabBeacon = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.18), this.materials.amberMarker.clone());
     cabBeacon.position.set(0, 1.95, 0);
     cabGroup.add(cabBeacon);
 
@@ -752,14 +987,19 @@ export class BuildingComponents {
       trolleyGroup.add(tw);
     });
 
-    // Twin Hoist Wire Ropes descending to Hook Block
-    const cable1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 12), this.materials.steelSilver);
-    cable1.position.set(-0.3, -6.0, 0);
-    trolleyGroup.add(cable1);
+    // Pendulum rig pivoting under the trolley: hoist ropes (unit length, scaled to the drop) + hook block
+    const hoistRig = new THREE.Group();
+    trolleyGroup.add(hoistRig);
 
-    const cable2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 12), this.materials.steelSilver);
-    cable2.position.set(0.3, -6.0, 0);
-    trolleyGroup.add(cable2);
+    const cableGeo = new THREE.CylinderGeometry(0.025, 0.025, 1, 6);
+    cableGeo.translate(0, -0.5, 0);
+    const cables = [-0.3, 0.3].map((cx) => {
+      const cable = new THREE.Mesh(cableGeo, this.materials.steelSilver);
+      cable.position.set(cx, 0, 0);
+      cable.scale.y = 12;
+      hoistRig.add(cable);
+      return cable;
+    });
 
     // Traveling Pulley Block (Yellow, Image 1)
     const blockGroup = new THREE.Group();
@@ -798,7 +1038,7 @@ export class BuildingComponents {
     suspendedBeam.castShadow = true;
     blockGroup.add(suspendedBeam);
 
-    trolleyGroup.add(blockGroup);
+    hoistRig.add(blockGroup);
     trolleyGroup.position.set(0, 0, -16);
     jibGroup.add(trolleyGroup);
 
@@ -813,8 +1053,14 @@ export class BuildingComponents {
       mastGroup,
       slewingHead,
       trolleyGroup,
+      hoistRig,
+      cables,
       blockGroup,
-      suspendedBeam
+      suspendedBeam,
+      beacon: cabBeacon,
+      mastClip,
+      mastHeight,
+      jibLength
     };
   }
 
@@ -1131,6 +1377,7 @@ export class BuildingComponents {
     const soil = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.6, 2.3), this.materials.excavationSoil);
     soil.position.set(-1.2, 2.8, 0);
     truck.add(soil);
+    truck.userData.load = soil;
 
     // 6 Big rugged earthmover wheels
     const wheelGeo = new THREE.CylinderGeometry(0.7, 0.7, 0.55, 16);
@@ -1469,25 +1716,31 @@ export class BuildingComponents {
     floor.receiveShadow = true;
     whGroup.add(floor);
 
-    // Precast Walls with Red Corporate Branding Stripe (Emons style)
-    const rearWallGeo = new THREE.BoxGeometry(32, 10, 0.6);
-    const rearWall = new THREE.Mesh(rearWallGeo, this.materials.concreteCore);
-    rearWall.position.set(0, 5.3, -13);
+    // Tilt-up precast walls: cast flat on the slab, then rotated upright about their base edge
+    const rearPivot = new THREE.Group();
+    rearPivot.position.set(0, 0.3, -13);
+    rearPivot.userData.tilt = { axis: 'x', flat: Math.PI / 2 };
+    const rearWall = new THREE.Mesh(new THREE.BoxGeometry(32, 10, 0.6), this.materials.concreteCore);
+    rearWall.position.y = 5;
     rearWall.castShadow = true;
-    whGroup.add(rearWall);
-    this.elements.warehouseWalls.push(rearWall);
+    rearWall.receiveShadow = true;
+    rearPivot.add(rearWall);
+    whGroup.add(rearPivot);
+    this.elements.warehouseWalls.push(rearPivot);
 
-    const sideWallGeo = new THREE.BoxGeometry(0.6, 10, 26);
-    const sideWall = new THREE.Mesh(sideWallGeo, this.materials.concreteCore);
-    sideWall.position.set(-16, 5.3, 0);
+    const sidePivot = new THREE.Group();
+    sidePivot.position.set(-16, 0.3, 0);
+    sidePivot.userData.tilt = { axis: 'z', flat: -Math.PI / 2 };
+    const sideWall = new THREE.Mesh(new THREE.BoxGeometry(0.6, 10, 26), this.materials.concreteCore);
+    sideWall.position.y = 5;
     sideWall.castShadow = true;
-    whGroup.add(sideWall);
-    this.elements.warehouseWalls.push(sideWall);
-
+    sideWall.receiveShadow = true;
+    sidePivot.add(sideWall);
     const redStripe = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.4, 26), this.materials.coreRedAccent);
-    redStripe.position.set(-16, 9.4, 0);
-    whGroup.add(redStripe);
-    this.elements.warehouseWalls.push(redStripe);
+    redStripe.position.y = 9.1;
+    sidePivot.add(redStripe);
+    whGroup.add(sidePivot);
+    this.elements.warehouseWalls.push(sidePivot);
 
     // Open-Web Steel Roof Trusses with Gusset Plates
     for (let z = -10; z <= 10; z += 5) {
@@ -1592,6 +1845,7 @@ export class BuildingComponents {
       parcel.position.set(cx, 1.25, 0);
       parcel.castShadow = true;
       conveyorGroup.add(parcel);
+      this.elements.conveyorParcels.push(parcel);
     }
     whGroup.add(conveyorGroup);
     this.elements.conveyors.push(conveyorGroup);
@@ -1784,20 +2038,31 @@ export class BuildingComponents {
     const colZ = [-8, 0, 8, 14];
     const floorHeights = [4.2, 8.4, 12.6, 16.8, 21.0];
 
-    colX.forEach((x) => {
-      colZ.forEach((z) => {
-        if (x === 8 && z === 0) return;
-
-        const colGeo = new THREE.BoxGeometry(0.45, 21.5, 0.45);
-        const col = new THREE.Mesh(colGeo, this.materials.steelDark);
-        col.position.set(x, 10.75 + 0.9, z);
-        col.castShadow = true;
-        structGroup.add(col);
-        this.elements.steelColumns.push(col);
+    // Columns are erected one storey-tier at a time, with a bolted splice plate at each joint
+    const storey = 4.2;
+    const colGeo = new THREE.BoxGeometry(0.45, storey, 0.45);
+    const spliceGeo = new THREE.BoxGeometry(0.62, 0.12, 0.62);
+    floorHeights.forEach((h, floor) => {
+      colX.forEach((x) => {
+        colZ.forEach((z) => {
+          if (x === 8 && z === 0) return;
+          const col = new THREE.Group();
+          const shaft = new THREE.Mesh(colGeo, this.materials.steelDark);
+          shaft.castShadow = true;
+          col.add(shaft);
+          const splice = new THREE.Mesh(spliceGeo, this.materials.steelSilver);
+          splice.position.y = -storey / 2 + 0.06;
+          col.add(splice);
+          col.position.set(x, 0.9 + floor * storey + storey / 2, z);
+          col.userData.floor = floor;
+          col.userData.joint = new THREE.Vector3(x, 0.9 + floor * storey, z);
+          structGroup.add(col);
+          this.elements.steelColumns.push(col);
+        });
       });
     });
 
-    floorHeights.forEach((h) => {
+    floorHeights.forEach((h, floor) => {
       colX.forEach((x) => {
         for (let i = 0; i < colZ.length - 1; i++) {
           const z1 = colZ[i];
@@ -1805,6 +2070,8 @@ export class BuildingComponents {
           const beam = this.createIBeam(z2 - z1, 0.4, 0.3);
           beam.rotation.y = Math.PI / 2;
           beam.position.set(x, h + 0.9, (z1 + z2) / 2);
+          beam.userData.floor = floor;
+          beam.userData.joint = new THREE.Vector3(x, h + 0.9, z1);
           structGroup.add(beam);
           this.elements.steelBeams.push(beam);
         }
@@ -1816,6 +2083,8 @@ export class BuildingComponents {
           const x2 = colX[i + 1];
           const beam = this.createIBeam(x2 - x1, 0.4, 0.3);
           beam.position.set((x1 + x2) / 2, h + 0.9, z);
+          beam.userData.floor = floor;
+          beam.userData.joint = new THREE.Vector3(x1, h + 0.9, z);
           structGroup.add(beam);
           this.elements.steelBeams.push(beam);
         }
@@ -1829,6 +2098,24 @@ export class BuildingComponents {
       structGroup.add(slab);
       this.elements.floorSlabs.push(slab);
     });
+
+    // Steel laydown yard beside the crane: stacked sections on timber dunnage
+    const laydown = new THREE.Group();
+    laydown.position.set(27, 0, -16.2);
+    [-1.6, 1.6].forEach((dx) => {
+      const dunnage = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.3, 3.4), this.materials.palletWood);
+      dunnage.position.set(dx, 0.15, 0);
+      laydown.add(dunnage);
+    });
+    for (let layer = 0; layer < 3; layer++) {
+      for (let i = 0; i < 5 - layer; i++) {
+        const piece = this.createIBeam(6.5, 0.4, 0.3);
+        piece.position.set(0, 0.5 + layer * 0.42, -1.2 + i * 0.6 + layer * 0.3);
+        laydown.add(piece);
+      }
+    }
+    root.add(laydown);
+    this.elements.laydownSteel = laydown;
 
     root.add(structGroup);
   }
@@ -1872,6 +2159,7 @@ export class BuildingComponents {
       );
       interiorLightPlane.position.set(12, yPos, 14.05);
       interiorLightPlane.visible = false;
+      interiorLightPlane.userData.floor = floor;
       towerGroup.add(interiorLightPlane);
       this.elements.officeInteriorLights.push(interiorLightPlane);
 
@@ -1879,6 +2167,10 @@ export class BuildingComponents {
         const xPos = 1.8 + col * 4.0;
         const panelGroup = new THREE.Group();
         panelGroup.position.set(xPos, yPos, 14.35);
+
+        panelGroup.userData.floor = floor;
+        panelGroup.userData.slot = col / 6;
+        panelGroup.userData.normal = new THREE.Vector3(0, 0, 1);
 
         const glass = new THREE.Mesh(new THREE.BoxGeometry(3.8, storyHeight - 0.2, 0.08), this.materials.glassFacade);
         glass.castShadow = true;
@@ -1905,6 +2197,10 @@ export class BuildingComponents {
         panelGroup.position.set(24.35, yPos, zPos);
         panelGroup.rotation.y = Math.PI / 2;
 
+        panelGroup.userData.floor = floor;
+        panelGroup.userData.slot = 0.5 + col / 10;
+        panelGroup.userData.normal = new THREE.Vector3(1, 0, 0);
+
         const glass = new THREE.Mesh(new THREE.BoxGeometry(4.2, storyHeight - 0.2, 0.08), this.materials.glassFacade);
         panelGroup.add(glass);
 
@@ -1926,6 +2222,8 @@ export class BuildingComponents {
     const entranceGlass = new THREE.Mesh(new THREE.BoxGeometry(6, 3.8, 0.1), this.materials.glassLit);
     entranceGlass.position.set(12, 2.5, 14.4);
     towerGroup.add(entranceGlass);
+    this.elements.entrance.push(canopy, entranceGlass);
+    canopy.userData.targetZ = canopy.position.z;
 
     root.add(towerGroup);
   }
@@ -1942,6 +2240,7 @@ export class BuildingComponents {
     const parapetE = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.0, 22.6), this.materials.concrete);
     parapetE.position.set(24.35, roofY + 0.5, 3);
     roofGroup.add(parapetE);
+    this.elements.parapets.push(parapetS, parapetE);
 
     // Solar PV Panels
     for (let r = 0; r < 3; r++) {
@@ -1990,26 +2289,25 @@ export class BuildingComponents {
     railGroup.name = 'RailAndGantryIntermodal';
     railGroup.position.set(0, 0, -26);
 
-    const ballast = new THREE.Mesh(new THREE.PlaneGeometry(160, 14), this.materials.railGravel);
+    const ballast = new THREE.Mesh(new THREE.PlaneGeometry(520, 14), this.materials.railGravel);
     ballast.rotation.x = -Math.PI / 2;
     ballast.position.y = 0.10;
     ballast.receiveShadow = true;
     railGroup.add(ballast);
 
     // Dual Tracks (clean vertical layering: ballast at y=0.10, ties at y=0.16, rails at y=0.28)
+    const tiePositions = [];
     [-3, 3].forEach((trackZ) => {
       [-0.8, 0.8].forEach((railOffset) => {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(160, 0.15, 0.1), this.materials.railTrack);
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(520, 0.15, 0.1), this.materials.railTrack);
         rail.position.set(0, 0.28, trackZ + railOffset);
         railGroup.add(rail);
       });
-
-      for (let rx = -75; rx <= 75; rx += 1.8) {
-        const tie = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 2.2), this.materials.steelDark);
-        tie.position.set(rx, 0.16, trackZ);
-        railGroup.add(tie);
-      }
+      for (let rx = -258; rx <= 258; rx += 1.8) tiePositions.push([rx, trackZ]);
     });
+    const ties = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.1, 2.2), this.materials.steelDark, tiePositions.length);
+    tiePositions.forEach(([x, z], i) => ties.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.16, z)));
+    railGroup.add(ties);
 
     // Massive Red Portal Gantry Crane (matching screenshot 3)
     const gantryGroup = new THREE.Group();
@@ -2094,10 +2392,10 @@ export class BuildingComponents {
     fleetGroup.add(truck3);
     this.elements.trucks.push(truck3);
 
-    // Realistic Hydraulic Excavator (matching Image 3) positioned at pit edge aiming into trench
+    // Realistic Hydraulic Excavator (matching Image 3) working from the east lip of the excavation
     const excavator = this.createExcavator();
-    excavator.position.set(22, 0, 4);
-    excavator.rotation.y = -Math.PI * 0.75;
+    excavator.position.set(32, 0, 3);
+    excavator.rotation.y = Math.PI;
     fleetGroup.add(excavator);
     // this.elements.excavator set inside createExcavator()
 
@@ -2112,7 +2410,7 @@ export class BuildingComponents {
       [-36, 38], [-28, 42], [-22, 37], [-15, 41], [-8, 38], [2, 42], [10, 39], [18, 43], [26, 39], [34, 42], [42, 37],
       [-42, 22], [-46, 12], [-44, 2], [-48, -10], [-43, -20], [-40, -32],
       [46, 18], [50, 4], [48, -8], [45, -22],
-      [36, 12], [32, -18], [28, -24], [-28, -14]
+      [-28, -16]
     ];
 
     treeCoordinates.forEach(([x, z], idx) => {
@@ -2144,37 +2442,5 @@ export class BuildingComponents {
     });
 
     root.add(treesGroup);
-  }
-
-  buildSparksAndAtmosphere(root) {
-    const particleCount = 180;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-
-    for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 80;
-      positions[i * 3 + 1] = Math.random() * 35;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 80;
-
-      colors[i * 3] = 1.0;
-      colors[i * 3 + 1] = 0.7 + Math.random() * 0.3;
-      colors[i * 3 + 2] = 0.2;
-    }
-
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    const material = new THREE.PointsMaterial({
-      size: 0.25,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.6,
-      blending: THREE.AdditiveBlending
-    });
-
-    const particles = new THREE.Points(geometry, material);
-    root.add(particles);
-    this.elements.particles = particles;
   }
 }
