@@ -1,0 +1,10 @@
+{
+  "name": "BRICK & AXIS (Vite + Three.js)",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "vite-dev-server",
+      "command": "npm run dev -- --host"
+    }
+  ]
+}
