@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { BuildingComponents } from './BuildingComponents.js';
@@ -16,8 +17,8 @@ const FilmFinishShader = {
   uniforms: {
     tDiffuse: { value: null },
     uTime: { value: 0 },
-    uVignette: { value: 0.32 },
-    uGrain: { value: 0.028 }
+    uVignette: { value: 0.18 },
+    uGrain: { value: 0.012 }
   },
   vertexShader: /* glsl */`
     varying vec2 vUv;
@@ -90,7 +91,7 @@ export class ConstructionWorld {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.toneMapping = THREE.NeutralToneMapping;
-    this.renderer.toneMappingExposure = 0.95;
+    this.renderer.toneMappingExposure = 0.9;
     this.renderer.localClippingEnabled = true;
     this.container.appendChild(this.renderer.domElement);
 
@@ -107,7 +108,7 @@ export class ConstructionWorld {
     this.setupLighting();
     this.setupAtmosphere();
 
-    this.builder = new BuildingComponents();
+    this.builder = new BuildingComponents({ detail: this.isCoarsePointer ? 'low' : 'high' });
     this.elements = this.builder.buildAll(this.scene);
 
     this.fx = new SiteFX(this.scene);
@@ -166,7 +167,7 @@ export class ConstructionWorld {
   setupAtmosphere() {
     this.sky = createSkyDome(this.sunLight.position);
     this.scene.add(this.sky);
-    this.scene.fog = new THREE.FogExp2(0xdff1f4, 0.0042);
+    this.scene.fog = new THREE.FogExp2(0xdff1f4, 0.00245);
     this.scene.background = null;
   }
 
@@ -178,7 +179,21 @@ export class ConstructionWorld {
     this.composer.setSize(width, height);
 
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(width / 2, height / 2), 0.32, 0.5, 1.6);
+    this.gtaoPass = null;
+    if (!this.isCoarsePointer) {
+      this.gtaoPass = new GTAOPass(
+        this.scene,
+        this.camera,
+        Math.round(width * 0.6),
+        Math.round(height * 0.6),
+        undefined,
+        { radius: 1.1, distanceExponent: 1.35, thickness: 1.4, distanceFallOff: 1, scale: 0.85, samples: 6 },
+        { lumaPhi: 8, depthPhi: 2, normalPhi: 3, radius: 3, radiusExponent: 1, rings: 2, samples: 6 }
+      );
+      this.gtaoPass.blendIntensity = 0.38;
+      this.composer.addPass(this.gtaoPass);
+    }
+    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(width / 2, height / 2), 0.1, 0.42, 1.85);
     this.composer.addPass(this.bloomPass);
     this.composer.addPass(new OutputPass());
     this.finishPass = new ShaderPass(FilmFinishShader);
@@ -202,6 +217,7 @@ export class ConstructionWorld {
       this.hemiLight.groundColor.setHex(0x734827);
       this.fillLight.color.setHex(0xffaa5e);
       this.scene.environmentIntensity = 0.8;
+      this.bloomPass.strength = 0.2;
     } else if (mode === 'night') {
       this.sunLight.color.setHex(0x38bdf8);
       this.sunLight.intensity = 0.45;
@@ -209,14 +225,16 @@ export class ConstructionWorld {
       this.hemiLight.groundColor.setHex(0x05131a);
       this.fillLight.color.setHex(0x00f2fe);
       this.scene.environmentIntensity = 0.35;
+      this.bloomPass.strength = 0.34;
     } else {
       this.sunLight.color.setHex(0xfff0da);
-      this.sunLight.intensity = 3.1;
+      this.sunLight.intensity = 2.75;
       this.hemiLight.color.setHex(0xbfe8f2);
       this.hemiLight.groundColor.setHex(0xa9b8b4);
       this.fillLight.color.setHex(0x9fdff0);
       this.fillLight.intensity = 0.25;
-      this.scene.environmentIntensity = 0.5;
+      this.scene.environmentIntensity = 0.62;
+      this.bloomPass.strength = 0.08;
     }
     this.rebakeEnvironment();
   }
@@ -265,6 +283,7 @@ export class ConstructionWorld {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
     this.composer.setSize(width, height);
+    this.gtaoPass?.setSize(Math.round(width * 0.6), Math.round(height * 0.6));
     this.fx.setViewportHeight(height * this.renderer.getPixelRatio(), this.camera.fov);
   }
 
@@ -290,6 +309,14 @@ export class ConstructionWorld {
     if (Math.abs(this.camera.fov - fov) > 1e-3) {
       this.camera.fov = fov;
       this.camera.updateProjectionMatrix();
+    }
+
+    // A vertical viewport has far less horizontal field of view. Pull the guided
+    // camera back so machinery remains visible beside the mobile narrative copy.
+    if (this.camera.aspect < 1) {
+      const framingScale = 1 + (1 - this.camera.aspect) * 0.75;
+      if (this.timeline.currentProgress < 0.2) target.x += 3;
+      pos.sub(target).multiplyScalar(framingScale).add(target);
     }
 
     if (!this.reducedMotion) {

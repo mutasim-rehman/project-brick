@@ -1048,8 +1048,8 @@ html.is-intro body {
   position: absolute;
   inset: 0 -160px 0 -140px;
   z-index: -1;
-  background: radial-gradient(ellipse at 35% 50%, rgba(244, 248, 250, 0.78) 0%, rgba(244, 248, 250, 0.45) 45%, rgba(244, 248, 250, 0) 72%);
-  filter: blur(10px);
+  background: radial-gradient(ellipse at 32% 50%, rgba(244, 248, 250, 0.62) 0%, rgba(244, 248, 250, 0.24) 45%, rgba(244, 248, 250, 0) 72%);
+  filter: blur(8px);
 }
 
 .hero-kicker {

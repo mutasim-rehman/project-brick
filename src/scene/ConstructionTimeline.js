@@ -111,8 +111,8 @@ export class ConstructionTimeline {
   // Scroll-driven camera path: Catmull-Rom splines through cinematic stops, easing into each stop
   buildCameraPath() {
     this.cameraStops = [
-      { progress: 0.0, pos: [50, 14, 33], target: [19, -1.2, 3] },
-      { progress: 0.13, pos: [44, 21, 40], target: [13, -0.5, 2] },
+      { progress: 0.0, pos: [51, 13.5, 34], target: [21.5, 0.25, 1.5] },
+      { progress: 0.13, pos: [45, 19, 38], target: [15, -0.25, 2] },
       { progress: 0.27, pos: [40, 27, 46], target: [11, 6, 1] },
       { progress: 0.46, pos: [50, 34, 46], target: [12, 11, 1] },
       { progress: 0.66, pos: [-10, 33, 44], target: [-17, 4, -1] },
@@ -268,6 +268,15 @@ export class ConstructionTimeline {
       ex.stickPivot.rotation.z = stick;
       ex.bucketPivot.rotation.z = bucket;
 
+      if (ex.bucketLoad) {
+        const collecting = smoothstep(0.2, 0.31, c);
+        const dumping = 1 - smoothstep(0.64, 0.72, c);
+        const fill = Math.min(collecting, dumping);
+        ex.bucketLoad.visible = fill > 0.03;
+        ex.bucketLoad.scale.set(0.7 + fill * 0.3, Math.max(0.08, fill), 0.7 + fill * 0.3);
+      }
+      ex.setTrackTravel?.(0);
+
       if (!force) {
         ex.bucketPivot.getWorldPosition(_v);
         if (c > 0.66 && c < 0.8) {
@@ -290,16 +299,14 @@ export class ConstructionTimeline {
       ex.boomPivot.rotation.z = -0.32;
       ex.stickPivot.rotation.z = 0.65;
       ex.bucketPivot.rotation.z = -0.35;
+      if (ex.bucketLoad) ex.bucketLoad.visible = false;
+      ex.setTrackTravel?.(p * 14.6);
       if (!force && p > 0 && p < 1 && Math.random() < dt * 20) {
         this.fx.emitDust(_v.set(ex.root.position.x, 0.3, ex.root.position.z), 2, { size: 1.4, alpha: 0.35 });
       }
     }
 
-    const boomAngle = ex.boomPivot.rotation.z;
-    ex.boomCylinders?.forEach((cyl) => {
-      cyl.group.rotation.z = Math.PI / 4.8 + boomAngle * 0.68;
-      cyl.piston.position.y = 1.6 + boomAngle * 0.85;
-    });
+    ex.updateMechanics?.();
 
     // Haul truck is loaded pass by pass, then drives off up the haul road
     const truck = el.earthmover;
@@ -312,8 +319,11 @@ export class ConstructionTimeline {
       if (load) {
         const fill = t < 0.15 ? 0.25 + ((this.excavatorState.loads || 0) / 4) * 0.75 : 1;
         load.scale.y = fill;
-        load.position.y = 2.5 + 0.3 * fill;
+        load.position.y = load.userData.baseY ?? 0;
       }
+      truck.userData.wheels?.forEach((wheel) => {
+        wheel.userData.spinGroup.rotation.z = -leave * 70 / (wheel.userData.radius || 0.72);
+      });
       if (!force && leave > 0.02 && leave < 0.98 && Math.random() < dt * 25) {
         this.fx.emitDust(_v.set(truck.position.x, 0.4, truck.position.z + 4), 3, { size: 2, alpha: 0.4, spread: 2 });
       }
@@ -731,6 +741,10 @@ export class ConstructionTimeline {
     if (el.siteDirt) {
       el.siteDirt.material.opacity = 1 - finish;
       el.siteDirt.visible = finish < 0.999;
+    }
+    if (el.trackMarks) {
+      el.trackMarks.material.opacity = 0.72 * (1 - finish);
+      el.trackMarks.visible = finish < 0.999;
     }
 
     el.fencing.forEach((f) => {

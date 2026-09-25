@@ -1,5 +1,12 @@
 import * as THREE from 'three';
 import { createNoiseTexture, createSiteDirtTexture } from './SiteEnvironment.js';
+import { buildEarthmoverDumpTruck, buildExcavator } from './MachineryModels.js';
+import {
+  createPaintWearTexture,
+  createRubberTexture,
+  createTrackMarkTexture,
+  createWarningStripeTexture
+} from './ProceduralGeometry.js';
 
 // Excavation footprint shared by the terrain cut-out, pit, raft foundation and timeline
 export const PIT = { x0: -2, x1: 27, z0: -11, z1: 15, depth: 2.6 };
@@ -7,11 +14,13 @@ export const DIG_STRIPS = 8;
 
 // Procedural 3D model generator with high-fidelity mechanical details for the excavator, tower crane, warehouse, trucks, and infrastructure
 export class BuildingComponents {
-  constructor() {
+  constructor({ detail = 'high' } = {}) {
+    this.detail = detail;
     this.materials = this.createMaterials();
     this.elements = {
       ground: null,
       siteDirt: null,
+      trackMarks: null,
       excavation: null,
       digStrips: [],
       soilMounds: [],
@@ -54,6 +63,9 @@ export class BuildingComponents {
     const groundNoise = createNoiseTexture(256, 0.08, 1 / 10);
     const soilNoise = createNoiseTexture(256, 0.22, 1 / 5);
     const concreteNoise = createNoiseTexture(256, 0.06, 1 / 6);
+    const paintWear = createPaintWearTexture(this.detail === 'high' ? 256 : 128);
+    const steelWear = createPaintWearTexture(this.detail === 'high' ? 256 : 128, 93);
+    const rubberTexture = createRubberTexture(this.detail === 'high' ? 256 : 128);
 
     return {
       ground: new THREE.MeshStandardMaterial({
@@ -125,15 +137,21 @@ export class BuildingComponents {
         metalness: 0.2,
       }),
       // Authentic Construction Machinery Yellow (matching Crane & Excavator images)
-      craneYellow: new THREE.MeshStandardMaterial({
-        color: 0xf59f00,
-        roughness: 0.35,
-        metalness: 0.25,
+      craneYellow: new THREE.MeshPhysicalMaterial({
+        color: 0xf3a20a,
+        map: paintWear,
+        roughness: 0.34,
+        metalness: 0.18,
+        clearcoat: 0.32,
+        clearcoatRoughness: 0.38,
       }),
-      craneYellowDark: new THREE.MeshStandardMaterial({
-        color: 0xd97706,
-        roughness: 0.4,
-        metalness: 0.25,
+      craneYellowDark: new THREE.MeshPhysicalMaterial({
+        color: 0xc97805,
+        map: paintWear,
+        roughness: 0.42,
+        metalness: 0.22,
+        clearcoat: 0.2,
+        clearcoatRoughness: 0.45,
       }),
       craneGrey: new THREE.MeshStandardMaterial({
         color: 0x495057,
@@ -148,9 +166,10 @@ export class BuildingComponents {
       }),
       // Heavy Steel for Tracks, Chassis, Buckets
       steelDark: new THREE.MeshStandardMaterial({
-        color: 0x212529,
-        roughness: 0.6,
-        metalness: 0.75,
+        color: 0x25292c,
+        map: steelWear,
+        roughness: 0.56,
+        metalness: 0.72,
       }),
       steelSilver: new THREE.MeshStandardMaterial({
         color: 0xced4da,
@@ -159,7 +178,8 @@ export class BuildingComponents {
       }),
       // Matte Rubber Tires
       rubberTire: new THREE.MeshStandardMaterial({
-        color: 0x1a1d20,
+        color: 0x191b1c,
+        map: rubberTexture,
         roughness: 0.95,
         metalness: 0.05,
       }),
@@ -196,6 +216,72 @@ export class BuildingComponents {
         roughness: 0.9,
         metalness: 0.1,
       }),
+      trackFrame: new THREE.MeshStandardMaterial({
+        color: 0x303438,
+        map: steelWear,
+        roughness: 0.62,
+        metalness: 0.68,
+      }),
+      trackWheel: new THREE.MeshStandardMaterial({
+        color: 0x44494d,
+        map: steelWear,
+        roughness: 0.48,
+        metalness: 0.72,
+      }),
+      trackShoe: new THREE.MeshStandardMaterial({
+        color: 0x25282b,
+        map: steelWear,
+        roughness: 0.72,
+        metalness: 0.62,
+      }),
+      bucketSteel: new THREE.MeshStandardMaterial({
+        color: 0x34373a,
+        map: steelWear,
+        roughness: 0.68,
+        metalness: 0.68,
+      }),
+      wornSteel: new THREE.MeshStandardMaterial({
+        color: 0xa6a9a8,
+        map: steelWear,
+        roughness: 0.38,
+        metalness: 0.88,
+      }),
+      cabFrame: new THREE.MeshStandardMaterial({
+        color: 0x1c2226,
+        roughness: 0.42,
+        metalness: 0.7,
+      }),
+      seat: new THREE.MeshStandardMaterial({
+        color: 0x202326,
+        roughness: 0.92,
+        metalness: 0.02,
+      }),
+      mirror: new THREE.MeshPhysicalMaterial({
+        color: 0x8fa5ad,
+        roughness: 0.05,
+        metalness: 0.95,
+        clearcoat: 0.6,
+      }),
+      headlamp: new THREE.MeshStandardMaterial({
+        color: 0xfff4ce,
+        emissive: 0xffd98a,
+        emissiveIntensity: 0.35,
+        roughness: 0.18,
+      }),
+      warningStripe: new THREE.MeshStandardMaterial({
+        map: createWarningStripeTexture(256),
+        roughness: 0.52,
+        metalness: 0.18,
+      }),
+      trackMarks: new THREE.MeshBasicMaterial({
+        map: createTrackMarkTexture(this.detail === 'high' ? 512 : 256),
+        transparent: true,
+        opacity: 0.72,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -4,
+        polygonOffsetUnits: -4,
+      }),
       palletWood: new THREE.MeshStandardMaterial({
         color: 0xd4a373,
         roughness: 0.9,
@@ -215,12 +301,16 @@ export class BuildingComponents {
         transparent: true,
         opacity: 0.78,
       }),
-      glassCab: new THREE.MeshStandardMaterial({
-        color: 0x1e293b,
-        roughness: 0.1,
-        metalness: 0.85,
+      glassCab: new THREE.MeshPhysicalMaterial({
+        color: 0x243a49,
+        roughness: 0.08,
+        metalness: 0.05,
         transparent: true,
-        opacity: 0.65,
+        opacity: 0.58,
+        transmission: 0.12,
+        thickness: 0.04,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.12,
       }),
       glassLit: new THREE.MeshStandardMaterial({
         color: 0xffe6a3,
@@ -345,6 +435,14 @@ export class BuildingComponents {
     terrainGroup.add(siteDirt);
     this.elements.siteDirt = siteDirt;
 
+    // Repeated crawler impressions define the active haul route without using image assets.
+    const trackMarks = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 41), this.materials.trackMarks);
+    trackMarks.rotation.x = -Math.PI / 2;
+    trackMarks.position.set(34.2, 0.075, 1.5);
+    trackMarks.renderOrder = 2;
+    terrainGroup.add(trackMarks);
+    this.elements.trackMarks = trackMarks;
+
     // Surrounding asphalt roads (elevated to y = 0.10 to prevent Z-fighting)
     const frontRoadGeo = new THREE.PlaneGeometry(520, 10);
     const frontRoad = new THREE.Mesh(frontRoadGeo, this.materials.asphalt);
@@ -431,6 +529,23 @@ export class BuildingComponents {
       wall.position.set(x, -PIT.depth / 2 - 0.01, z);
       wall.receiveShadow = true;
       pitGroup.add(wall);
+
+      // Thin exposed strata lines break up the perfectly uniform excavation walls.
+      for (let layer = 0; layer < 3; layer++) {
+        const bandMaterial = this.materials.pitWallSoil.clone();
+        bandMaterial.color.offsetHSL(0, -0.02, layer % 2 === 0 ? 0.07 : -0.05);
+        const band = new THREE.Mesh(
+          alongX ? new THREE.BoxGeometry(len - 0.25, 0.09, 0.035) : new THREE.BoxGeometry(0.035, 0.09, len - 0.25),
+          bandMaterial
+        );
+        const inward = (alongX ? (z < pitCz ? 1 : -1) : (x < pitCx ? 1 : -1)) * 0.22;
+        band.position.set(
+          x + (alongX ? 0 : inward),
+          -0.56 - layer * 0.68,
+          z + (alongX ? inward : 0)
+        );
+        pitGroup.add(band);
+      }
     });
 
     // Soldier-pile shoring (steel H-piles) lining the excavation perimeter
@@ -486,21 +601,51 @@ export class BuildingComponents {
     });
     this.elements.fencing.push(fenceGroup);
 
-    // Site office modular container
+    // Detailed stacked site-office containers, set behind the active haul route.
+    const officeGroup = new THREE.Group();
+    officeGroup.name = 'SiteOfficeContainers';
+    officeGroup.position.set(45, 0, -20);
     const officeBoxGeo = new THREE.BoxGeometry(6, 2.5, 2.6);
-    const officeBox = new THREE.Mesh(officeBoxGeo, this.materials.truckWhite);
-    officeBox.position.set(47, 1.25, 20);
-    officeBox.castShadow = true;
-    pitGroup.add(officeBox);
+    [
+      { y: 1.25, material: this.materials.truckWhite },
+      { y: 3.9, material: this.materials.concrete }
+    ].forEach(({ y, material }, level) => {
+      const shell = new THREE.Mesh(officeBoxGeo, material);
+      shell.position.y = y;
+      shell.castShadow = true;
+      shell.receiveShadow = true;
+      officeGroup.add(shell);
 
-    const officeTrim = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.2, 2.8), this.materials.coreRedAccent);
-    officeTrim.position.set(47, 2.5, 20);
-    pitGroup.add(officeTrim);
+      const ribGeometry = new THREE.BoxGeometry(0.055, 2.28, 0.055);
+      const ribs = new THREE.InstancedMesh(ribGeometry, this.materials.steelSilver, 24);
+      const ribMatrix = new THREE.Matrix4();
+      for (let i = 0; i < 12; i++) {
+        const x = -2.72 + i * 0.5;
+        ribMatrix.makeTranslation(x, y, 1.325);
+        ribs.setMatrixAt(i, ribMatrix);
+        ribMatrix.makeTranslation(x, y, -1.325);
+        ribs.setMatrixAt(i + 12, ribMatrix);
+      }
+      officeGroup.add(ribs);
 
-    const officeBox2 = new THREE.Mesh(officeBoxGeo, this.materials.concrete);
-    officeBox2.position.set(47, 3.85, 20);
-    officeBox2.castShadow = true;
-    pitGroup.add(officeBox2);
+      [-1.4, 0.35].forEach((x) => {
+        const window = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.82, 0.055), this.materials.glassCab);
+        window.position.set(x, y + 0.22, 1.34);
+        officeGroup.add(window);
+      });
+      const trim = new THREE.Mesh(new THREE.BoxGeometry(6.15, 0.16, 2.75), this.materials.coreRedAccent);
+      trim.position.y = y + 1.25;
+      officeGroup.add(trim);
+    });
+    const officeDoor = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.95, 0.07), this.materials.steelDark);
+    officeDoor.position.set(2.15, 1.18, 1.35);
+    officeGroup.add(officeDoor);
+    for (let i = 0; i < 3; i++) {
+      const step = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.12, 0.38), this.materials.steelSilver);
+      step.position.set(2.15, 0.08 + i * 0.2, 1.65 + i * 0.32);
+      officeGroup.add(step);
+    }
+    pitGroup.add(officeGroup);
 
     // Spoil heaps that grow as the dig deepens (bottom-anchored cones)
     [[36.5, -16.5, 4.2, 2.4], [33.2, -19.5, 2.8, 1.5]].forEach(([x, z, r, h]) => {
@@ -525,7 +670,7 @@ export class BuildingComponents {
     });
 
     // Heavy 6x6 earthmover dump truck waiting beside the excavator, cab facing north up the haul road
-    const earthmover = this.createEarthmoverDumpTruck();
+    const earthmover = buildEarthmoverDumpTruck(this.materials, this.detail);
     earthmover.position.set(35.2, 0, -6.5);
     earthmover.rotation.y = Math.PI / 2;
     pitGroup.add(earthmover);
@@ -1100,387 +1245,6 @@ export class BuildingComponents {
     return railing;
   }
 
-  // ==========================================================================
-  // REALISTIC HYDRAULIC EXCAVATOR (Directly matching Image 3)
-  // ==========================================================================
-  createExcavator() {
-    const exRoot = new THREE.Group();
-    exRoot.name = 'HydraulicExcavator';
-
-    // 1. Heavy Crawler Undercarriage & Dual Tracks (Image 3)
-    const undercarriage = new THREE.Group();
-    const trackWidth = 0.9;
-    const trackLength = 5.2;
-    const trackHeight = 1.1;
-    const trackSpacing = 2.4;
-
-    [-trackSpacing / 2, trackSpacing / 2].forEach((tz) => {
-      const trackGroup = new THREE.Group();
-      trackGroup.position.set(0, trackHeight / 2, tz);
-
-      // Dark steel track frame with beveled ends
-      const frameGeo = new THREE.BoxGeometry(trackLength - 0.8, trackHeight * 0.7, trackWidth * 0.9);
-      const frame = new THREE.Mesh(frameGeo, this.materials.steelDark);
-      trackGroup.add(frame);
-
-      // Rear drive sprocket & front idler wheels
-      const sprocket = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, trackWidth * 0.92, 16), this.materials.steelDark);
-      sprocket.rotation.x = Math.PI / 2;
-      sprocket.position.set(-trackLength / 2 + 0.5, 0, 0);
-      sprocket.castShadow = true;
-      trackGroup.add(sprocket);
-
-      const idler = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, trackWidth * 0.92, 16), this.materials.steelDark);
-      idler.rotation.x = Math.PI / 2;
-      idler.position.set(trackLength / 2 - 0.5, 0, 0);
-      idler.castShadow = true;
-      trackGroup.add(idler);
-
-      // Bottom track rollers (5 rollers)
-      for (let rx = -1.6; rx <= 1.6; rx += 0.8) {
-        const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, trackWidth * 0.95, 12), this.materials.steelDark);
-        roller.rotation.x = Math.PI / 2;
-        roller.position.set(rx, -trackHeight / 2 + 0.2, 0);
-        trackGroup.add(roller);
-      }
-
-      // Continuous rubber/steel caterpillar track belt with ribbed shoes
-      const beltTop = new THREE.Mesh(new THREE.BoxGeometry(trackLength, 0.08, trackWidth), this.materials.rubberTire);
-      beltTop.position.set(0, trackHeight / 2, 0);
-      beltTop.castShadow = true;
-      trackGroup.add(beltTop);
-
-      const beltBottom = new THREE.Mesh(new THREE.BoxGeometry(trackLength, 0.08, trackWidth), this.materials.rubberTire);
-      beltBottom.position.set(0, -trackHeight / 2, 0);
-      trackGroup.add(beltBottom);
-
-      // Track pads ribs
-      for (let px = -trackLength / 2; px <= trackLength / 2; px += 0.35) {
-        const rib = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, trackWidth * 1.02), this.materials.steelDark);
-        rib.position.set(px, trackHeight / 2 + 0.04, 0);
-        trackGroup.add(rib);
-      }
-
-      undercarriage.add(trackGroup);
-    });
-
-    // Central carbody / cross-beam joining tracks
-    const carbody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, trackSpacing), this.materials.steelDark);
-    carbody.position.y = trackHeight * 0.6;
-    carbody.castShadow = true;
-    undercarriage.add(carbody);
-
-    // Slew ring turntable
-    const slewRing = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.3, 20), this.materials.craneGrey);
-    slewRing.position.y = trackHeight * 0.9;
-    undercarriage.add(slewRing);
-
-    exRoot.add(undercarriage);
-
-    // 2. Revolving Superstructure Body (Yellow Engine House + Cab, Image 3)
-    const house = new THREE.Group();
-    house.position.y = trackHeight * 0.9 + 0.15;
-
-    // Heavy rear counterweight
-    const counterweightGeo = new THREE.BoxGeometry(1.4, 1.6, 2.6);
-    const counterweight = new THREE.Mesh(counterweightGeo, this.materials.craneYellowDark);
-    counterweight.position.set(-1.8, 0.8, 0);
-    counterweight.castShadow = true;
-    house.add(counterweight);
-
-    // Engine hood & machinery compartment (right side)
-    const engineHoodGeo = new THREE.BoxGeometry(2.4, 1.4, 1.5);
-    const engineHood = new THREE.Mesh(engineHoodGeo, this.materials.craneYellow);
-    engineHood.position.set(0.1, 0.7, -0.55);
-    engineHood.castShadow = true;
-    house.add(engineHood);
-
-    // Radiator louvered vents
-    for (let lx = -0.6; lx <= 0.8; lx += 0.25) {
-      const louver = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.9, 0.08), this.materials.steelDark);
-      louver.position.set(lx, 0.8, -1.31);
-      house.add(louver);
-    }
-
-    // Exhaust muffler pipe with bent rain cap (Image 3)
-    const exhaustMuffler = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.8), this.materials.steelDark);
-    exhaustMuffler.position.set(-0.6, 1.8, -0.6);
-    house.add(exhaustMuffler);
-
-    const exhaustTip = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6), this.materials.steelDark);
-    exhaustTip.position.set(-0.6, 2.3, -0.6);
-    exhaustTip.rotation.z = Math.PI / 4;
-    house.add(exhaustTip);
-
-    // Cylindrical air intake filter
-    const airFilter = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.5), this.materials.steelDark);
-    airFilter.position.set(-1.1, 1.6, -0.4);
-    house.add(airFilter);
-
-    // Thin steel safety railings along the engine deck (Image 3)
-    const deckRailing = this.createPerimeterRailing(2.3, 1.4, 0.65, this.materials.steelDark);
-    deckRailing.position.set(0.1, 1.4, -0.55);
-    house.add(deckRailing);
-
-    // 3. Operator Cabin (Left side, Image 3)
-    const cabGroup = new THREE.Group();
-    cabGroup.position.set(0.4, 0, 0.85);
-
-    // Cab main shell
-    const cabShell = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.0, 1.2), this.materials.craneYellow);
-    cabShell.position.set(0, 1.0, 0);
-    cabShell.castShadow = true;
-    cabGroup.add(cabShell);
-
-    // Angled front glass windshield
-    const cabGlassFront = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.4, 0.95), this.materials.glassCab);
-    cabGlassFront.position.set(0.81, 1.1, 0);
-    cabGroup.add(cabGlassFront);
-
-    // Side door glass window
-    const cabGlassSide = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 0.08), this.materials.glassCab);
-    cabGlassSide.position.set(0.1, 1.2, 0.61);
-    cabGroup.add(cabGlassSide);
-
-    // Corrugated roof reinforcement ribs
-    for (let rx = -0.5; rx <= 0.5; rx += 0.25) {
-      const roofRib = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 1.15), this.materials.craneYellowDark);
-      roofRib.position.set(rx, 2.02, 0);
-      cabGroup.add(roofRib);
-    }
-
-    // Interior operator seat and dual joysticks
-    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.6, 0.45), this.materials.steelDark);
-    seat.position.set(-0.2, 0.6, 0);
-    cabGroup.add(seat);
-
-    const joystick1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), this.materials.steelSilver);
-    joystick1.position.set(0.2, 0.65, -0.2);
-    cabGroup.add(joystick1);
-    const joystick2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), this.materials.steelSilver);
-    joystick2.position.set(0.2, 0.65, 0.2);
-    cabGroup.add(joystick2);
-
-    house.add(cabGroup);
-
-    // 4. Articulated Digging Arm & Kinematic Hydraulics (Image 3)
-    // Boom foot pivot mount on front center
-    const boomPivot = new THREE.Group();
-    boomPivot.position.set(1.1, 0.8, 0);
-
-    // Curved Main Boom
-    const boomMesh = this.createCurvedBoom();
-    boomMesh.castShadow = true;
-    boomPivot.add(boomMesh);
-
-    // Dual Boom Hydraulic Cylinders (pinned to house and extending to boom)
-    const boomCylinders = [];
-    [-0.35, 0.35].forEach((cyOffset) => {
-      const cylGroup = new THREE.Group();
-      cylGroup.position.set(0.6, 0.4, cyOffset);
-
-      const cylBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.4, 12), this.materials.craneYellow);
-      cylBarrel.position.y = 1.0;
-      cylGroup.add(cylBarrel);
-
-      const cylPiston = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.2, 12), this.materials.chrome);
-      cylPiston.position.y = 1.8;
-      cylGroup.add(cylPiston);
-
-      cylGroup.rotation.z = Math.PI / 4.8;
-      boomPivot.add(cylGroup);
-      boomCylinders.push({ group: cylGroup, barrel: cylBarrel, piston: cylPiston });
-    });
-
-    // Stick / Dipper Arm (hinged at boom tip: x: 4.6, y: 3.4)
-    const stickPivot = new THREE.Group();
-    stickPivot.position.set(4.6, 3.4, 0);
-
-    const stickMesh = this.createStickArm();
-    stickMesh.castShadow = true;
-    stickPivot.add(stickMesh);
-
-    // Stick hydraulic ram on top of boom
-    const stickCylinder = new THREE.Group();
-    const sBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 2.2, 12), this.materials.craneYellow);
-    sBarrel.position.set(-1.2, 0.4, 0);
-    sBarrel.rotation.z = -Math.PI / 4.5;
-    stickCylinder.add(sBarrel);
-
-    const sPiston = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.0, 12), this.materials.chrome);
-    sPiston.position.set(-0.2, 0.1, 0);
-    sPiston.rotation.z = -Math.PI / 4.5;
-    stickCylinder.add(sPiston);
-    stickPivot.add(stickCylinder);
-
-    // Bucket Assembly (hinged at stick tip: x: 3.2, y: -2.8)
-    const bucketPivot = new THREE.Group();
-    bucketPivot.position.set(3.2, -2.8, 0);
-
-    // Heavy duty digging bucket with 5 distinct sharp teeth (Image 3)
-    const bucketMesh = this.createDiggingBucket();
-    bucketMesh.castShadow = true;
-    bucketPivot.add(bucketMesh);
-
-    // Bucket linkage dogbones
-    const dogbone = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.12, 0.4), this.materials.steelDark);
-    dogbone.position.set(-0.2, 0.4, 0);
-    bucketPivot.add(dogbone);
-
-    stickPivot.add(bucketPivot);
-    boomPivot.add(stickPivot);
-    house.add(boomPivot);
-
-    exRoot.add(house);
-
-    // Cache kinematic references for dynamic excavation animation
-    this.elements.excavator = {
-      root: exRoot,
-      house,
-      boomPivot,
-      stickPivot,
-      bucketPivot,
-      boomCylinders
-    };
-
-    return exRoot;
-  }
-
-  createEarthmoverDumpTruck() {
-    const truck = new THREE.Group();
-    truck.name = 'EarthmoverDumpTruck';
-
-    // Heavy 6x6 chassis
-    const chassis = new THREE.Mesh(new THREE.BoxGeometry(8.5, 0.6, 2.4), this.materials.steelDark);
-    chassis.position.y = 1.0;
-    chassis.castShadow = true;
-    truck.add(chassis);
-
-    // Front angled driver cab
-    const cab = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.0, 2.2), this.materials.craneYellow);
-    cab.position.set(2.8, 2.0, 0);
-    cab.castShadow = true;
-    truck.add(cab);
-
-    // Windshield
-    const ws = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 1.8), this.materials.glassCab);
-    ws.position.set(4.01, 2.2, 0);
-    truck.add(ws);
-
-    // Rock dump bed
-    const bed = new THREE.Mesh(new THREE.BoxGeometry(5.2, 1.8, 2.6), this.materials.craneYellow);
-    bed.position.set(-1.2, 2.2, 0);
-    bed.castShadow = true;
-    truck.add(bed);
-
-    // Soil load inside dump bed
-    const soil = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.6, 2.3), this.materials.excavationSoil);
-    soil.position.set(-1.2, 2.8, 0);
-    truck.add(soil);
-    truck.userData.load = soil;
-
-    // 6 Big rugged earthmover wheels
-    const wheelGeo = new THREE.CylinderGeometry(0.7, 0.7, 0.55, 16);
-    [[-3.2, -1.35], [-3.2, 1.35], [-1.2, -1.35], [-1.2, 1.35], [2.8, -1.35], [2.8, 1.35]].forEach(([wx, wz]) => {
-      const wheel = new THREE.Mesh(wheelGeo, this.materials.rubberTire);
-      wheel.rotation.x = Math.PI / 2;
-      wheel.position.set(wx, 0.7, wz);
-      wheel.castShadow = true;
-      truck.add(wheel);
-
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.58, 12), this.materials.craneYellow);
-      hub.rotation.x = Math.PI / 2;
-      hub.position.set(wx, 0.7, wz);
-      truck.add(hub);
-    });
-
-    return truck;
-  }
-
-  createCurvedBoom() {
-    const boom = new THREE.Group();
-
-    // 2-segment welded curved box boom
-    const lowerSegment = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.75, 0.65), this.materials.craneYellow);
-    lowerSegment.position.set(1.6, 1.2, 0);
-    lowerSegment.rotation.z = Math.PI / 4.2;
-    boom.add(lowerSegment);
-
-    const upperSegment = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.65, 0.55), this.materials.craneYellow);
-    upperSegment.position.set(3.6, 2.6, 0);
-    upperSegment.rotation.z = Math.PI / 8;
-    boom.add(upperSegment);
-
-    // Pivot boss reinforcing rings
-    const bossGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.72, 16);
-    const bossFoot = new THREE.Mesh(bossGeo, this.materials.craneYellowDark);
-    bossFoot.rotation.x = Math.PI / 2;
-    boom.add(bossFoot);
-
-    const bossKnee = new THREE.Mesh(bossGeo, this.materials.craneYellowDark);
-    bossKnee.rotation.x = Math.PI / 2;
-    bossKnee.position.set(4.6, 3.4, 0);
-    boom.add(bossKnee);
-
-    // Flexible black hydraulic hose lines
-    const hose1 = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.4), this.materials.hoseBlack);
-    hose1.position.set(2.4, 2.2, 0.35);
-    hose1.rotation.z = Math.PI / 4;
-    boom.add(hose1);
-
-    return boom;
-  }
-
-  createStickArm() {
-    const stick = new THREE.Group();
-
-    const stickBody = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.6, 0.48), this.materials.craneYellow);
-    stickBody.position.set(1.6, -1.3, 0);
-    stickBody.rotation.z = -Math.PI / 4.4;
-    stick.add(stickBody);
-
-    // Boss at bucket end
-    const bossTip = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.54, 16), this.materials.craneYellowDark);
-    bossTip.rotation.x = Math.PI / 2;
-    bossTip.position.set(3.2, -2.8, 0);
-    stick.add(bossTip);
-
-    return stick;
-  }
-
-  createDiggingBucket() {
-    const bucket = new THREE.Group();
-
-    // Curved back plate and side cheeks (Image 3)
-    const backPlate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 1.3), this.materials.steelDark);
-    backPlate.position.set(0.4, -0.3, 0);
-    bucket.add(backPlate);
-
-    const sideL = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.1), this.materials.steelDark);
-    sideL.position.set(0.4, -0.3, 0.65);
-    bucket.add(sideL);
-
-    const sideR = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.1), this.materials.steelDark);
-    sideR.position.set(0.4, -0.3, -0.65);
-    bucket.add(sideR);
-
-    // 5 Distinct Sharp Digging Teeth / Shanks (Image 3)
-    const toothGeo = new THREE.ConeGeometry(0.08, 0.45, 4);
-    for (let i = 0; i < 5; i++) {
-      const zPos = -0.48 + i * 0.24;
-      const tooth = new THREE.Mesh(toothGeo, this.materials.steelSilver);
-      tooth.rotation.z = -Math.PI / 2.2;
-      tooth.position.set(1.4, -0.85, zPos);
-      tooth.castShadow = true;
-      bucket.add(tooth);
-    }
-
-    return bucket;
-  }
-
-  // ==========================================================================
-  // REALISTIC DELIVERY TRUCK / SEMI-TRUCK (Directly matching Image 2)
-  // ==========================================================================
   createDeliveryTruck(colorMat = this.materials.truckBlue) {
     const truck = new THREE.Group();
 
@@ -2393,11 +2157,11 @@ export class BuildingComponents {
     this.elements.trucks.push(truck3);
 
     // Realistic Hydraulic Excavator (matching Image 3) working from the east lip of the excavation
-    const excavator = this.createExcavator();
-    excavator.position.set(32, 0, 3);
-    excavator.rotation.y = Math.PI;
-    fleetGroup.add(excavator);
-    // this.elements.excavator set inside createExcavator()
+    const excavator = buildExcavator(this.materials, this.detail);
+    excavator.root.position.set(32, 0, 3);
+    excavator.root.rotation.y = Math.PI;
+    fleetGroup.add(excavator.root);
+    this.elements.excavator = excavator;
 
     root.add(fleetGroup);
   }
