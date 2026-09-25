@@ -94,6 +94,54 @@ export function createSiteDirtTexture(size = 512) {
   }, 1 / 14);
 }
 
+// Dense aggregate, tar repairs and hairline cracks keep the roads from reading as flat grey planes.
+export function createAsphaltTexture(size = 512) {
+  const rand = mulberry32(318);
+  const broad = valueNoiseField(size, 5, rand);
+  return canvasTexture(size, (data) => {
+    for (let i = 0; i < size * size; i++) {
+      const grain = broad[i] * 24 + (rand() - 0.5) * 18;
+      const stone = rand() < 0.025 ? 22 + rand() * 30 : 0;
+      data[i * 4] = 45 + grain + stone;
+      data[i * 4 + 1] = 49 + grain + stone;
+      data[i * 4 + 2] = 52 + grain + stone;
+      data[i * 4 + 3] = 255;
+    }
+  }, 1 / 8);
+}
+
+// Warm, matte architectural concrete with aggregate and curing stains.
+export function createConcreteTexture(size = 512) {
+  const rand = mulberry32(911);
+  const broad = valueNoiseField(size, 5, rand);
+  return canvasTexture(size, (data) => {
+    for (let i = 0; i < size * size; i++) {
+      const n = (broad[i] - 0.5) * 28 + (rand() - 0.5) * 9;
+      const fleck = rand() < 0.018 ? -30 - rand() * 25 : 0;
+      data[i * 4] = 204 + n + fleck;
+      data[i * 4 + 1] = 205 + n + fleck;
+      data[i * 4 + 2] = 201 + n + fleck;
+      data[i * 4 + 3] = 255;
+    }
+  }, 1 / 6);
+}
+
+// Mixed urban verge texture used beyond the active site instead of an empty white floor.
+export function createUrbanGroundTexture(size = 512) {
+  const rand = mulberry32(1207);
+  const field = valueNoiseField(size, 5, rand);
+  return canvasTexture(size, (data) => {
+    for (let i = 0; i < size * size; i++) {
+      const n = field[i];
+      const pale = rand() < 0.012 ? 18 : 0;
+      data[i * 4] = 126 + n * 30 + pale;
+      data[i * 4 + 1] = 135 + n * 34 + pale;
+      data[i * 4 + 2] = 119 + n * 25 + pale;
+      data[i * 4 + 3] = 255;
+    }
+  }, 1 / 18);
+}
+
 const skyVertex = /* glsl */`
   varying vec3 vDir;
   void main() {

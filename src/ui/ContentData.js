@@ -66,12 +66,12 @@ export const PHASES = [
     range: [0.58, 0.76],
     phaseNumber: "04",
     label: "High-Bay Logistics & Systems",
-    title: "Automated Industrial Interior & Rail Intermodal Bay",
-    description: "Installation of multi-tier high-bay pallet racking (similar to Emons high-throughput hubs), automated roller conveyor systems, heavy electric forklifts, and rail gantry transfer tracks.",
+    title: "Automated Industrial Interior & Urban Loading Bay",
+    description: "Installation of multi-tier high-bay pallet racking, automated roller conveyor systems, heavy electric forklifts, and city-facing truck loading docks.",
     specs: [
       { label: "Storage Capacity", val: "4,200 High-Bay Pallets" },
       { label: "Conveyor Rate", val: "1,800 units / hr" },
-      { label: "Gantry Rail Crane", val: "40 Ton Dual-Trolley" },
+      { label: "Loading Docks", val: "4 Smart Truck Bays" },
       { label: "Fire Suppression", val: "ESFR High-Density Grid" }
     ],
     badgeColor: "#ff4d4f",
@@ -101,7 +101,7 @@ export const PHASES = [
     phaseNumber: "06",
     label: "Commissioned Smart Campus",
     title: "Handover: Operational Sustainable Headquarters",
-    description: "Full architectural commissioning complete: warm ambient interior illumination, landscaped plazas with indigenous flora, fleet charging docks, and intermodal freight lines active.",
+    description: "Full architectural commissioning complete: furnished offices, landscaped plazas with indigenous flora, fleet charging docks, and an active urban street frontage.",
     specs: [
       { label: "Total Built Area", val: "24,500 m²" },
       { label: "Certification", val: "LEED Platinum / Net-Zero" },
@@ -159,15 +159,6 @@ export const HOTSPOTS = [
     category: "Renewable Energy",
     description: "High-efficiency bifacial monocrystalline solar array providing over 40% of the building's operational energy.",
     specs: "240 kWp capacity • Micro-inverter network"
-  },
-  {
-    id: "rail-gantry",
-    name: "Intermodal Rail Gantry Terminal",
-    pos: [-14, 7, -14],
-    phaseMin: 0.50,
-    category: "Freight Logistics",
-    description: "Heavy gantry crane spanning dual freight railway spurs for direct container transfer between rail and trucks.",
-    specs: "Span: 32m • 40t Spreader Bar"
   }
 ];
 

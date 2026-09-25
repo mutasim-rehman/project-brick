@@ -18,7 +18,7 @@ const dampAngle = (current, target, lambda, dt) => current + wrapAngle(target - 
 
 // Construction schedule (scroll progress 0..1), aligned with the phase ranges in ContentData
 const SCHEDULE = {
-  digStart: -0.06, digStagger: 0.019, digDuration: 0.05,
+  digStart: 0.0, digStagger: 0.012, digDuration: 0.055,
   rebar: [0.12, 0.07],
   pour: [0.17, 0.08],
   pileCaps: [0.245, 0.02],
@@ -89,8 +89,6 @@ export class ConstructionTimeline {
     if (el.warehouseRoof) el.warehouseRoof.userData.basePos = el.warehouseRoof.position.clone();
     if (el.earthmover) el.earthmover.userData.basePos = el.earthmover.position.clone();
     if (el.excavator) el.excavator.root.userData.basePos = el.excavator.root.position.clone();
-    if (el.trains[0]) el.trains[0].userData.basePos = el.trains[0].position.clone();
-    if (el.railGantry) el.railGantry.userData.basePos = el.railGantry.position.clone();
     el.fencing.forEach((f) => { f.userData.basePos = f.position.clone(); });
 
     // Row-major steel order so each storey is erected column-first, then beams, then deck
@@ -114,7 +112,7 @@ export class ConstructionTimeline {
       { progress: 0.0, pos: [51, 13.5, 34], target: [21.5, 0.25, 1.5] },
       { progress: 0.13, pos: [45, 19, 38], target: [15, -0.25, 2] },
       { progress: 0.27, pos: [40, 27, 46], target: [11, 6, 1] },
-      { progress: 0.46, pos: [50, 34, 46], target: [12, 11, 1] },
+      { progress: 0.46, pos: [59, 43, 57], target: [15, 17, -2] },
       { progress: 0.66, pos: [-10, 33, 44], target: [-17, 4, -1] },
       { progress: 0.83, pos: [42, 25, 50], target: [10, 11, 4] },
       { progress: 1.0, pos: [60, 31, 62], target: [2, 8, 2] }
@@ -205,7 +203,7 @@ export class ConstructionTimeline {
       const start = SCHEDULE.digStart + i * SCHEDULE.digStagger;
       const depth = easeInOutSine(win(t, start, SCHEDULE.digDuration));
       dugTotal += depth;
-      strip.scale.y = Math.max(0.001, 1 - depth);
+      strip.position.y = (strip.userData.baseY || 0) - depth * (PIT.depth + 0.8);
       strip.visible = depth < 0.999;
 
       if (!force && depth > 0.02 && depth < 0.98 && Math.random() < dt * 5) {
@@ -351,8 +349,8 @@ export class ConstructionTimeline {
       const wet = 1 - smoothstep(0.23, 0.32, t);
       const mat = slab.material;
       mat.color.copy(mat.userData.dryColor).lerp(mat.userData.wetColor, wet * 0.8);
-      mat.roughness = lerp(0.85, 0.22, wet);
-      mat.metalness = lerp(0.1, 0.25, wet);
+      mat.roughness = lerp(0.94, 0.62, wet);
+      mat.metalness = 0;
 
       if (!force && pour > 0.01 && pour < 0.99 && Math.random() < dt * 14) {
         const y = -PIT.depth + slab.userData.fullHeight * pour + 0.1;
@@ -601,6 +599,18 @@ export class ConstructionTimeline {
     const el = this.elements;
     const time = this.time;
 
+    if (el.warehouseFloor) {
+      const p = easeInOutCubic(win(t, 0.565, 0.04));
+      el.warehouseFloor.visible = p > 0.002;
+      el.warehouseFloor.scale.y = Math.max(0.002, p);
+      el.warehouseFloor.position.y = 0.3 * p;
+    }
+    el.finishedGround.forEach((surface, index) => {
+      const p = easeOutCubic(win(t, 0.61 + index * 0.008, 0.035));
+      surface.visible = p > 0.002;
+      surface.scale.set(index === 0 ? Math.max(0.002, p) : 1, Math.max(0.002, p), 1);
+    });
+
     el.warehouseWalls.forEach((pivot, i) => {
       const p = easeInOutCubic(win(t, SCHEDULE.walls[i] ?? 0.6, 0.035));
       const { axis, flat } = pivot.userData.tilt;
@@ -651,17 +661,12 @@ export class ConstructionTimeline {
       fl.rotation.y = dampAngle(fl.rotation.y, heading, 2.5, dt);
     }
 
-    const gantry = el.railGantry;
-    if (gantry) {
-      const p = smoothstep(0.48, 0.56, t);
-      gantry.visible = p > 0.01;
-      gantry.position.x = gantry.userData.basePos.x + Math.sin(time * 0.12) * 10;
-    }
-
-    el.trains.forEach((train) => {
-      const p = easeOutCubic(win(t, 0.5, 0.18));
-      train.visible = p > 0;
-      train.position.x = lerp(-110, train.userData.basePos.x, p);
+    el.cityVehicles?.forEach((vehicle, index) => {
+      const travel = ((time * (2.2 + index * 0.35) * vehicle.userData.direction + 120) % 240) - 120;
+      vehicle.position[vehicle.userData.axis] = vehicle.userData.base + travel;
+      vehicle.children.forEach((part) => {
+        if (part.userData?.spinGroup) part.userData.spinGroup.rotation.z = travel / 0.38;
+      });
     });
   }
 
@@ -670,6 +675,10 @@ export class ConstructionTimeline {
   // ---------------------------------------------------------------------------
   updateEnvelope(t) {
     const el = this.elements;
+
+    el.officeFurniture?.forEach((group) => {
+      group.visible = t > 0.8 + group.userData.floor * 0.012;
+    });
 
     el.facadePanels.forEach((panel) => {
       const { floor, slot, normal, basePos, baseRot } = panel.userData;

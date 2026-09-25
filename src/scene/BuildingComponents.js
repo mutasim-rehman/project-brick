@@ -1,8 +1,15 @@
 import * as THREE from 'three';
-import { createNoiseTexture, createSiteDirtTexture } from './SiteEnvironment.js';
+import {
+  createAsphaltTexture,
+  createConcreteTexture,
+  createNoiseTexture,
+  createSiteDirtTexture,
+  createUrbanGroundTexture
+} from './SiteEnvironment.js';
 import { buildEarthmoverDumpTruck, buildExcavator } from './MachineryModels.js';
 import {
   createPaintWearTexture,
+  createProfileGeometry,
   createRubberTexture,
   createTrackMarkTexture,
   createWarningStripeTexture
@@ -21,6 +28,10 @@ export class BuildingComponents {
       ground: null,
       siteDirt: null,
       trackMarks: null,
+      finishedGround: [],
+      warehouseFloor: null,
+      officeFurniture: [],
+      cityVehicles: [],
       excavation: null,
       digStrips: [],
       soilMounds: [],
@@ -52,24 +63,23 @@ export class BuildingComponents {
       hvacUnits: [],
       trees: [],
       trucks: [],
-      railGantry: null,
-      trains: [],
       fencing: [],
       excavator: null
     };
   }
 
   createMaterials() {
-    const groundNoise = createNoiseTexture(256, 0.08, 1 / 10);
+    const groundNoise = createUrbanGroundTexture(this.detail === 'high' ? 512 : 256);
     const soilNoise = createNoiseTexture(256, 0.22, 1 / 5);
-    const concreteNoise = createNoiseTexture(256, 0.06, 1 / 6);
+    const concreteNoise = createConcreteTexture(this.detail === 'high' ? 512 : 256);
+    const asphaltTexture = createAsphaltTexture(this.detail === 'high' ? 512 : 256);
     const paintWear = createPaintWearTexture(this.detail === 'high' ? 256 : 128);
     const steelWear = createPaintWearTexture(this.detail === 'high' ? 256 : 128, 93);
     const rubberTexture = createRubberTexture(this.detail === 'high' ? 256 : 128);
 
     return {
       ground: new THREE.MeshStandardMaterial({
-        color: 0xeaf6f8,
+        color: 0xaeb7a3,
         map: groundNoise,
         roughness: 0.95,
         metalness: 0.05,
@@ -95,6 +105,7 @@ export class BuildingComponents {
       }),
       digSoil: new THREE.MeshStandardMaterial({
         color: 0xa3876a,
+        map: soilNoise,
         roughness: 1.0,
         metalness: 0.0,
       }),
@@ -115,21 +126,22 @@ export class BuildingComponents {
         metalness: 0.05,
       }),
       pourConcrete: new THREE.MeshStandardMaterial({
-        color: 0xdde2ea,
+        color: 0xc4c7c2,
         map: concreteNoise,
-        roughness: 0.85,
-        metalness: 0.1,
+        roughness: 0.94,
+        metalness: 0.0,
       }),
       concrete: new THREE.MeshStandardMaterial({
-        color: 0xdde2ea,
+        color: 0xd0d2cd,
         map: concreteNoise,
-        roughness: 0.85,
-        metalness: 0.1,
+        roughness: 0.96,
+        metalness: 0.0,
       }),
       concreteCore: new THREE.MeshStandardMaterial({
-        color: 0xe8ecf3,
-        roughness: 0.8,
-        metalness: 0.1,
+        color: 0xb8bcb9,
+        map: concreteNoise,
+        roughness: 0.95,
+        metalness: 0.0,
       }),
       coreRedAccent: new THREE.MeshStandardMaterial({
         color: 0xff3322,
@@ -186,18 +198,21 @@ export class BuildingComponents {
       // Truck Blue (matching Image 2)
       truckBlue: new THREE.MeshStandardMaterial({
         color: 0x2e86de,
-        roughness: 0.35,
+        map: paintWear,
+        roughness: 0.46,
         metalness: 0.2,
       }),
       // Truck Red (matching Emons style)
       truckRed: new THREE.MeshStandardMaterial({
         color: 0xff3322,
-        roughness: 0.35,
+        map: paintWear,
+        roughness: 0.46,
         metalness: 0.25,
       }),
       truckWhite: new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.25,
+        color: 0xe8e9e4,
+        map: paintWear,
+        roughness: 0.48,
         metalness: 0.1,
       }),
       truckGrille: new THREE.MeshStandardMaterial({
@@ -294,12 +309,16 @@ export class BuildingComponents {
         color: 0xbe8b55,
         roughness: 0.95,
       }),
-      glassFacade: new THREE.MeshStandardMaterial({
-        color: 0x0f2238,
-        roughness: 0.08,
-        metalness: 0.92,
+      glassFacade: new THREE.MeshPhysicalMaterial({
+        color: 0x6f93a3,
+        roughness: 0.18,
+        metalness: 0.08,
         transparent: true,
-        opacity: 0.78,
+        opacity: 0.66,
+        transmission: 0.18,
+        thickness: 0.08,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.18,
       }),
       glassCab: new THREE.MeshPhysicalMaterial({
         color: 0x243a49,
@@ -313,11 +332,11 @@ export class BuildingComponents {
         clearcoatRoughness: 0.12,
       }),
       glassLit: new THREE.MeshStandardMaterial({
-        color: 0xffe6a3,
-        emissive: 0xffc048,
-        emissiveIntensity: 0.9,
-        roughness: 0.2,
-        metalness: 0.1,
+        color: 0xdce6e6,
+        emissive: 0xfff0cf,
+        emissiveIntensity: 0.32,
+        roughness: 0.68,
+        metalness: 0.0,
       }),
       mullionBlack: new THREE.MeshStandardMaterial({
         color: 0x181a1f,
@@ -344,8 +363,9 @@ export class BuildingComponents {
         roughness: 0.9,
       }),
       asphalt: new THREE.MeshStandardMaterial({
-        color: 0x383e48,
-        roughness: 0.9,
+        color: 0x75797a,
+        map: asphaltTexture,
+        roughness: 0.98,
         polygonOffset: true,
         polygonOffsetFactor: -1,
         polygonOffsetUnits: -1
@@ -360,18 +380,6 @@ export class BuildingComponents {
       safetyOrange: new THREE.MeshStandardMaterial({
         color: 0xff7733,
         roughness: 0.4,
-      }),
-      railTrack: new THREE.MeshStandardMaterial({
-        color: 0x57606f,
-        roughness: 0.45,
-        metalness: 0.85,
-      }),
-      railGravel: new THREE.MeshStandardMaterial({
-        color: 0xa4b0be,
-        roughness: 0.95,
-        polygonOffset: true,
-        polygonOffsetFactor: -1,
-        polygonOffsetUnits: -1
       })
     };
   }
@@ -388,7 +396,7 @@ export class BuildingComponents {
     this.buildWarehouseInteriorAndRacks(root);
     this.buildOfficeTowerAndFacade(root);
     this.buildRooftopAndSolar(root);
-    this.buildRailAndGantryCrane(root);
+    this.buildCityContext(root);
     this.buildVehiclesAndMachinery(root);
     this.buildLandscapingAndTrees(root);
 
@@ -421,6 +429,7 @@ export class BuildingComponents {
 
   buildTerrainAndRoads(root) {
     const terrainGroup = new THREE.Group();
+    terrainGroup.name = 'TexturedUrbanGround';
 
     // Main base ground (large enough to dissolve into the horizon fog)
     const ground = new THREE.Mesh(this.createGroundWithPit(-300, 300, -300, 300), this.materials.ground);
@@ -444,10 +453,10 @@ export class BuildingComponents {
     this.elements.trackMarks = trackMarks;
 
     // Surrounding asphalt roads (elevated to y = 0.10 to prevent Z-fighting)
-    const frontRoadGeo = new THREE.PlaneGeometry(520, 10);
+    const frontRoadGeo = new THREE.PlaneGeometry(520, 12);
     const frontRoad = new THREE.Mesh(frontRoadGeo, this.materials.asphalt);
     frontRoad.rotation.x = -Math.PI / 2;
-    frontRoad.position.set(0, 0.10, 34);
+    frontRoad.position.set(0, 0.10, 35);
     frontRoad.receiveShadow = true;
     terrainGroup.add(frontRoad);
 
@@ -456,15 +465,55 @@ export class BuildingComponents {
     const stripeXs = [];
     for (let x = -256; x <= 256; x += 8) stripeXs.push(x);
     const stripes = new THREE.InstancedMesh(stripeGeo, this.materials.roadStripe, stripeXs.length);
-    stripeXs.forEach((x, i) => stripes.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.14, 34)));
+    stripeXs.forEach((x, i) => stripes.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.14, 35)));
     terrainGroup.add(stripes);
 
-    const sideRoadGeo = new THREE.PlaneGeometry(10, 250);
+    const sideRoadGeo = new THREE.PlaneGeometry(12, 270);
     const sideRoad = new THREE.Mesh(sideRoadGeo, this.materials.asphalt);
     sideRoad.rotation.x = -Math.PI / 2;
-    sideRoad.position.set(38, 0.10, -90);
+    sideRoad.position.set(39, 0.10, -96);
     sideRoad.receiveShadow = true;
     terrainGroup.add(sideRoad);
+
+    const rearRoad = new THREE.Mesh(new THREE.PlaneGeometry(520, 12), this.materials.asphalt);
+    rearRoad.rotation.x = -Math.PI / 2;
+    rearRoad.position.set(0, 0.10, -31);
+    rearRoad.receiveShadow = true;
+    terrainGroup.add(rearRoad);
+
+    // Painted centre lines on the side and rear streets.
+    for (let z = -224; z <= 30; z += 9) {
+      const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 4.8), this.materials.roadStripe);
+      dash.rotation.x = -Math.PI / 2;
+      dash.position.set(39, 0.14, z);
+      terrainGroup.add(dash);
+    }
+    for (let x = -256; x <= 256; x += 9) {
+      const dash = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 0.18), this.materials.roadStripe);
+      dash.rotation.x = -Math.PI / 2;
+      dash.position.set(x, 0.14, -31);
+      terrainGroup.add(dash);
+    }
+
+    // Raised kerbs, pavements and a crossing make the site read as an occupied city block.
+    const kerbMat = this.materials.concrete.clone();
+    kerbMat.color.setHex(0xb7bbb7);
+    [
+      [520, 2, 0, 28.2], [520, 2, 0, 41.8],
+      [2, 270, 32.2, -96], [2, 270, 45.8, -96],
+      [520, 2, 0, -24.2], [520, 2, 0, -37.8]
+    ].forEach(([w, d, x, z]) => {
+      const kerb = new THREE.Mesh(new THREE.BoxGeometry(w, 0.24, d), kerbMat);
+      kerb.position.set(x, 0.14, z);
+      kerb.receiveShadow = true;
+      terrainGroup.add(kerb);
+    });
+    for (let i = 0; i < 7; i++) {
+      const crossing = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 4.2), this.materials.roadStripe);
+      crossing.rotation.x = -Math.PI / 2;
+      crossing.position.set(34.7 + i * 1.15, 0.145, 28.8);
+      terrainGroup.add(crossing);
+    }
 
     // Logistics loading apron (elevated to y = 0.12)
     const apronGeo = new THREE.PlaneGeometry(44, 22);
@@ -472,14 +521,18 @@ export class BuildingComponents {
     apron.rotation.x = -Math.PI / 2;
     apron.position.set(-10, 0.12, 18);
     apron.receiveShadow = true;
+    apron.visible = false;
     terrainGroup.add(apron);
+    this.elements.finishedGround.push(apron);
 
     for (let i = 0; i < 4; i++) {
       const lineGeo = new THREE.PlaneGeometry(0.3, 10);
       const line = new THREE.Mesh(lineGeo, this.materials.roadStripe);
       line.rotation.x = -Math.PI / 2;
       line.position.set(-26 + i * 10, 0.15, 20);
+      line.visible = false;
       terrainGroup.add(line);
+      this.elements.finishedGround.push(line);
     }
 
     root.add(terrainGroup);
@@ -500,15 +553,44 @@ export class BuildingComponents {
     pitFloor.receiveShadow = true;
     pitGroup.add(pitFloor);
 
-    // Undisturbed soil, excavated strip by strip (bottom-anchored so the timeline can lower each strip)
+    // Undisturbed, rutted soil excavated strip by strip. Shared world-space height
+    // functions keep adjacent cuts continuous while avoiding the old sand-box silhouette.
     const stripW = pitW / DIG_STRIPS;
     for (let i = 0; i < DIG_STRIPS; i++) {
-      const stripGeo = new THREE.BoxGeometry(stripW, PIT.depth, pitD);
-      stripGeo.translate(0, PIT.depth / 2, 0);
+      const stripGeo = new THREE.PlaneGeometry(stripW + 0.04, pitD + 0.04, 3, this.detail === 'high' ? 18 : 10);
+      stripGeo.rotateX(-Math.PI / 2);
+      const worldX = PIT.x1 - stripW * (i + 0.5);
+      const positions = stripGeo.attributes.position;
+      for (let p = 0; p < positions.count; p++) {
+        const wx = worldX + positions.getX(p);
+        const wz = pitCz + positions.getZ(p);
+        const rut = Math.sin(wx * 0.82 + wz * 0.31) * 0.12;
+        const undulation = Math.sin(wz * 0.47) * 0.16 + Math.cos(wx * 1.36 - wz * 0.18) * 0.08;
+        const haulCompression = Math.max(0, 1 - Math.abs(wx - 25.5) / 4.5) * -0.16;
+        positions.setY(p, 0.08 + rut + undulation + haulCompression);
+      }
+      stripGeo.computeVertexNormals();
       const strip = new THREE.Mesh(stripGeo, this.materials.digSoil);
-      strip.position.set(PIT.x1 - stripW * (i + 0.5), -PIT.depth, pitCz);
+      strip.position.set(worldX, 0, pitCz);
+      strip.userData.baseY = 0;
       strip.receiveShadow = true;
       strip.castShadow = true;
+      for (let c = 0; c < 3; c++) {
+        const seed = i * 19.37 + c * 7.11;
+        const clod = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(0.42 + (Math.sin(seed) * 0.5 + 0.5) * 0.42, 0),
+          this.materials.excavationSoil
+        );
+        clod.position.set(
+          Math.sin(seed * 1.7) * stripW * 0.34,
+          0.14 + Math.cos(seed * 0.63) * 0.05,
+          Math.cos(seed * 1.31) * pitD * 0.4
+        );
+        clod.scale.set(1.5, 0.35, 1.15);
+        clod.rotation.y = seed;
+        clod.castShadow = clod.receiveShadow = true;
+        strip.add(clod);
+      }
       pitGroup.add(strip);
       this.elements.digStrips.push(strip);
     }
@@ -752,7 +834,6 @@ export class BuildingComponents {
     const coreClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 100);
     const clipMats = {
       concrete: this.materials.concreteCore.clone(),
-      red: this.materials.coreRedAccent.clone(),
       door: this.materials.steelDark.clone()
     };
     Object.values(clipMats).forEach((mat) => { mat.clippingPlanes = [coreClip]; });
@@ -772,14 +853,22 @@ export class BuildingComponents {
       coreBlock.receiveShadow = true;
       tierGroup.add(coreBlock);
 
-      // Red architectural accent fin (front corner element, proud by 0.08 in Z to eliminate coplanar face fight)
-      const redAccent = new THREE.Mesh(
-        new THREE.BoxGeometry(6.5, tierHeight, 2.22),
-        clipMats.red
-      );
-      redAccent.position.set(7, yCenter, 2.18);
-      redAccent.castShadow = true;
-      tierGroup.add(redAccent);
+      // Board-form joints and tie holes identify this as the building's structural core,
+      // rather than a separate red tower that later gets wrapped by another building.
+      [-2.1, 0, 2.1].forEach((dx) => {
+        const joint = new THREE.Mesh(new THREE.BoxGeometry(0.045, tierHeight - 0.18, 0.035), clipMats.door);
+        joint.position.set(7 + dx, yCenter, 3.215);
+        joint.material = joint.material.clone();
+        joint.material.color.setHex(0x777d7b);
+        joint.material.roughness = 0.9;
+        tierGroup.add(joint);
+      });
+      [-1.6, 1.6].forEach((dx) => [-1.2, 1.2].forEach((dy) => {
+        const tie = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.04, 10), clipMats.door);
+        tie.rotation.x = Math.PI / 2;
+        tie.position.set(7 + dx, yCenter + dy, 3.23);
+        tierGroup.add(tie);
+      }));
 
       // Elevator door on this level
       const door = new THREE.Mesh(
@@ -905,7 +994,7 @@ export class BuildingComponents {
     // 4 vertical corner chords
     const chordCorners = [[-0.9, -0.9], [-0.9, 0.9], [0.9, -0.9], [0.9, 0.9]];
     chordCorners.forEach(([cx, cz]) => {
-      const chord = new THREE.Mesh(new THREE.BoxGeometry(0.14, mastHeight, 0.14), this.materials.craneYellow);
+      const chord = new THREE.Mesh(new THREE.BoxGeometry(0.24, mastHeight, 0.24), this.materials.craneYellow);
       chord.position.set(cx, mastHeight / 2, cz);
       chord.castShadow = true;
       mastGroup.add(chord);
@@ -982,8 +1071,10 @@ export class BuildingComponents {
     const cabGroup = new THREE.Group();
     cabGroup.position.set(1.4, 0.55, 0);
 
-    const cabBody = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 1.6), this.materials.truckWhite);
-    cabBody.position.y = 0.9;
+    const cabBody = new THREE.Mesh(createProfileGeometry([
+      [-0.7, 0], [0.72, 0], [0.62, 1.78], [-0.32, 1.92], [-0.72, 1.42]
+    ], 1.6, { bevelSize: 0.06 }), this.materials.truckWhite);
+    cabBody.position.y = 0;
     cabBody.castShadow = true;
     cabGroup.add(cabBody);
 
@@ -1081,17 +1172,17 @@ export class BuildingComponents {
     jibGroup.position.set(0, 0.6, 0);
 
     // Chords: 2 bottom trolley rails + 1 top ridge chord
-    const jibChordBL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, jibLength), this.materials.craneYellow);
+    const jibChordBL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, jibLength), this.materials.craneYellow);
     jibChordBL.position.set(-0.7, 0, -jibLength / 2);
     jibChordBL.castShadow = true;
     jibGroup.add(jibChordBL);
 
-    const jibChordBR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, jibLength), this.materials.craneYellow);
+    const jibChordBR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, jibLength), this.materials.craneYellow);
     jibChordBR.position.set(0.7, 0, -jibLength / 2);
     jibChordBR.castShadow = true;
     jibGroup.add(jibChordBR);
 
-    const jibChordTop = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, jibLength), this.materials.craneYellow);
+    const jibChordTop = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, jibLength), this.materials.craneYellow);
     jibChordTop.position.set(0, 1.3, -jibLength / 2);
     jibChordTop.castShadow = true;
     jibGroup.add(jibChordTop);
@@ -1260,15 +1351,19 @@ export class BuildingComponents {
     cabGroup.position.set(3.4, 1.2, 0);
 
     // Main Cab Cabin Body
-    const cabCabin = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.8, 2.5), colorMat);
-    cabCabin.position.set(0, 1.4, 0);
+    const cabCabin = new THREE.Mesh(createProfileGeometry([
+      [-1.5, 0], [1.35, 0], [1.48, 1.92], [0.78, 2.8], [-1.35, 2.8], [-1.55, 2.35]
+    ], 2.5, { bevelSize: 0.11 }), colorMat);
+    cabCabin.position.set(0, 0, 0);
     cabCabin.castShadow = true;
     cabGroup.add(cabCabin);
 
     // Contoured Lower Front Hood extending forward (Image 2)
-    const hoodGeo = new THREE.BoxGeometry(2.4, 1.6, 2.3);
+    const hoodGeo = createProfileGeometry([
+      [1.2, 0], [3.78, 0], [3.72, 1.28], [3.3, 1.58], [1.2, 1.42]
+    ], 2.3, { bevelSize: 0.09 });
     const hood = new THREE.Mesh(hoodGeo, colorMat);
-    hood.position.set(2.6, 0.8, 0);
+    hood.position.set(0, 0, 0);
     hood.castShadow = true;
     cabGroup.add(hood);
 
@@ -1373,6 +1468,18 @@ export class BuildingComponents {
     cargoBox.castShadow = true;
     cargoGroup.add(cargoBox);
 
+    // Pressed side ribs, lower reflective stripe and rear frame add real trailer scale.
+    [-1.31, 1.31].forEach((z) => {
+      for (let x = -3.6; x <= 3.6; x += 0.8) {
+        const rib = new THREE.Mesh(new THREE.BoxGeometry(0.055, 2.95, 0.045), this.materials.steelSilver);
+        rib.position.set(x, 0, z);
+        cargoGroup.add(rib);
+      }
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(7.8, 0.12, 0.05), colorMat);
+      stripe.position.set(0, -1.18, z * 1.012);
+      cargoGroup.add(stripe);
+    });
+
     // Raised perimeter edge molding frames (Direct match to Image 2!)
     const frameTop = new THREE.Mesh(new THREE.BoxGeometry(8.3, 0.15, 2.7), this.materials.truckWhite);
     frameTop.position.set(0, 1.6, 0);
@@ -1441,6 +1548,14 @@ export class BuildingComponents {
     tire.castShadow = true;
     spinGroup.add(tire);
 
+    for (let i = 0; i < 14; i++) {
+      const angle = i / 14 * Math.PI * 2;
+      const tread = new THREE.Mesh(new THREE.BoxGeometry(radius * 0.32, 0.075, width * 1.06), this.materials.trackShoe);
+      tread.position.set(Math.cos(angle) * radius, Math.sin(angle) * radius, 0);
+      tread.rotation.z = angle;
+      spinGroup.add(tread);
+    }
+
     // Crisp white/silver hubcap rim
     const rim = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.62, radius * 0.62, width * 1.02, 16), this.materials.truckWhite);
     rim.rotation.x = Math.PI / 2;
@@ -1478,7 +1593,9 @@ export class BuildingComponents {
     const floor = new THREE.Mesh(floorGeo, this.materials.concrete);
     floor.position.set(0, 0.3, 0);
     floor.receiveShadow = true;
+    floor.visible = false;
     whGroup.add(floor);
+    this.elements.warehouseFloor = floor;
 
     // Tilt-up precast walls: cast flat on the slab, then rotated upright about their base edge
     const rearPivot = new THREE.Group();
@@ -1913,13 +2030,65 @@ export class BuildingComponents {
     const storyHeight = 4.2;
     const baseElevation = 0.9;
 
+    // Furnished floor plates remain visible through the glazing at close camera angles.
+    const deskMat = new THREE.MeshStandardMaterial({ color: 0xa77955, roughness: 0.82 });
+    const partitionMat = new THREE.MeshStandardMaterial({ color: 0xd7dcda, roughness: 0.9 });
+    const chairMat = new THREE.MeshStandardMaterial({ color: 0x33404a, roughness: 0.78 });
+    for (let floor = 0; floor < stories; floor++) {
+      const furniture = new THREE.Group();
+      furniture.name = `OfficeFurniture_${floor + 1}`;
+      furniture.userData.floor = floor;
+      furniture.visible = false;
+      const floorY = baseElevation + floor * storyHeight;
+      for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < 4; col++) {
+          const desk = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.09, 0.8), deskMat);
+          desk.position.set(3.2 + col * 5.1, floorY + 0.82, 2.8 + row * 8.2);
+          furniture.add(desk);
+          const pedestal = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.75, 0.7), this.materials.steelSilver);
+          pedestal.position.set(desk.position.x, floorY + 0.42, desk.position.z);
+          furniture.add(pedestal);
+          const chair = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.72, 0.65), chairMat);
+          chair.position.set(desk.position.x, floorY + 0.48, desk.position.z - 0.85);
+          furniture.add(chair);
+          const monitor = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.42, 0.05), this.materials.mullionBlack);
+          monitor.position.set(desk.position.x, floorY + 1.15, desk.position.z + 0.05);
+          furniture.add(monitor);
+        }
+      }
+      for (let x = 4; x <= 20; x += 8) {
+        const partition = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.55, 3.4), partitionMat);
+        partition.position.set(x, floorY + 0.8, 9.4);
+        furniture.add(partition);
+      }
+      for (let x = 3.2; x <= 20; x += 5.6) {
+        const ceilingLight = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.05, 0.16), this.materials.headlamp);
+        ceilingLight.position.set(x, floorY + 3.75, 10.7);
+        furniture.add(ceilingLight);
+      }
+      [2.0, 21.8].forEach((x) => {
+        const planter = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.28, 0.56, 12), this.materials.concrete);
+        planter.position.set(x, floorY + 0.28, 12.2);
+        furniture.add(planter);
+        const plant = new THREE.Mesh(new THREE.IcosahedronGeometry(0.52, 1), this.materials.treeCyan);
+        plant.position.set(x, floorY + 0.92, 12.2);
+        furniture.add(plant);
+      });
+      towerGroup.add(furniture);
+      this.elements.officeFurniture.push(furniture);
+    }
+
     // South Facade (Hung at z = 14.35, cleanly outside structural column envelope at z = 14.225)
     for (let floor = 0; floor < stories; floor++) {
       const yPos = baseElevation + floor * storyHeight + storyHeight / 2;
 
+      const interiorLightMaterial = this.materials.glassLit.clone();
+      interiorLightMaterial.transparent = true;
+      interiorLightMaterial.opacity = 0.12;
+      interiorLightMaterial.depthWrite = false;
       const interiorLightPlane = new THREE.Mesh(
         new THREE.PlaneGeometry(23.5, storyHeight - 0.4),
-        this.materials.glassLit
+        interiorLightMaterial
       );
       interiorLightPlane.position.set(12, yPos, 14.05);
       interiorLightPlane.visible = false;
@@ -1976,6 +2145,38 @@ export class BuildingComponents {
       }
     }
 
+    // Complete the north and west elevations so the core reads as one part of one building.
+    for (let floor = 0; floor < stories; floor++) {
+      const yPos = baseElevation + floor * storyHeight + storyHeight / 2;
+      for (let col = 0; col < 6; col++) {
+        const panelGroup = new THREE.Group();
+        panelGroup.position.set(1.8 + col * 4.0, yPos, -8.35);
+        panelGroup.userData.floor = floor;
+        panelGroup.userData.slot = 0.25 + col / 10;
+        panelGroup.userData.normal = new THREE.Vector3(0, 0, -1);
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(3.8, storyHeight - 0.2, 0.08), this.materials.glassFacade);
+        panelGroup.add(glass);
+        const mullionV = new THREE.Mesh(new THREE.BoxGeometry(0.1, storyHeight, 0.12), this.materials.mullionBlack);
+        panelGroup.add(mullionV);
+        towerGroup.add(panelGroup);
+        this.elements.facadePanels.push(panelGroup);
+      }
+      for (let col = 0; col < 5; col++) {
+        const panelGroup = new THREE.Group();
+        panelGroup.position.set(-0.35, yPos, -6 + col * 4.4);
+        panelGroup.rotation.y = Math.PI / 2;
+        panelGroup.userData.floor = floor;
+        panelGroup.userData.slot = 0.7 + col / 12;
+        panelGroup.userData.normal = new THREE.Vector3(-1, 0, 0);
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(4.2, storyHeight - 0.2, 0.08), this.materials.glassFacade);
+        panelGroup.add(glass);
+        const mullionV = new THREE.Mesh(new THREE.BoxGeometry(0.1, storyHeight, 0.12), this.materials.mullionBlack);
+        panelGroup.add(mullionV);
+        towerGroup.add(panelGroup);
+        this.elements.facadePanels.push(panelGroup);
+      }
+    }
+
     // Modern Red Entrance Canopy (Ground floor)
     const canopyGeo = new THREE.BoxGeometry(8, 0.35, 4.5);
     const canopy = new THREE.Mesh(canopyGeo, this.materials.coreRedAccent);
@@ -1983,7 +2184,7 @@ export class BuildingComponents {
     canopy.castShadow = true;
     towerGroup.add(canopy);
 
-    const entranceGlass = new THREE.Mesh(new THREE.BoxGeometry(6, 3.8, 0.1), this.materials.glassLit);
+    const entranceGlass = new THREE.Mesh(new THREE.BoxGeometry(6, 3.8, 0.1), this.materials.glassFacade);
     entranceGlass.position.set(12, 2.5, 14.4);
     towerGroup.add(entranceGlass);
     this.elements.entrance.push(canopy, entranceGlass);
@@ -2048,88 +2249,125 @@ export class BuildingComponents {
     root.add(roofGroup);
   }
 
-  buildRailAndGantryCrane(root) {
-    const railGroup = new THREE.Group();
-    railGroup.name = 'RailAndGantryIntermodal';
-    railGroup.position.set(0, 0, -26);
-
-    const ballast = new THREE.Mesh(new THREE.PlaneGeometry(520, 14), this.materials.railGravel);
-    ballast.rotation.x = -Math.PI / 2;
-    ballast.position.y = 0.10;
-    ballast.receiveShadow = true;
-    railGroup.add(ballast);
-
-    // Dual Tracks (clean vertical layering: ballast at y=0.10, ties at y=0.16, rails at y=0.28)
-    const tiePositions = [];
-    [-3, 3].forEach((trackZ) => {
-      [-0.8, 0.8].forEach((railOffset) => {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(520, 0.15, 0.1), this.materials.railTrack);
-        rail.position.set(0, 0.28, trackZ + railOffset);
-        railGroup.add(rail);
-      });
-      for (let rx = -258; rx <= 258; rx += 1.8) tiePositions.push([rx, trackZ]);
+  createUrbanCar(color = 0x58758b) {
+    const car = new THREE.Group();
+    const paint = new THREE.MeshPhysicalMaterial({
+      color, roughness: 0.32, metalness: 0.18, clearcoat: 0.55, clearcoatRoughness: 0.24
     });
-    const ties = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.1, 2.2), this.materials.steelDark, tiePositions.length);
-    tiePositions.forEach(([x, z], i) => ties.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.16, z)));
-    railGroup.add(ties);
+    const body = new THREE.Mesh(createProfileGeometry([
+      [-2.15, 0.32], [-1.82, 0.05], [1.75, 0.05], [2.15, 0.38],
+      [1.72, 0.78], [0.95, 0.92], [0.28, 1.48], [-0.92, 1.48], [-1.58, 0.86]
+    ], 1.72, { bevelSize: 0.1 }), paint);
+    body.position.y = 0.46;
+    body.castShadow = true;
+    car.add(body);
 
-    // Massive Red Portal Gantry Crane (matching screenshot 3)
-    const gantryGroup = new THREE.Group();
-    gantryGroup.position.set(-14, 0, 0);
-
-    const legL = new THREE.Mesh(new THREE.BoxGeometry(1.6, 15, 2.0), this.materials.coreRedAccent);
-    legL.position.set(0, 7.5, -6.5);
-    legL.castShadow = true;
-    gantryGroup.add(legL);
-
-    const legR = new THREE.Mesh(new THREE.BoxGeometry(1.6, 15, 2.0), this.materials.coreRedAccent);
-    legR.position.set(0, 7.5, 6.5);
-    legR.castShadow = true;
-    gantryGroup.add(legR);
-
-    const topGirder = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 17), this.materials.coreRedAccent);
-    topGirder.position.set(0, 15, 0);
-    topGirder.castShadow = true;
-    gantryGroup.add(topGirder);
-
-    const hoistTrolley = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.8, 3.2), this.materials.craneYellow);
-    hoistTrolley.position.set(0, 13.5, 0);
-    gantryGroup.add(hoistTrolley);
-
-    const spreaderBar = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.2), this.materials.steelDark);
-    spreaderBar.position.set(0, 7.0, 0);
-    spreaderBar.castShadow = true;
-    gantryGroup.add(spreaderBar);
-
-    railGroup.add(gantryGroup);
-    this.elements.railGantry = gantryGroup;
-
-    // Freight Train
-    const trainGroup = new THREE.Group();
-    trainGroup.position.set(-10, 0, 3);
-
-    const loco = new THREE.Mesh(new THREE.BoxGeometry(14, 3.6, 2.8), this.materials.coreRedAccent);
-    loco.position.set(0, 2.2, 0);
-    loco.castShadow = true;
-    trainGroup.add(loco);
-
-    const containerColors = [this.materials.coreRedAccent, this.materials.truckWhite, this.materials.truckBlue];
-    for (let c = 1; c <= 3; c++) {
-      const wagon = new THREE.Mesh(new THREE.BoxGeometry(16, 0.8, 2.6), this.materials.steelDark);
-      wagon.position.set(c * 18, 0.8, 0);
-      trainGroup.add(wagon);
-
-      const cont = new THREE.Mesh(new THREE.BoxGeometry(14, 3.2, 2.5), containerColors[c - 1]);
-      cont.position.set(c * 18, 2.8, 0);
-      cont.castShadow = true;
-      trainGroup.add(cont);
-    }
-
-    railGroup.add(trainGroup);
-    this.elements.trains.push(trainGroup);
-
-    root.add(railGroup);
+    const windowMat = this.materials.glassCab.clone();
+    windowMat.opacity = 0.76;
+    [-0.88, 0.88].forEach((z) => {
+      const glass = new THREE.Mesh(createProfileGeometry([
+        [-1.27, 0.88], [-0.78, 1.36], [0.18, 1.36], [0.78, 0.88]
+      ], 0.035, { bevelSize: 0 }), windowMat);
+      glass.position.set(0, 0.46, z);
+      car.add(glass);
+    });
+    [-1.35, 1.35].forEach((x) => [-0.9, 0.9].forEach((z) => {
+      const wheel = this.createDetailedWheel(0.38, 0.26);
+      wheel.position.set(x, 0.42, z);
+      car.add(wheel);
+    }));
+    [-0.48, 0.48].forEach((z) => {
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.3), this.materials.headlamp);
+      lamp.position.set(2.15, 0.78, z);
+      car.add(lamp);
+    });
+    return car;
   }
+
+  buildCityContext(root) {
+    const city = new THREE.Group();
+    city.name = 'UrbanCityContext';
+    const facadePalette = [0x8a9296, 0x9a8778, 0x707c86, 0xa4a39a, 0x768588];
+    const windowMat = new THREE.MeshStandardMaterial({
+      color: 0x6f8c99, emissive: 0x8da6ad, emissiveIntensity: 0.08, roughness: 0.34, metalness: 0.1
+    });
+
+    // Stepped, windowed city blocks close the horizon without competing with the main building.
+    const plots = [
+      [-42, -51, 18, 13, 15], [-18, -51, 17, 13, 22], [4, -51, 18, 13, 13],
+      [28, -53, 14, 15, 19], [57, -34, 15, 18, 25], [58, -8, 16, 16, 17],
+      [-55, -27, 18, 16, 20], [-58, -2, 15, 18, 14], [-57, 22, 18, 16, 18]
+    ];
+    plots.forEach(([x, z, w, d, h], index) => {
+      const building = new THREE.Group();
+      const material = new THREE.MeshStandardMaterial({ color: facadePalette[index % facadePalette.length], roughness: 0.88 });
+      const lower = new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.72, d), material);
+      lower.position.y = h * 0.36;
+      lower.castShadow = lower.receiveShadow = true;
+      building.add(lower);
+      const upper = new THREE.Mesh(new THREE.BoxGeometry(w * 0.72, h * 0.28, d * 0.72), material);
+      upper.position.set((index % 2 ? 1 : -1) * w * 0.08, h * 0.86, 0);
+      upper.castShadow = true;
+      building.add(upper);
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(w * 0.76, 0.35, d * 0.76), this.materials.concrete);
+      cap.position.copy(upper.position);
+      cap.position.y = h + 0.18;
+      building.add(cap);
+
+      const rows = Math.max(2, Math.floor(h / 3.3));
+      const cols = Math.max(2, Math.floor(w / 2.8));
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const win = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.35), windowMat);
+          win.position.set(-w * 0.38 + col * (w * 0.76 / Math.max(1, cols - 1)), 1.8 + row * 3.0, d / 2 + 0.011);
+          building.add(win);
+        }
+      }
+      building.position.set(x, 0.25, z);
+      city.add(building);
+    });
+
+    // Street furniture establishes human scale along all three visible roads.
+    const lampMat = this.materials.steelDark;
+    const addStreetLight = (x, z, rotate = 0) => {
+      const light = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 6.2, 10), lampMat);
+      pole.position.y = 3.1;
+      light.add(pole);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.1, 0.1), lampMat);
+      arm.position.set(0.62, 6.12, 0);
+      light.add(arm);
+      const fixture = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.16, 0.28), this.materials.headlamp);
+      fixture.position.set(1.25, 6.02, 0);
+      light.add(fixture);
+      light.position.set(x, 0.27, z);
+      light.rotation.y = rotate;
+      city.add(light);
+    };
+    for (let x = -48; x <= 52; x += 17) {
+      addStreetLight(x, 27.2, Math.PI / 2);
+      addStreetLight(x, -23.2, -Math.PI / 2);
+    }
+    for (let z = -18; z <= 22; z += 16) addStreetLight(46.7, z, Math.PI);
+
+    const movingCars = [
+      [this.createUrbanCar(0x365a72), -33, 0.31, 35, 0, 1],
+      [this.createUrbanCar(0xa64b45), 12, 0.31, -31, Math.PI, -1],
+      [this.createUrbanCar(0xd1d0c8), 39, 0.31, -16, Math.PI / 2, 1]
+    ];
+    movingCars.forEach(([car, x, y, z, rotation, direction], index) => {
+      car.position.set(x, y, z);
+      car.rotation.y = rotation;
+      car.userData.axis = index === 2 ? 'z' : 'x';
+      car.userData.base = index === 2 ? z : x;
+      car.userData.direction = direction;
+      city.add(car);
+      this.elements.cityVehicles.push(car);
+    });
+
+    root.add(city);
+  }
+
 
   buildVehiclesAndMachinery(root) {
     const fleetGroup = new THREE.Group();
