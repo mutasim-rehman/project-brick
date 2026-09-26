@@ -334,9 +334,10 @@ export class ConstructionWorld {
     this.controls.target.copy(target);
   }
 
-  animate(timestamp) {
-    this.timer.update(timestamp);
-    const dt = Math.min(this.timer.getDelta(), 0.1);
+  animate() {
+    // Explicit scroll redraws can run ahead of a queued RAF timestamp.
+    this.timer.update();
+    const dt = Math.max(0, Math.min(this.timer.getDelta(), 0.1));
     const time = this.timer.getElapsed();
 
     this.timeline.updateFrame(dt);

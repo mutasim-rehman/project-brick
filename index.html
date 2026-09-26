@@ -1,169 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BRICK & AXIS | Next-Gen Industrial Architecture & 3D Construction</title>
-    <meta name="description" content="Interactive 3D construction engineering experience. Witness the full building lifecycle from subterranean excavation to completed architectural campus." />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./src/style.css" />
+    <meta name="theme-color" content="#f4f6f9" />
+    <meta name="description" content="Site Killick connects your people, work, safety, tools and fleet. Leave the site at the site." />
+    <link rel="icon" href="/favicon.svg" />
+    <title>Site Killick | Construction Operations</title>
   </head>
   <body>
-    <!-- Blueprint preloader: wiped away to reveal the drone fly-in -->
-    <div id="intro-loader" class="intro-loader" aria-hidden="true">
-      <div class="loader-grid"></div>
-      <div class="loader-center">
-        <svg class="loader-blueprint" viewBox="0 0 320 170" fill="none">
-          <path class="bp-draw bp-faint" d="M10 150 H310" />
-          <path class="bp-draw" d="M40 150 V92 H132 V150" />
-          <path class="bp-draw bp-faint" d="M40 118 H132 M72 92 V150 M104 92 V150" />
-          <path class="bp-draw" d="M150 150 V40 H236 V150" />
-          <path class="bp-draw bp-faint" d="M150 62 H236 M150 84 H236 M150 106 H236 M150 128 H236" />
-          <path class="bp-draw bp-faint" d="M172 40 V150 M193 40 V150 M214 40 V150" />
-          <path class="bp-draw bp-accent" d="M262 150 V22 M254 22 H316 M262 22 L282 8 L316 22 M296 22 V58" />
-          <path class="bp-draw bp-accent" d="M254 22 H242 V30 H254" />
-          <path class="bp-draw bp-faint" d="M262 40 L270 48 M262 56 L270 64 M262 72 L270 80 M262 88 L270 96 M262 104 L270 112 M262 120 L270 128" />
-        </svg>
-        <div class="loader-brand">
-          <span class="logo-badge">BRICK</span>
-          <span class="loader-name">AXIS CONSTRUCT</span>
-        </div>
-        <div class="loader-bar"><span id="loader-bar-fill"></span></div>
-        <div class="loader-meta">
-          <span id="loader-status">Surveying site</span>
-          <span><span id="loader-count">000</span>%</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3D Canvas Viewport -->
-    <div id="webgl-canvas-container"></div>
-
-    <!-- Landing hero copy (fades as the construction story begins) -->
-    <section id="hero-overlay" class="hero-overlay">
-      <div class="hero-kicker"><span class="hero-live-dot"></span>Live site &middot; Stage 01 of 06</div>
-      <h1 class="hero-title">
-        <span class="hero-line"><span>From first excavation</span></span>
-        <span class="hero-line"><span>to <em>finished campus.</em></span></span>
-      </h1>
-      <p class="hero-sub">Scroll to build a next-gen industrial headquarters &mdash; groundwork, structure, envelope and handover, engineered in real time.</p>
-      <div class="hero-scroll">
-        <span class="hero-mouse"><span class="hero-wheel"></span></span>
-        <span>Scroll to build</span>
-      </div>
-    </section>
-
-    <!-- Top Navigation Bar (Emons-inspired modern architectural header) -->
-    <header class="app-header">
-      <div class="header-left">
-        <a href="#" class="brand-logo">
-          <span class="logo-badge">BRICK</span>
-          <div class="logo-meta">
-            <span class="brand-name">AXIS CONSTRUCT</span>
-            <span class="brand-sub">ENGINEERING & INFRASTRUCTURE</span>
-          </div>
-        </a>
-      </div>
-    </header>
-
-    <!-- Scroll Content Spine (600vh total height for smooth scroll progression) -->
-    <main class="scroll-container">
-      <section id="phase-1" class="scroll-section" data-phase="1">
-        <div class="section-cue">
-          <span class="cue-pill">Stage 01</span>
-          <p>Groundwork & Deep Excavation</p>
-        </div>
-      </section>
-
-      <section id="phase-2" class="scroll-section" data-phase="2">
-        <div class="section-cue">
-          <span class="cue-pill">Stage 02</span>
-          <p>Raft Foundation & Shear Core</p>
-        </div>
-      </section>
-
-      <section id="phase-3" class="scroll-section" data-phase="3">
-        <div class="section-cue">
-          <span class="cue-pill">Stage 03</span>
-          <p>Structural Steel & Tower Crane</p>
-        </div>
-      </section>
-
-      <section id="phase-4" class="scroll-section" data-phase="4">
-        <div class="section-cue">
-          <span class="cue-pill">Stage 04</span>
-          <p>Industrial Warehouse & Logistics Racks</p>
-        </div>
-      </section>
-
-      <section id="phase-5" class="scroll-section" data-phase="5">
-        <div class="section-cue">
-          <span class="cue-pill">Stage 05</span>
-          <p>Triple-Glazed Facade & Solar Roof</p>
-        </div>
-      </section>
-
-      <section id="phase-6" class="scroll-section" data-phase="6">
-        <div class="section-cue">
-          <span class="cue-pill">Stage 06</span>
-          <p>Commissioned Headquarters Campus</p>
-        </div>
-      </section>
-    </main>
-
-
-
-    <!-- Bottom Milestone Timeline Scrubber -->
-    <footer class="bottom-timeline">
-      <div class="timeline-header">
-        <div class="timeline-status">
-          <span class="status-label">CONSTRUCTION PROGRESS</span>
-          <span id="timeline-percent" class="status-percent">0%</span>
-        </div>
-        <div class="timeline-guide">
-          <span>Click any milestone to fast-forward construction</span>
-        </div>
-      </div>
-
-      <div class="timeline-track-wrap">
-        <div class="timeline-track">
-          <div id="timeline-progress-bar" class="timeline-fill"></div>
-        </div>
-
-        <div class="timeline-nodes-wrap">
-          <button class="timeline-node active" data-target="0.0">
-            <span class="node-dot"></span>
-            <span class="node-tag">01 Excavation</span>
-          </button>
-          <button class="timeline-node" data-target="0.22">
-            <span class="node-dot"></span>
-            <span class="node-tag">02 Foundation</span>
-          </button>
-          <button class="timeline-node" data-target="0.45">
-            <span class="node-dot"></span>
-            <span class="node-tag">03 Superstructure</span>
-          </button>
-          <button class="timeline-node" data-target="0.66">
-            <span class="node-dot"></span>
-            <span class="node-tag">04 Logistics Bay</span>
-          </button>
-          <button class="timeline-node" data-target="0.82">
-            <span class="node-dot"></span>
-            <span class="node-tag">05 Curtain Facade</span>
-          </button>
-          <button class="timeline-node" data-target="1.0">
-            <span class="node-dot"></span>
-            <span class="node-tag">06 Completed Campus</span>
-          </button>
-        </div>
-      </div>
-    </footer>
-
-
-
-    <!-- Application Script Entrypoint -->
-    <script type="module" src="./src/main.js"></script>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div id="app"></div>
+    <noscript>Enable JavaScript for the interactive scene, pricing configurator and booking request form.</noscript>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

@@ -1,4 +1,12 @@
-# BRICK & AXIS — 3D Interactive Construction Engineering Platform
+# Site Killick - Construction Operations Website
+
+The project now includes the complete Site Killick public website around the existing Three.js construction scene. See [SITE_IMPLEMENTATION.md](SITE_IMPLEMENTATION.md) for routes, running instructions, verification and the distinction between interactive previews and production integrations.
+
+Run `npm run dev` for the website, `npm run build` for pre-rendered production pages, and `npm test` for focused domain checks.
+
+The construction engine documentation below describes the retained original scene.
+
+## Original BRICK & AXIS Construction Engine
 
 Interactive 3D construction engineering experience demonstrating the full building lifecycle from subterranean excavation to a commissioned architectural headquarters campus.
 
