@@ -18,7 +18,7 @@ const dampAngle = (current, target, lambda, dt) => current + wrapAngle(target - 
 
 // Construction schedule (scroll progress 0..1), aligned with the phase ranges in ContentData
 const SCHEDULE = {
-  digStart: -0.06, digStagger: 0.019, digDuration: 0.05,
+  digStart: 0.0, digStagger: 0.012, digDuration: 0.055,
   rebar: [0.12, 0.07],
   pour: [0.17, 0.08],
   pileCaps: [0.245, 0.02],
@@ -89,8 +89,6 @@ export class ConstructionTimeline {
     if (el.warehouseRoof) el.warehouseRoof.userData.basePos = el.warehouseRoof.position.clone();
     if (el.earthmover) el.earthmover.userData.basePos = el.earthmover.position.clone();
     if (el.excavator) el.excavator.root.userData.basePos = el.excavator.root.position.clone();
-    if (el.trains[0]) el.trains[0].userData.basePos = el.trains[0].position.clone();
-    if (el.railGantry) el.railGantry.userData.basePos = el.railGantry.position.clone();
     el.fencing.forEach((f) => { f.userData.basePos = f.position.clone(); });
 
     // Row-major steel order so each storey is erected column-first, then beams, then deck
@@ -111,10 +109,10 @@ export class ConstructionTimeline {
   // Scroll-driven camera path: Catmull-Rom splines through cinematic stops, easing into each stop
   buildCameraPath() {
     this.cameraStops = [
-      { progress: 0.0, pos: [50, 14, 33], target: [19, -1.2, 3] },
-      { progress: 0.13, pos: [44, 21, 40], target: [13, -0.5, 2] },
+      { progress: 0.0, pos: [51, 13.5, 34], target: [21.5, 0.25, 1.5] },
+      { progress: 0.13, pos: [45, 19, 38], target: [15, -0.25, 2] },
       { progress: 0.27, pos: [40, 27, 46], target: [11, 6, 1] },
-      { progress: 0.46, pos: [50, 34, 46], target: [12, 11, 1] },
+      { progress: 0.46, pos: [59, 43, 57], target: [15, 17, -2] },
       { progress: 0.66, pos: [-10, 33, 44], target: [-17, 4, -1] },
       { progress: 0.83, pos: [42, 25, 50], target: [10, 11, 4] },
       { progress: 1.0, pos: [60, 31, 62], target: [2, 8, 2] }
@@ -205,7 +203,7 @@ export class ConstructionTimeline {
       const start = SCHEDULE.digStart + i * SCHEDULE.digStagger;
       const depth = easeInOutSine(win(t, start, SCHEDULE.digDuration));
       dugTotal += depth;
-      strip.scale.y = Math.max(0.001, 1 - depth);
+      strip.position.y = (strip.userData.baseY || 0) - depth * (PIT.depth + 0.8);
       strip.visible = depth < 0.999;
 
       if (!force && depth > 0.02 && depth < 0.98 && Math.random() < dt * 5) {
@@ -268,6 +266,15 @@ export class ConstructionTimeline {
       ex.stickPivot.rotation.z = stick;
       ex.bucketPivot.rotation.z = bucket;
 
+      if (ex.bucketLoad) {
+        const collecting = smoothstep(0.2, 0.31, c);
+        const dumping = 1 - smoothstep(0.64, 0.72, c);
+        const fill = Math.min(collecting, dumping);
+        ex.bucketLoad.visible = fill > 0.03;
+        ex.bucketLoad.scale.set(0.7 + fill * 0.3, Math.max(0.08, fill), 0.7 + fill * 0.3);
+      }
+      ex.setTrackTravel?.(0);
+
       if (!force) {
         ex.bucketPivot.getWorldPosition(_v);
         if (c > 0.66 && c < 0.8) {
@@ -290,16 +297,14 @@ export class ConstructionTimeline {
       ex.boomPivot.rotation.z = -0.32;
       ex.stickPivot.rotation.z = 0.65;
       ex.bucketPivot.rotation.z = -0.35;
+      if (ex.bucketLoad) ex.bucketLoad.visible = false;
+      ex.setTrackTravel?.(p * 14.6);
       if (!force && p > 0 && p < 1 && Math.random() < dt * 20) {
         this.fx.emitDust(_v.set(ex.root.position.x, 0.3, ex.root.position.z), 2, { size: 1.4, alpha: 0.35 });
       }
     }
 
-    const boomAngle = ex.boomPivot.rotation.z;
-    ex.boomCylinders?.forEach((cyl) => {
-      cyl.group.rotation.z = Math.PI / 4.8 + boomAngle * 0.68;
-      cyl.piston.position.y = 1.6 + boomAngle * 0.85;
-    });
+    ex.updateMechanics?.();
 
     // Haul truck is loaded pass by pass, then drives off up the haul road
     const truck = el.earthmover;
@@ -312,8 +317,11 @@ export class ConstructionTimeline {
       if (load) {
         const fill = t < 0.15 ? 0.25 + ((this.excavatorState.loads || 0) / 4) * 0.75 : 1;
         load.scale.y = fill;
-        load.position.y = 2.5 + 0.3 * fill;
+        load.position.y = load.userData.baseY ?? 0;
       }
+      truck.userData.wheels?.forEach((wheel) => {
+        wheel.userData.spinGroup.rotation.z = -leave * 70 / (wheel.userData.radius || 0.72);
+      });
       if (!force && leave > 0.02 && leave < 0.98 && Math.random() < dt * 25) {
         this.fx.emitDust(_v.set(truck.position.x, 0.4, truck.position.z + 4), 3, { size: 2, alpha: 0.4, spread: 2 });
       }
@@ -341,8 +349,8 @@ export class ConstructionTimeline {
       const wet = 1 - smoothstep(0.23, 0.32, t);
       const mat = slab.material;
       mat.color.copy(mat.userData.dryColor).lerp(mat.userData.wetColor, wet * 0.8);
-      mat.roughness = lerp(0.85, 0.22, wet);
-      mat.metalness = lerp(0.1, 0.25, wet);
+      mat.roughness = lerp(0.94, 0.62, wet);
+      mat.metalness = 0;
 
       if (!force && pour > 0.01 && pour < 0.99 && Math.random() < dt * 14) {
         const y = -PIT.depth + slab.userData.fullHeight * pour + 0.1;
@@ -591,6 +599,18 @@ export class ConstructionTimeline {
     const el = this.elements;
     const time = this.time;
 
+    if (el.warehouseFloor) {
+      const p = easeInOutCubic(win(t, 0.565, 0.04));
+      el.warehouseFloor.visible = p > 0.002;
+      el.warehouseFloor.scale.y = Math.max(0.002, p);
+      el.warehouseFloor.position.y = 0.3 * p;
+    }
+    el.finishedGround.forEach((surface, index) => {
+      const p = easeOutCubic(win(t, 0.61 + index * 0.008, 0.035));
+      surface.visible = p > 0.002;
+      surface.scale.set(index === 0 ? Math.max(0.002, p) : 1, Math.max(0.002, p), 1);
+    });
+
     el.warehouseWalls.forEach((pivot, i) => {
       const p = easeInOutCubic(win(t, SCHEDULE.walls[i] ?? 0.6, 0.035));
       const { axis, flat } = pivot.userData.tilt;
@@ -641,17 +661,12 @@ export class ConstructionTimeline {
       fl.rotation.y = dampAngle(fl.rotation.y, heading, 2.5, dt);
     }
 
-    const gantry = el.railGantry;
-    if (gantry) {
-      const p = smoothstep(0.48, 0.56, t);
-      gantry.visible = p > 0.01;
-      gantry.position.x = gantry.userData.basePos.x + Math.sin(time * 0.12) * 10;
-    }
-
-    el.trains.forEach((train) => {
-      const p = easeOutCubic(win(t, 0.5, 0.18));
-      train.visible = p > 0;
-      train.position.x = lerp(-110, train.userData.basePos.x, p);
+    el.cityVehicles?.forEach((vehicle, index) => {
+      const travel = ((time * (2.2 + index * 0.35) * vehicle.userData.direction + 120) % 240) - 120;
+      vehicle.position[vehicle.userData.axis] = vehicle.userData.base + travel;
+      vehicle.children.forEach((part) => {
+        if (part.userData?.spinGroup) part.userData.spinGroup.rotation.z = travel / 0.38;
+      });
     });
   }
 
@@ -660,6 +675,10 @@ export class ConstructionTimeline {
   // ---------------------------------------------------------------------------
   updateEnvelope(t) {
     const el = this.elements;
+
+    el.officeFurniture?.forEach((group) => {
+      group.visible = t > 0.8 + group.userData.floor * 0.012;
+    });
 
     el.facadePanels.forEach((panel) => {
       const { floor, slot, normal, basePos, baseRot } = panel.userData;
@@ -731,6 +750,10 @@ export class ConstructionTimeline {
     if (el.siteDirt) {
       el.siteDirt.material.opacity = 1 - finish;
       el.siteDirt.visible = finish < 0.999;
+    }
+    if (el.trackMarks) {
+      el.trackMarks.material.opacity = 0.72 * (1 - finish);
+      el.trackMarks.visible = finish < 0.999;
     }
 
     el.fencing.forEach((f) => {

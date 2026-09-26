@@ -1,5 +1,19 @@
 import * as THREE from 'three';
-import { createNoiseTexture, createSiteDirtTexture } from './SiteEnvironment.js';
+import {
+  createAsphaltTexture,
+  createConcreteTexture,
+  createNoiseTexture,
+  createSiteDirtTexture,
+  createUrbanGroundTexture
+} from './SiteEnvironment.js';
+import { buildEarthmoverDumpTruck, buildExcavator } from './MachineryModels.js';
+import {
+  createPaintWearTexture,
+  createProfileGeometry,
+  createRubberTexture,
+  createTrackMarkTexture,
+  createWarningStripeTexture
+} from './ProceduralGeometry.js';
 
 // Excavation footprint shared by the terrain cut-out, pit, raft foundation and timeline
 export const PIT = { x0: -2, x1: 27, z0: -11, z1: 15, depth: 2.6 };
@@ -7,11 +21,17 @@ export const DIG_STRIPS = 8;
 
 // Procedural 3D model generator with high-fidelity mechanical details for the excavator, tower crane, warehouse, trucks, and infrastructure
 export class BuildingComponents {
-  constructor() {
+  constructor({ detail = 'high' } = {}) {
+    this.detail = detail;
     this.materials = this.createMaterials();
     this.elements = {
       ground: null,
       siteDirt: null,
+      trackMarks: null,
+      finishedGround: [],
+      warehouseFloor: null,
+      officeFurniture: [],
+      cityVehicles: [],
       excavation: null,
       digStrips: [],
       soilMounds: [],
@@ -43,21 +63,23 @@ export class BuildingComponents {
       hvacUnits: [],
       trees: [],
       trucks: [],
-      railGantry: null,
-      trains: [],
       fencing: [],
       excavator: null
     };
   }
 
   createMaterials() {
-    const groundNoise = createNoiseTexture(256, 0.08, 1 / 10);
+    const groundNoise = createUrbanGroundTexture(this.detail === 'high' ? 512 : 256);
     const soilNoise = createNoiseTexture(256, 0.22, 1 / 5);
-    const concreteNoise = createNoiseTexture(256, 0.06, 1 / 6);
+    const concreteNoise = createConcreteTexture(this.detail === 'high' ? 512 : 256);
+    const asphaltTexture = createAsphaltTexture(this.detail === 'high' ? 512 : 256);
+    const paintWear = createPaintWearTexture(this.detail === 'high' ? 256 : 128);
+    const steelWear = createPaintWearTexture(this.detail === 'high' ? 256 : 128, 93);
+    const rubberTexture = createRubberTexture(this.detail === 'high' ? 256 : 128);
 
     return {
       ground: new THREE.MeshStandardMaterial({
-        color: 0xeaf6f8,
+        color: 0xaeb7a3,
         map: groundNoise,
         roughness: 0.95,
         metalness: 0.05,
@@ -83,6 +105,7 @@ export class BuildingComponents {
       }),
       digSoil: new THREE.MeshStandardMaterial({
         color: 0xa3876a,
+        map: soilNoise,
         roughness: 1.0,
         metalness: 0.0,
       }),
@@ -103,21 +126,22 @@ export class BuildingComponents {
         metalness: 0.05,
       }),
       pourConcrete: new THREE.MeshStandardMaterial({
-        color: 0xdde2ea,
+        color: 0xc4c7c2,
         map: concreteNoise,
-        roughness: 0.85,
-        metalness: 0.1,
+        roughness: 0.94,
+        metalness: 0.0,
       }),
       concrete: new THREE.MeshStandardMaterial({
-        color: 0xdde2ea,
+        color: 0xd0d2cd,
         map: concreteNoise,
-        roughness: 0.85,
-        metalness: 0.1,
+        roughness: 0.96,
+        metalness: 0.0,
       }),
       concreteCore: new THREE.MeshStandardMaterial({
-        color: 0xe8ecf3,
-        roughness: 0.8,
-        metalness: 0.1,
+        color: 0xb8bcb9,
+        map: concreteNoise,
+        roughness: 0.95,
+        metalness: 0.0,
       }),
       coreRedAccent: new THREE.MeshStandardMaterial({
         color: 0xff3322,
@@ -125,15 +149,21 @@ export class BuildingComponents {
         metalness: 0.2,
       }),
       // Authentic Construction Machinery Yellow (matching Crane & Excavator images)
-      craneYellow: new THREE.MeshStandardMaterial({
-        color: 0xf59f00,
-        roughness: 0.35,
-        metalness: 0.25,
+      craneYellow: new THREE.MeshPhysicalMaterial({
+        color: 0xf3a20a,
+        map: paintWear,
+        roughness: 0.34,
+        metalness: 0.18,
+        clearcoat: 0.32,
+        clearcoatRoughness: 0.38,
       }),
-      craneYellowDark: new THREE.MeshStandardMaterial({
-        color: 0xd97706,
-        roughness: 0.4,
-        metalness: 0.25,
+      craneYellowDark: new THREE.MeshPhysicalMaterial({
+        color: 0xc97805,
+        map: paintWear,
+        roughness: 0.42,
+        metalness: 0.22,
+        clearcoat: 0.2,
+        clearcoatRoughness: 0.45,
       }),
       craneGrey: new THREE.MeshStandardMaterial({
         color: 0x495057,
@@ -148,9 +178,10 @@ export class BuildingComponents {
       }),
       // Heavy Steel for Tracks, Chassis, Buckets
       steelDark: new THREE.MeshStandardMaterial({
-        color: 0x212529,
-        roughness: 0.6,
-        metalness: 0.75,
+        color: 0x25292c,
+        map: steelWear,
+        roughness: 0.56,
+        metalness: 0.72,
       }),
       steelSilver: new THREE.MeshStandardMaterial({
         color: 0xced4da,
@@ -159,25 +190,29 @@ export class BuildingComponents {
       }),
       // Matte Rubber Tires
       rubberTire: new THREE.MeshStandardMaterial({
-        color: 0x1a1d20,
+        color: 0x191b1c,
+        map: rubberTexture,
         roughness: 0.95,
         metalness: 0.05,
       }),
       // Truck Blue (matching Image 2)
       truckBlue: new THREE.MeshStandardMaterial({
         color: 0x2e86de,
-        roughness: 0.35,
+        map: paintWear,
+        roughness: 0.46,
         metalness: 0.2,
       }),
       // Truck Red (matching Emons style)
       truckRed: new THREE.MeshStandardMaterial({
         color: 0xff3322,
-        roughness: 0.35,
+        map: paintWear,
+        roughness: 0.46,
         metalness: 0.25,
       }),
       truckWhite: new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.25,
+        color: 0xe8e9e4,
+        map: paintWear,
+        roughness: 0.48,
         metalness: 0.1,
       }),
       truckGrille: new THREE.MeshStandardMaterial({
@@ -196,6 +231,72 @@ export class BuildingComponents {
         roughness: 0.9,
         metalness: 0.1,
       }),
+      trackFrame: new THREE.MeshStandardMaterial({
+        color: 0x303438,
+        map: steelWear,
+        roughness: 0.62,
+        metalness: 0.68,
+      }),
+      trackWheel: new THREE.MeshStandardMaterial({
+        color: 0x44494d,
+        map: steelWear,
+        roughness: 0.48,
+        metalness: 0.72,
+      }),
+      trackShoe: new THREE.MeshStandardMaterial({
+        color: 0x25282b,
+        map: steelWear,
+        roughness: 0.72,
+        metalness: 0.62,
+      }),
+      bucketSteel: new THREE.MeshStandardMaterial({
+        color: 0x34373a,
+        map: steelWear,
+        roughness: 0.68,
+        metalness: 0.68,
+      }),
+      wornSteel: new THREE.MeshStandardMaterial({
+        color: 0xa6a9a8,
+        map: steelWear,
+        roughness: 0.38,
+        metalness: 0.88,
+      }),
+      cabFrame: new THREE.MeshStandardMaterial({
+        color: 0x1c2226,
+        roughness: 0.42,
+        metalness: 0.7,
+      }),
+      seat: new THREE.MeshStandardMaterial({
+        color: 0x202326,
+        roughness: 0.92,
+        metalness: 0.02,
+      }),
+      mirror: new THREE.MeshPhysicalMaterial({
+        color: 0x8fa5ad,
+        roughness: 0.05,
+        metalness: 0.95,
+        clearcoat: 0.6,
+      }),
+      headlamp: new THREE.MeshStandardMaterial({
+        color: 0xfff4ce,
+        emissive: 0xffd98a,
+        emissiveIntensity: 0.35,
+        roughness: 0.18,
+      }),
+      warningStripe: new THREE.MeshStandardMaterial({
+        map: createWarningStripeTexture(256),
+        roughness: 0.52,
+        metalness: 0.18,
+      }),
+      trackMarks: new THREE.MeshBasicMaterial({
+        map: createTrackMarkTexture(this.detail === 'high' ? 512 : 256),
+        transparent: true,
+        opacity: 0.72,
+        depthWrite: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -4,
+        polygonOffsetUnits: -4,
+      }),
       palletWood: new THREE.MeshStandardMaterial({
         color: 0xd4a373,
         roughness: 0.9,
@@ -208,26 +309,34 @@ export class BuildingComponents {
         color: 0xbe8b55,
         roughness: 0.95,
       }),
-      glassFacade: new THREE.MeshStandardMaterial({
-        color: 0x0f2238,
-        roughness: 0.08,
-        metalness: 0.92,
+      glassFacade: new THREE.MeshPhysicalMaterial({
+        color: 0x6f93a3,
+        roughness: 0.18,
+        metalness: 0.08,
         transparent: true,
-        opacity: 0.78,
+        opacity: 0.66,
+        transmission: 0.18,
+        thickness: 0.08,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.18,
       }),
-      glassCab: new THREE.MeshStandardMaterial({
-        color: 0x1e293b,
-        roughness: 0.1,
-        metalness: 0.85,
+      glassCab: new THREE.MeshPhysicalMaterial({
+        color: 0x243a49,
+        roughness: 0.08,
+        metalness: 0.05,
         transparent: true,
-        opacity: 0.65,
+        opacity: 0.58,
+        transmission: 0.12,
+        thickness: 0.04,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.12,
       }),
       glassLit: new THREE.MeshStandardMaterial({
-        color: 0xffe6a3,
-        emissive: 0xffc048,
-        emissiveIntensity: 0.9,
-        roughness: 0.2,
-        metalness: 0.1,
+        color: 0xdce6e6,
+        emissive: 0xfff0cf,
+        emissiveIntensity: 0.32,
+        roughness: 0.68,
+        metalness: 0.0,
       }),
       mullionBlack: new THREE.MeshStandardMaterial({
         color: 0x181a1f,
@@ -254,8 +363,9 @@ export class BuildingComponents {
         roughness: 0.9,
       }),
       asphalt: new THREE.MeshStandardMaterial({
-        color: 0x383e48,
-        roughness: 0.9,
+        color: 0x75797a,
+        map: asphaltTexture,
+        roughness: 0.98,
         polygonOffset: true,
         polygonOffsetFactor: -1,
         polygonOffsetUnits: -1
@@ -270,18 +380,6 @@ export class BuildingComponents {
       safetyOrange: new THREE.MeshStandardMaterial({
         color: 0xff7733,
         roughness: 0.4,
-      }),
-      railTrack: new THREE.MeshStandardMaterial({
-        color: 0x57606f,
-        roughness: 0.45,
-        metalness: 0.85,
-      }),
-      railGravel: new THREE.MeshStandardMaterial({
-        color: 0xa4b0be,
-        roughness: 0.95,
-        polygonOffset: true,
-        polygonOffsetFactor: -1,
-        polygonOffsetUnits: -1
       })
     };
   }
@@ -298,7 +396,7 @@ export class BuildingComponents {
     this.buildWarehouseInteriorAndRacks(root);
     this.buildOfficeTowerAndFacade(root);
     this.buildRooftopAndSolar(root);
-    this.buildRailAndGantryCrane(root);
+    this.buildCityContext(root);
     this.buildVehiclesAndMachinery(root);
     this.buildLandscapingAndTrees(root);
 
@@ -331,6 +429,7 @@ export class BuildingComponents {
 
   buildTerrainAndRoads(root) {
     const terrainGroup = new THREE.Group();
+    terrainGroup.name = 'TexturedUrbanGround';
 
     // Main base ground (large enough to dissolve into the horizon fog)
     const ground = new THREE.Mesh(this.createGroundWithPit(-300, 300, -300, 300), this.materials.ground);
@@ -345,11 +444,19 @@ export class BuildingComponents {
     terrainGroup.add(siteDirt);
     this.elements.siteDirt = siteDirt;
 
+    // Repeated crawler impressions define the active haul route without using image assets.
+    const trackMarks = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 41), this.materials.trackMarks);
+    trackMarks.rotation.x = -Math.PI / 2;
+    trackMarks.position.set(34.2, 0.075, 1.5);
+    trackMarks.renderOrder = 2;
+    terrainGroup.add(trackMarks);
+    this.elements.trackMarks = trackMarks;
+
     // Surrounding asphalt roads (elevated to y = 0.10 to prevent Z-fighting)
-    const frontRoadGeo = new THREE.PlaneGeometry(520, 10);
+    const frontRoadGeo = new THREE.PlaneGeometry(520, 12);
     const frontRoad = new THREE.Mesh(frontRoadGeo, this.materials.asphalt);
     frontRoad.rotation.x = -Math.PI / 2;
-    frontRoad.position.set(0, 0.10, 34);
+    frontRoad.position.set(0, 0.10, 35);
     frontRoad.receiveShadow = true;
     terrainGroup.add(frontRoad);
 
@@ -358,15 +465,55 @@ export class BuildingComponents {
     const stripeXs = [];
     for (let x = -256; x <= 256; x += 8) stripeXs.push(x);
     const stripes = new THREE.InstancedMesh(stripeGeo, this.materials.roadStripe, stripeXs.length);
-    stripeXs.forEach((x, i) => stripes.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.14, 34)));
+    stripeXs.forEach((x, i) => stripes.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.14, 35)));
     terrainGroup.add(stripes);
 
-    const sideRoadGeo = new THREE.PlaneGeometry(10, 250);
+    const sideRoadGeo = new THREE.PlaneGeometry(12, 270);
     const sideRoad = new THREE.Mesh(sideRoadGeo, this.materials.asphalt);
     sideRoad.rotation.x = -Math.PI / 2;
-    sideRoad.position.set(38, 0.10, -90);
+    sideRoad.position.set(39, 0.10, -96);
     sideRoad.receiveShadow = true;
     terrainGroup.add(sideRoad);
+
+    const rearRoad = new THREE.Mesh(new THREE.PlaneGeometry(520, 12), this.materials.asphalt);
+    rearRoad.rotation.x = -Math.PI / 2;
+    rearRoad.position.set(0, 0.10, -31);
+    rearRoad.receiveShadow = true;
+    terrainGroup.add(rearRoad);
+
+    // Painted centre lines on the side and rear streets.
+    for (let z = -224; z <= 30; z += 9) {
+      const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 4.8), this.materials.roadStripe);
+      dash.rotation.x = -Math.PI / 2;
+      dash.position.set(39, 0.14, z);
+      terrainGroup.add(dash);
+    }
+    for (let x = -256; x <= 256; x += 9) {
+      const dash = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 0.18), this.materials.roadStripe);
+      dash.rotation.x = -Math.PI / 2;
+      dash.position.set(x, 0.14, -31);
+      terrainGroup.add(dash);
+    }
+
+    // Raised kerbs, pavements and a crossing make the site read as an occupied city block.
+    const kerbMat = this.materials.concrete.clone();
+    kerbMat.color.setHex(0xb7bbb7);
+    [
+      [520, 2, 0, 28.2], [520, 2, 0, 41.8],
+      [2, 270, 32.2, -96], [2, 270, 45.8, -96],
+      [520, 2, 0, -24.2], [520, 2, 0, -37.8]
+    ].forEach(([w, d, x, z]) => {
+      const kerb = new THREE.Mesh(new THREE.BoxGeometry(w, 0.24, d), kerbMat);
+      kerb.position.set(x, 0.14, z);
+      kerb.receiveShadow = true;
+      terrainGroup.add(kerb);
+    });
+    for (let i = 0; i < 7; i++) {
+      const crossing = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 4.2), this.materials.roadStripe);
+      crossing.rotation.x = -Math.PI / 2;
+      crossing.position.set(34.7 + i * 1.15, 0.145, 28.8);
+      terrainGroup.add(crossing);
+    }
 
     // Logistics loading apron (elevated to y = 0.12)
     const apronGeo = new THREE.PlaneGeometry(44, 22);
@@ -374,14 +521,18 @@ export class BuildingComponents {
     apron.rotation.x = -Math.PI / 2;
     apron.position.set(-10, 0.12, 18);
     apron.receiveShadow = true;
+    apron.visible = false;
     terrainGroup.add(apron);
+    this.elements.finishedGround.push(apron);
 
     for (let i = 0; i < 4; i++) {
       const lineGeo = new THREE.PlaneGeometry(0.3, 10);
       const line = new THREE.Mesh(lineGeo, this.materials.roadStripe);
       line.rotation.x = -Math.PI / 2;
       line.position.set(-26 + i * 10, 0.15, 20);
+      line.visible = false;
       terrainGroup.add(line);
+      this.elements.finishedGround.push(line);
     }
 
     root.add(terrainGroup);
@@ -402,15 +553,44 @@ export class BuildingComponents {
     pitFloor.receiveShadow = true;
     pitGroup.add(pitFloor);
 
-    // Undisturbed soil, excavated strip by strip (bottom-anchored so the timeline can lower each strip)
+    // Undisturbed, rutted soil excavated strip by strip. Shared world-space height
+    // functions keep adjacent cuts continuous while avoiding the old sand-box silhouette.
     const stripW = pitW / DIG_STRIPS;
     for (let i = 0; i < DIG_STRIPS; i++) {
-      const stripGeo = new THREE.BoxGeometry(stripW, PIT.depth, pitD);
-      stripGeo.translate(0, PIT.depth / 2, 0);
+      const stripGeo = new THREE.PlaneGeometry(stripW + 0.04, pitD + 0.04, 3, this.detail === 'high' ? 18 : 10);
+      stripGeo.rotateX(-Math.PI / 2);
+      const worldX = PIT.x1 - stripW * (i + 0.5);
+      const positions = stripGeo.attributes.position;
+      for (let p = 0; p < positions.count; p++) {
+        const wx = worldX + positions.getX(p);
+        const wz = pitCz + positions.getZ(p);
+        const rut = Math.sin(wx * 0.82 + wz * 0.31) * 0.12;
+        const undulation = Math.sin(wz * 0.47) * 0.16 + Math.cos(wx * 1.36 - wz * 0.18) * 0.08;
+        const haulCompression = Math.max(0, 1 - Math.abs(wx - 25.5) / 4.5) * -0.16;
+        positions.setY(p, 0.08 + rut + undulation + haulCompression);
+      }
+      stripGeo.computeVertexNormals();
       const strip = new THREE.Mesh(stripGeo, this.materials.digSoil);
-      strip.position.set(PIT.x1 - stripW * (i + 0.5), -PIT.depth, pitCz);
+      strip.position.set(worldX, 0, pitCz);
+      strip.userData.baseY = 0;
       strip.receiveShadow = true;
       strip.castShadow = true;
+      for (let c = 0; c < 3; c++) {
+        const seed = i * 19.37 + c * 7.11;
+        const clod = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(0.42 + (Math.sin(seed) * 0.5 + 0.5) * 0.42, 0),
+          this.materials.excavationSoil
+        );
+        clod.position.set(
+          Math.sin(seed * 1.7) * stripW * 0.34,
+          0.14 + Math.cos(seed * 0.63) * 0.05,
+          Math.cos(seed * 1.31) * pitD * 0.4
+        );
+        clod.scale.set(1.5, 0.35, 1.15);
+        clod.rotation.y = seed;
+        clod.castShadow = clod.receiveShadow = true;
+        strip.add(clod);
+      }
       pitGroup.add(strip);
       this.elements.digStrips.push(strip);
     }
@@ -431,6 +611,23 @@ export class BuildingComponents {
       wall.position.set(x, -PIT.depth / 2 - 0.01, z);
       wall.receiveShadow = true;
       pitGroup.add(wall);
+
+      // Thin exposed strata lines break up the perfectly uniform excavation walls.
+      for (let layer = 0; layer < 3; layer++) {
+        const bandMaterial = this.materials.pitWallSoil.clone();
+        bandMaterial.color.offsetHSL(0, -0.02, layer % 2 === 0 ? 0.07 : -0.05);
+        const band = new THREE.Mesh(
+          alongX ? new THREE.BoxGeometry(len - 0.25, 0.09, 0.035) : new THREE.BoxGeometry(0.035, 0.09, len - 0.25),
+          bandMaterial
+        );
+        const inward = (alongX ? (z < pitCz ? 1 : -1) : (x < pitCx ? 1 : -1)) * 0.22;
+        band.position.set(
+          x + (alongX ? 0 : inward),
+          -0.56 - layer * 0.68,
+          z + (alongX ? inward : 0)
+        );
+        pitGroup.add(band);
+      }
     });
 
     // Soldier-pile shoring (steel H-piles) lining the excavation perimeter
@@ -486,21 +683,51 @@ export class BuildingComponents {
     });
     this.elements.fencing.push(fenceGroup);
 
-    // Site office modular container
+    // Detailed stacked site-office containers, set behind the active haul route.
+    const officeGroup = new THREE.Group();
+    officeGroup.name = 'SiteOfficeContainers';
+    officeGroup.position.set(45, 0, -20);
     const officeBoxGeo = new THREE.BoxGeometry(6, 2.5, 2.6);
-    const officeBox = new THREE.Mesh(officeBoxGeo, this.materials.truckWhite);
-    officeBox.position.set(47, 1.25, 20);
-    officeBox.castShadow = true;
-    pitGroup.add(officeBox);
+    [
+      { y: 1.25, material: this.materials.truckWhite },
+      { y: 3.9, material: this.materials.concrete }
+    ].forEach(({ y, material }, level) => {
+      const shell = new THREE.Mesh(officeBoxGeo, material);
+      shell.position.y = y;
+      shell.castShadow = true;
+      shell.receiveShadow = true;
+      officeGroup.add(shell);
 
-    const officeTrim = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.2, 2.8), this.materials.coreRedAccent);
-    officeTrim.position.set(47, 2.5, 20);
-    pitGroup.add(officeTrim);
+      const ribGeometry = new THREE.BoxGeometry(0.055, 2.28, 0.055);
+      const ribs = new THREE.InstancedMesh(ribGeometry, this.materials.steelSilver, 24);
+      const ribMatrix = new THREE.Matrix4();
+      for (let i = 0; i < 12; i++) {
+        const x = -2.72 + i * 0.5;
+        ribMatrix.makeTranslation(x, y, 1.325);
+        ribs.setMatrixAt(i, ribMatrix);
+        ribMatrix.makeTranslation(x, y, -1.325);
+        ribs.setMatrixAt(i + 12, ribMatrix);
+      }
+      officeGroup.add(ribs);
 
-    const officeBox2 = new THREE.Mesh(officeBoxGeo, this.materials.concrete);
-    officeBox2.position.set(47, 3.85, 20);
-    officeBox2.castShadow = true;
-    pitGroup.add(officeBox2);
+      [-1.4, 0.35].forEach((x) => {
+        const window = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.82, 0.055), this.materials.glassCab);
+        window.position.set(x, y + 0.22, 1.34);
+        officeGroup.add(window);
+      });
+      const trim = new THREE.Mesh(new THREE.BoxGeometry(6.15, 0.16, 2.75), this.materials.coreRedAccent);
+      trim.position.y = y + 1.25;
+      officeGroup.add(trim);
+    });
+    const officeDoor = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.95, 0.07), this.materials.steelDark);
+    officeDoor.position.set(2.15, 1.18, 1.35);
+    officeGroup.add(officeDoor);
+    for (let i = 0; i < 3; i++) {
+      const step = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.12, 0.38), this.materials.steelSilver);
+      step.position.set(2.15, 0.08 + i * 0.2, 1.65 + i * 0.32);
+      officeGroup.add(step);
+    }
+    pitGroup.add(officeGroup);
 
     // Spoil heaps that grow as the dig deepens (bottom-anchored cones)
     [[36.5, -16.5, 4.2, 2.4], [33.2, -19.5, 2.8, 1.5]].forEach(([x, z, r, h]) => {
@@ -525,7 +752,7 @@ export class BuildingComponents {
     });
 
     // Heavy 6x6 earthmover dump truck waiting beside the excavator, cab facing north up the haul road
-    const earthmover = this.createEarthmoverDumpTruck();
+    const earthmover = buildEarthmoverDumpTruck(this.materials, this.detail);
     earthmover.position.set(35.2, 0, -6.5);
     earthmover.rotation.y = Math.PI / 2;
     pitGroup.add(earthmover);
@@ -607,7 +834,6 @@ export class BuildingComponents {
     const coreClip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 100);
     const clipMats = {
       concrete: this.materials.concreteCore.clone(),
-      red: this.materials.coreRedAccent.clone(),
       door: this.materials.steelDark.clone()
     };
     Object.values(clipMats).forEach((mat) => { mat.clippingPlanes = [coreClip]; });
@@ -627,14 +853,22 @@ export class BuildingComponents {
       coreBlock.receiveShadow = true;
       tierGroup.add(coreBlock);
 
-      // Red architectural accent fin (front corner element, proud by 0.08 in Z to eliminate coplanar face fight)
-      const redAccent = new THREE.Mesh(
-        new THREE.BoxGeometry(6.5, tierHeight, 2.22),
-        clipMats.red
-      );
-      redAccent.position.set(7, yCenter, 2.18);
-      redAccent.castShadow = true;
-      tierGroup.add(redAccent);
+      // Board-form joints and tie holes identify this as the building's structural core,
+      // rather than a separate red tower that later gets wrapped by another building.
+      [-2.1, 0, 2.1].forEach((dx) => {
+        const joint = new THREE.Mesh(new THREE.BoxGeometry(0.045, tierHeight - 0.18, 0.035), clipMats.door);
+        joint.position.set(7 + dx, yCenter, 3.215);
+        joint.material = joint.material.clone();
+        joint.material.color.setHex(0x777d7b);
+        joint.material.roughness = 0.9;
+        tierGroup.add(joint);
+      });
+      [-1.6, 1.6].forEach((dx) => [-1.2, 1.2].forEach((dy) => {
+        const tie = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.04, 10), clipMats.door);
+        tie.rotation.x = Math.PI / 2;
+        tie.position.set(7 + dx, yCenter + dy, 3.23);
+        tierGroup.add(tie);
+      }));
 
       // Elevator door on this level
       const door = new THREE.Mesh(
@@ -760,7 +994,7 @@ export class BuildingComponents {
     // 4 vertical corner chords
     const chordCorners = [[-0.9, -0.9], [-0.9, 0.9], [0.9, -0.9], [0.9, 0.9]];
     chordCorners.forEach(([cx, cz]) => {
-      const chord = new THREE.Mesh(new THREE.BoxGeometry(0.14, mastHeight, 0.14), this.materials.craneYellow);
+      const chord = new THREE.Mesh(new THREE.BoxGeometry(0.24, mastHeight, 0.24), this.materials.craneYellow);
       chord.position.set(cx, mastHeight / 2, cz);
       chord.castShadow = true;
       mastGroup.add(chord);
@@ -837,8 +1071,10 @@ export class BuildingComponents {
     const cabGroup = new THREE.Group();
     cabGroup.position.set(1.4, 0.55, 0);
 
-    const cabBody = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 1.6), this.materials.truckWhite);
-    cabBody.position.y = 0.9;
+    const cabBody = new THREE.Mesh(createProfileGeometry([
+      [-0.7, 0], [0.72, 0], [0.62, 1.78], [-0.32, 1.92], [-0.72, 1.42]
+    ], 1.6, { bevelSize: 0.06 }), this.materials.truckWhite);
+    cabBody.position.y = 0;
     cabBody.castShadow = true;
     cabGroup.add(cabBody);
 
@@ -936,17 +1172,17 @@ export class BuildingComponents {
     jibGroup.position.set(0, 0.6, 0);
 
     // Chords: 2 bottom trolley rails + 1 top ridge chord
-    const jibChordBL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, jibLength), this.materials.craneYellow);
+    const jibChordBL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, jibLength), this.materials.craneYellow);
     jibChordBL.position.set(-0.7, 0, -jibLength / 2);
     jibChordBL.castShadow = true;
     jibGroup.add(jibChordBL);
 
-    const jibChordBR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, jibLength), this.materials.craneYellow);
+    const jibChordBR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, jibLength), this.materials.craneYellow);
     jibChordBR.position.set(0.7, 0, -jibLength / 2);
     jibChordBR.castShadow = true;
     jibGroup.add(jibChordBR);
 
-    const jibChordTop = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, jibLength), this.materials.craneYellow);
+    const jibChordTop = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, jibLength), this.materials.craneYellow);
     jibChordTop.position.set(0, 1.3, -jibLength / 2);
     jibChordTop.castShadow = true;
     jibGroup.add(jibChordTop);
@@ -1100,387 +1336,6 @@ export class BuildingComponents {
     return railing;
   }
 
-  // ==========================================================================
-  // REALISTIC HYDRAULIC EXCAVATOR (Directly matching Image 3)
-  // ==========================================================================
-  createExcavator() {
-    const exRoot = new THREE.Group();
-    exRoot.name = 'HydraulicExcavator';
-
-    // 1. Heavy Crawler Undercarriage & Dual Tracks (Image 3)
-    const undercarriage = new THREE.Group();
-    const trackWidth = 0.9;
-    const trackLength = 5.2;
-    const trackHeight = 1.1;
-    const trackSpacing = 2.4;
-
-    [-trackSpacing / 2, trackSpacing / 2].forEach((tz) => {
-      const trackGroup = new THREE.Group();
-      trackGroup.position.set(0, trackHeight / 2, tz);
-
-      // Dark steel track frame with beveled ends
-      const frameGeo = new THREE.BoxGeometry(trackLength - 0.8, trackHeight * 0.7, trackWidth * 0.9);
-      const frame = new THREE.Mesh(frameGeo, this.materials.steelDark);
-      trackGroup.add(frame);
-
-      // Rear drive sprocket & front idler wheels
-      const sprocket = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, trackWidth * 0.92, 16), this.materials.steelDark);
-      sprocket.rotation.x = Math.PI / 2;
-      sprocket.position.set(-trackLength / 2 + 0.5, 0, 0);
-      sprocket.castShadow = true;
-      trackGroup.add(sprocket);
-
-      const idler = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, trackWidth * 0.92, 16), this.materials.steelDark);
-      idler.rotation.x = Math.PI / 2;
-      idler.position.set(trackLength / 2 - 0.5, 0, 0);
-      idler.castShadow = true;
-      trackGroup.add(idler);
-
-      // Bottom track rollers (5 rollers)
-      for (let rx = -1.6; rx <= 1.6; rx += 0.8) {
-        const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, trackWidth * 0.95, 12), this.materials.steelDark);
-        roller.rotation.x = Math.PI / 2;
-        roller.position.set(rx, -trackHeight / 2 + 0.2, 0);
-        trackGroup.add(roller);
-      }
-
-      // Continuous rubber/steel caterpillar track belt with ribbed shoes
-      const beltTop = new THREE.Mesh(new THREE.BoxGeometry(trackLength, 0.08, trackWidth), this.materials.rubberTire);
-      beltTop.position.set(0, trackHeight / 2, 0);
-      beltTop.castShadow = true;
-      trackGroup.add(beltTop);
-
-      const beltBottom = new THREE.Mesh(new THREE.BoxGeometry(trackLength, 0.08, trackWidth), this.materials.rubberTire);
-      beltBottom.position.set(0, -trackHeight / 2, 0);
-      trackGroup.add(beltBottom);
-
-      // Track pads ribs
-      for (let px = -trackLength / 2; px <= trackLength / 2; px += 0.35) {
-        const rib = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, trackWidth * 1.02), this.materials.steelDark);
-        rib.position.set(px, trackHeight / 2 + 0.04, 0);
-        trackGroup.add(rib);
-      }
-
-      undercarriage.add(trackGroup);
-    });
-
-    // Central carbody / cross-beam joining tracks
-    const carbody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, trackSpacing), this.materials.steelDark);
-    carbody.position.y = trackHeight * 0.6;
-    carbody.castShadow = true;
-    undercarriage.add(carbody);
-
-    // Slew ring turntable
-    const slewRing = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.3, 20), this.materials.craneGrey);
-    slewRing.position.y = trackHeight * 0.9;
-    undercarriage.add(slewRing);
-
-    exRoot.add(undercarriage);
-
-    // 2. Revolving Superstructure Body (Yellow Engine House + Cab, Image 3)
-    const house = new THREE.Group();
-    house.position.y = trackHeight * 0.9 + 0.15;
-
-    // Heavy rear counterweight
-    const counterweightGeo = new THREE.BoxGeometry(1.4, 1.6, 2.6);
-    const counterweight = new THREE.Mesh(counterweightGeo, this.materials.craneYellowDark);
-    counterweight.position.set(-1.8, 0.8, 0);
-    counterweight.castShadow = true;
-    house.add(counterweight);
-
-    // Engine hood & machinery compartment (right side)
-    const engineHoodGeo = new THREE.BoxGeometry(2.4, 1.4, 1.5);
-    const engineHood = new THREE.Mesh(engineHoodGeo, this.materials.craneYellow);
-    engineHood.position.set(0.1, 0.7, -0.55);
-    engineHood.castShadow = true;
-    house.add(engineHood);
-
-    // Radiator louvered vents
-    for (let lx = -0.6; lx <= 0.8; lx += 0.25) {
-      const louver = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.9, 0.08), this.materials.steelDark);
-      louver.position.set(lx, 0.8, -1.31);
-      house.add(louver);
-    }
-
-    // Exhaust muffler pipe with bent rain cap (Image 3)
-    const exhaustMuffler = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.8), this.materials.steelDark);
-    exhaustMuffler.position.set(-0.6, 1.8, -0.6);
-    house.add(exhaustMuffler);
-
-    const exhaustTip = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6), this.materials.steelDark);
-    exhaustTip.position.set(-0.6, 2.3, -0.6);
-    exhaustTip.rotation.z = Math.PI / 4;
-    house.add(exhaustTip);
-
-    // Cylindrical air intake filter
-    const airFilter = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.5), this.materials.steelDark);
-    airFilter.position.set(-1.1, 1.6, -0.4);
-    house.add(airFilter);
-
-    // Thin steel safety railings along the engine deck (Image 3)
-    const deckRailing = this.createPerimeterRailing(2.3, 1.4, 0.65, this.materials.steelDark);
-    deckRailing.position.set(0.1, 1.4, -0.55);
-    house.add(deckRailing);
-
-    // 3. Operator Cabin (Left side, Image 3)
-    const cabGroup = new THREE.Group();
-    cabGroup.position.set(0.4, 0, 0.85);
-
-    // Cab main shell
-    const cabShell = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.0, 1.2), this.materials.craneYellow);
-    cabShell.position.set(0, 1.0, 0);
-    cabShell.castShadow = true;
-    cabGroup.add(cabShell);
-
-    // Angled front glass windshield
-    const cabGlassFront = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.4, 0.95), this.materials.glassCab);
-    cabGlassFront.position.set(0.81, 1.1, 0);
-    cabGroup.add(cabGlassFront);
-
-    // Side door glass window
-    const cabGlassSide = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 0.08), this.materials.glassCab);
-    cabGlassSide.position.set(0.1, 1.2, 0.61);
-    cabGroup.add(cabGlassSide);
-
-    // Corrugated roof reinforcement ribs
-    for (let rx = -0.5; rx <= 0.5; rx += 0.25) {
-      const roofRib = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.04, 1.15), this.materials.craneYellowDark);
-      roofRib.position.set(rx, 2.02, 0);
-      cabGroup.add(roofRib);
-    }
-
-    // Interior operator seat and dual joysticks
-    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.6, 0.45), this.materials.steelDark);
-    seat.position.set(-0.2, 0.6, 0);
-    cabGroup.add(seat);
-
-    const joystick1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), this.materials.steelSilver);
-    joystick1.position.set(0.2, 0.65, -0.2);
-    cabGroup.add(joystick1);
-    const joystick2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3), this.materials.steelSilver);
-    joystick2.position.set(0.2, 0.65, 0.2);
-    cabGroup.add(joystick2);
-
-    house.add(cabGroup);
-
-    // 4. Articulated Digging Arm & Kinematic Hydraulics (Image 3)
-    // Boom foot pivot mount on front center
-    const boomPivot = new THREE.Group();
-    boomPivot.position.set(1.1, 0.8, 0);
-
-    // Curved Main Boom
-    const boomMesh = this.createCurvedBoom();
-    boomMesh.castShadow = true;
-    boomPivot.add(boomMesh);
-
-    // Dual Boom Hydraulic Cylinders (pinned to house and extending to boom)
-    const boomCylinders = [];
-    [-0.35, 0.35].forEach((cyOffset) => {
-      const cylGroup = new THREE.Group();
-      cylGroup.position.set(0.6, 0.4, cyOffset);
-
-      const cylBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.4, 12), this.materials.craneYellow);
-      cylBarrel.position.y = 1.0;
-      cylGroup.add(cylBarrel);
-
-      const cylPiston = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.2, 12), this.materials.chrome);
-      cylPiston.position.y = 1.8;
-      cylGroup.add(cylPiston);
-
-      cylGroup.rotation.z = Math.PI / 4.8;
-      boomPivot.add(cylGroup);
-      boomCylinders.push({ group: cylGroup, barrel: cylBarrel, piston: cylPiston });
-    });
-
-    // Stick / Dipper Arm (hinged at boom tip: x: 4.6, y: 3.4)
-    const stickPivot = new THREE.Group();
-    stickPivot.position.set(4.6, 3.4, 0);
-
-    const stickMesh = this.createStickArm();
-    stickMesh.castShadow = true;
-    stickPivot.add(stickMesh);
-
-    // Stick hydraulic ram on top of boom
-    const stickCylinder = new THREE.Group();
-    const sBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 2.2, 12), this.materials.craneYellow);
-    sBarrel.position.set(-1.2, 0.4, 0);
-    sBarrel.rotation.z = -Math.PI / 4.5;
-    stickCylinder.add(sBarrel);
-
-    const sPiston = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.0, 12), this.materials.chrome);
-    sPiston.position.set(-0.2, 0.1, 0);
-    sPiston.rotation.z = -Math.PI / 4.5;
-    stickCylinder.add(sPiston);
-    stickPivot.add(stickCylinder);
-
-    // Bucket Assembly (hinged at stick tip: x: 3.2, y: -2.8)
-    const bucketPivot = new THREE.Group();
-    bucketPivot.position.set(3.2, -2.8, 0);
-
-    // Heavy duty digging bucket with 5 distinct sharp teeth (Image 3)
-    const bucketMesh = this.createDiggingBucket();
-    bucketMesh.castShadow = true;
-    bucketPivot.add(bucketMesh);
-
-    // Bucket linkage dogbones
-    const dogbone = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.12, 0.4), this.materials.steelDark);
-    dogbone.position.set(-0.2, 0.4, 0);
-    bucketPivot.add(dogbone);
-
-    stickPivot.add(bucketPivot);
-    boomPivot.add(stickPivot);
-    house.add(boomPivot);
-
-    exRoot.add(house);
-
-    // Cache kinematic references for dynamic excavation animation
-    this.elements.excavator = {
-      root: exRoot,
-      house,
-      boomPivot,
-      stickPivot,
-      bucketPivot,
-      boomCylinders
-    };
-
-    return exRoot;
-  }
-
-  createEarthmoverDumpTruck() {
-    const truck = new THREE.Group();
-    truck.name = 'EarthmoverDumpTruck';
-
-    // Heavy 6x6 chassis
-    const chassis = new THREE.Mesh(new THREE.BoxGeometry(8.5, 0.6, 2.4), this.materials.steelDark);
-    chassis.position.y = 1.0;
-    chassis.castShadow = true;
-    truck.add(chassis);
-
-    // Front angled driver cab
-    const cab = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.0, 2.2), this.materials.craneYellow);
-    cab.position.set(2.8, 2.0, 0);
-    cab.castShadow = true;
-    truck.add(cab);
-
-    // Windshield
-    const ws = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 1.8), this.materials.glassCab);
-    ws.position.set(4.01, 2.2, 0);
-    truck.add(ws);
-
-    // Rock dump bed
-    const bed = new THREE.Mesh(new THREE.BoxGeometry(5.2, 1.8, 2.6), this.materials.craneYellow);
-    bed.position.set(-1.2, 2.2, 0);
-    bed.castShadow = true;
-    truck.add(bed);
-
-    // Soil load inside dump bed
-    const soil = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.6, 2.3), this.materials.excavationSoil);
-    soil.position.set(-1.2, 2.8, 0);
-    truck.add(soil);
-    truck.userData.load = soil;
-
-    // 6 Big rugged earthmover wheels
-    const wheelGeo = new THREE.CylinderGeometry(0.7, 0.7, 0.55, 16);
-    [[-3.2, -1.35], [-3.2, 1.35], [-1.2, -1.35], [-1.2, 1.35], [2.8, -1.35], [2.8, 1.35]].forEach(([wx, wz]) => {
-      const wheel = new THREE.Mesh(wheelGeo, this.materials.rubberTire);
-      wheel.rotation.x = Math.PI / 2;
-      wheel.position.set(wx, 0.7, wz);
-      wheel.castShadow = true;
-      truck.add(wheel);
-
-      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.58, 12), this.materials.craneYellow);
-      hub.rotation.x = Math.PI / 2;
-      hub.position.set(wx, 0.7, wz);
-      truck.add(hub);
-    });
-
-    return truck;
-  }
-
-  createCurvedBoom() {
-    const boom = new THREE.Group();
-
-    // 2-segment welded curved box boom
-    const lowerSegment = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.75, 0.65), this.materials.craneYellow);
-    lowerSegment.position.set(1.6, 1.2, 0);
-    lowerSegment.rotation.z = Math.PI / 4.2;
-    boom.add(lowerSegment);
-
-    const upperSegment = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.65, 0.55), this.materials.craneYellow);
-    upperSegment.position.set(3.6, 2.6, 0);
-    upperSegment.rotation.z = Math.PI / 8;
-    boom.add(upperSegment);
-
-    // Pivot boss reinforcing rings
-    const bossGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.72, 16);
-    const bossFoot = new THREE.Mesh(bossGeo, this.materials.craneYellowDark);
-    bossFoot.rotation.x = Math.PI / 2;
-    boom.add(bossFoot);
-
-    const bossKnee = new THREE.Mesh(bossGeo, this.materials.craneYellowDark);
-    bossKnee.rotation.x = Math.PI / 2;
-    bossKnee.position.set(4.6, 3.4, 0);
-    boom.add(bossKnee);
-
-    // Flexible black hydraulic hose lines
-    const hose1 = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.4), this.materials.hoseBlack);
-    hose1.position.set(2.4, 2.2, 0.35);
-    hose1.rotation.z = Math.PI / 4;
-    boom.add(hose1);
-
-    return boom;
-  }
-
-  createStickArm() {
-    const stick = new THREE.Group();
-
-    const stickBody = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.6, 0.48), this.materials.craneYellow);
-    stickBody.position.set(1.6, -1.3, 0);
-    stickBody.rotation.z = -Math.PI / 4.4;
-    stick.add(stickBody);
-
-    // Boss at bucket end
-    const bossTip = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.54, 16), this.materials.craneYellowDark);
-    bossTip.rotation.x = Math.PI / 2;
-    bossTip.position.set(3.2, -2.8, 0);
-    stick.add(bossTip);
-
-    return stick;
-  }
-
-  createDiggingBucket() {
-    const bucket = new THREE.Group();
-
-    // Curved back plate and side cheeks (Image 3)
-    const backPlate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 1.3), this.materials.steelDark);
-    backPlate.position.set(0.4, -0.3, 0);
-    bucket.add(backPlate);
-
-    const sideL = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.1), this.materials.steelDark);
-    sideL.position.set(0.4, -0.3, 0.65);
-    bucket.add(sideL);
-
-    const sideR = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.1), this.materials.steelDark);
-    sideR.position.set(0.4, -0.3, -0.65);
-    bucket.add(sideR);
-
-    // 5 Distinct Sharp Digging Teeth / Shanks (Image 3)
-    const toothGeo = new THREE.ConeGeometry(0.08, 0.45, 4);
-    for (let i = 0; i < 5; i++) {
-      const zPos = -0.48 + i * 0.24;
-      const tooth = new THREE.Mesh(toothGeo, this.materials.steelSilver);
-      tooth.rotation.z = -Math.PI / 2.2;
-      tooth.position.set(1.4, -0.85, zPos);
-      tooth.castShadow = true;
-      bucket.add(tooth);
-    }
-
-    return bucket;
-  }
-
-  // ==========================================================================
-  // REALISTIC DELIVERY TRUCK / SEMI-TRUCK (Directly matching Image 2)
-  // ==========================================================================
   createDeliveryTruck(colorMat = this.materials.truckBlue) {
     const truck = new THREE.Group();
 
@@ -1496,15 +1351,19 @@ export class BuildingComponents {
     cabGroup.position.set(3.4, 1.2, 0);
 
     // Main Cab Cabin Body
-    const cabCabin = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.8, 2.5), colorMat);
-    cabCabin.position.set(0, 1.4, 0);
+    const cabCabin = new THREE.Mesh(createProfileGeometry([
+      [-1.5, 0], [1.35, 0], [1.48, 1.92], [0.78, 2.8], [-1.35, 2.8], [-1.55, 2.35]
+    ], 2.5, { bevelSize: 0.11 }), colorMat);
+    cabCabin.position.set(0, 0, 0);
     cabCabin.castShadow = true;
     cabGroup.add(cabCabin);
 
     // Contoured Lower Front Hood extending forward (Image 2)
-    const hoodGeo = new THREE.BoxGeometry(2.4, 1.6, 2.3);
+    const hoodGeo = createProfileGeometry([
+      [1.2, 0], [3.78, 0], [3.72, 1.28], [3.3, 1.58], [1.2, 1.42]
+    ], 2.3, { bevelSize: 0.09 });
     const hood = new THREE.Mesh(hoodGeo, colorMat);
-    hood.position.set(2.6, 0.8, 0);
+    hood.position.set(0, 0, 0);
     hood.castShadow = true;
     cabGroup.add(hood);
 
@@ -1609,6 +1468,18 @@ export class BuildingComponents {
     cargoBox.castShadow = true;
     cargoGroup.add(cargoBox);
 
+    // Pressed side ribs, lower reflective stripe and rear frame add real trailer scale.
+    [-1.31, 1.31].forEach((z) => {
+      for (let x = -3.6; x <= 3.6; x += 0.8) {
+        const rib = new THREE.Mesh(new THREE.BoxGeometry(0.055, 2.95, 0.045), this.materials.steelSilver);
+        rib.position.set(x, 0, z);
+        cargoGroup.add(rib);
+      }
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(7.8, 0.12, 0.05), colorMat);
+      stripe.position.set(0, -1.18, z * 1.012);
+      cargoGroup.add(stripe);
+    });
+
     // Raised perimeter edge molding frames (Direct match to Image 2!)
     const frameTop = new THREE.Mesh(new THREE.BoxGeometry(8.3, 0.15, 2.7), this.materials.truckWhite);
     frameTop.position.set(0, 1.6, 0);
@@ -1677,6 +1548,14 @@ export class BuildingComponents {
     tire.castShadow = true;
     spinGroup.add(tire);
 
+    for (let i = 0; i < 14; i++) {
+      const angle = i / 14 * Math.PI * 2;
+      const tread = new THREE.Mesh(new THREE.BoxGeometry(radius * 0.32, 0.075, width * 1.06), this.materials.trackShoe);
+      tread.position.set(Math.cos(angle) * radius, Math.sin(angle) * radius, 0);
+      tread.rotation.z = angle;
+      spinGroup.add(tread);
+    }
+
     // Crisp white/silver hubcap rim
     const rim = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.62, radius * 0.62, width * 1.02, 16), this.materials.truckWhite);
     rim.rotation.x = Math.PI / 2;
@@ -1714,7 +1593,9 @@ export class BuildingComponents {
     const floor = new THREE.Mesh(floorGeo, this.materials.concrete);
     floor.position.set(0, 0.3, 0);
     floor.receiveShadow = true;
+    floor.visible = false;
     whGroup.add(floor);
+    this.elements.warehouseFloor = floor;
 
     // Tilt-up precast walls: cast flat on the slab, then rotated upright about their base edge
     const rearPivot = new THREE.Group();
@@ -2149,13 +2030,65 @@ export class BuildingComponents {
     const storyHeight = 4.2;
     const baseElevation = 0.9;
 
+    // Furnished floor plates remain visible through the glazing at close camera angles.
+    const deskMat = new THREE.MeshStandardMaterial({ color: 0xa77955, roughness: 0.82 });
+    const partitionMat = new THREE.MeshStandardMaterial({ color: 0xd7dcda, roughness: 0.9 });
+    const chairMat = new THREE.MeshStandardMaterial({ color: 0x33404a, roughness: 0.78 });
+    for (let floor = 0; floor < stories; floor++) {
+      const furniture = new THREE.Group();
+      furniture.name = `OfficeFurniture_${floor + 1}`;
+      furniture.userData.floor = floor;
+      furniture.visible = false;
+      const floorY = baseElevation + floor * storyHeight;
+      for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < 4; col++) {
+          const desk = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.09, 0.8), deskMat);
+          desk.position.set(3.2 + col * 5.1, floorY + 0.82, 2.8 + row * 8.2);
+          furniture.add(desk);
+          const pedestal = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.75, 0.7), this.materials.steelSilver);
+          pedestal.position.set(desk.position.x, floorY + 0.42, desk.position.z);
+          furniture.add(pedestal);
+          const chair = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.72, 0.65), chairMat);
+          chair.position.set(desk.position.x, floorY + 0.48, desk.position.z - 0.85);
+          furniture.add(chair);
+          const monitor = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.42, 0.05), this.materials.mullionBlack);
+          monitor.position.set(desk.position.x, floorY + 1.15, desk.position.z + 0.05);
+          furniture.add(monitor);
+        }
+      }
+      for (let x = 4; x <= 20; x += 8) {
+        const partition = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.55, 3.4), partitionMat);
+        partition.position.set(x, floorY + 0.8, 9.4);
+        furniture.add(partition);
+      }
+      for (let x = 3.2; x <= 20; x += 5.6) {
+        const ceilingLight = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.05, 0.16), this.materials.headlamp);
+        ceilingLight.position.set(x, floorY + 3.75, 10.7);
+        furniture.add(ceilingLight);
+      }
+      [2.0, 21.8].forEach((x) => {
+        const planter = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.28, 0.56, 12), this.materials.concrete);
+        planter.position.set(x, floorY + 0.28, 12.2);
+        furniture.add(planter);
+        const plant = new THREE.Mesh(new THREE.IcosahedronGeometry(0.52, 1), this.materials.treeCyan);
+        plant.position.set(x, floorY + 0.92, 12.2);
+        furniture.add(plant);
+      });
+      towerGroup.add(furniture);
+      this.elements.officeFurniture.push(furniture);
+    }
+
     // South Facade (Hung at z = 14.35, cleanly outside structural column envelope at z = 14.225)
     for (let floor = 0; floor < stories; floor++) {
       const yPos = baseElevation + floor * storyHeight + storyHeight / 2;
 
+      const interiorLightMaterial = this.materials.glassLit.clone();
+      interiorLightMaterial.transparent = true;
+      interiorLightMaterial.opacity = 0.12;
+      interiorLightMaterial.depthWrite = false;
       const interiorLightPlane = new THREE.Mesh(
         new THREE.PlaneGeometry(23.5, storyHeight - 0.4),
-        this.materials.glassLit
+        interiorLightMaterial
       );
       interiorLightPlane.position.set(12, yPos, 14.05);
       interiorLightPlane.visible = false;
@@ -2212,6 +2145,38 @@ export class BuildingComponents {
       }
     }
 
+    // Complete the north and west elevations so the core reads as one part of one building.
+    for (let floor = 0; floor < stories; floor++) {
+      const yPos = baseElevation + floor * storyHeight + storyHeight / 2;
+      for (let col = 0; col < 6; col++) {
+        const panelGroup = new THREE.Group();
+        panelGroup.position.set(1.8 + col * 4.0, yPos, -8.35);
+        panelGroup.userData.floor = floor;
+        panelGroup.userData.slot = 0.25 + col / 10;
+        panelGroup.userData.normal = new THREE.Vector3(0, 0, -1);
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(3.8, storyHeight - 0.2, 0.08), this.materials.glassFacade);
+        panelGroup.add(glass);
+        const mullionV = new THREE.Mesh(new THREE.BoxGeometry(0.1, storyHeight, 0.12), this.materials.mullionBlack);
+        panelGroup.add(mullionV);
+        towerGroup.add(panelGroup);
+        this.elements.facadePanels.push(panelGroup);
+      }
+      for (let col = 0; col < 5; col++) {
+        const panelGroup = new THREE.Group();
+        panelGroup.position.set(-0.35, yPos, -6 + col * 4.4);
+        panelGroup.rotation.y = Math.PI / 2;
+        panelGroup.userData.floor = floor;
+        panelGroup.userData.slot = 0.7 + col / 12;
+        panelGroup.userData.normal = new THREE.Vector3(-1, 0, 0);
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(4.2, storyHeight - 0.2, 0.08), this.materials.glassFacade);
+        panelGroup.add(glass);
+        const mullionV = new THREE.Mesh(new THREE.BoxGeometry(0.1, storyHeight, 0.12), this.materials.mullionBlack);
+        panelGroup.add(mullionV);
+        towerGroup.add(panelGroup);
+        this.elements.facadePanels.push(panelGroup);
+      }
+    }
+
     // Modern Red Entrance Canopy (Ground floor)
     const canopyGeo = new THREE.BoxGeometry(8, 0.35, 4.5);
     const canopy = new THREE.Mesh(canopyGeo, this.materials.coreRedAccent);
@@ -2219,7 +2184,7 @@ export class BuildingComponents {
     canopy.castShadow = true;
     towerGroup.add(canopy);
 
-    const entranceGlass = new THREE.Mesh(new THREE.BoxGeometry(6, 3.8, 0.1), this.materials.glassLit);
+    const entranceGlass = new THREE.Mesh(new THREE.BoxGeometry(6, 3.8, 0.1), this.materials.glassFacade);
     entranceGlass.position.set(12, 2.5, 14.4);
     towerGroup.add(entranceGlass);
     this.elements.entrance.push(canopy, entranceGlass);
@@ -2284,88 +2249,125 @@ export class BuildingComponents {
     root.add(roofGroup);
   }
 
-  buildRailAndGantryCrane(root) {
-    const railGroup = new THREE.Group();
-    railGroup.name = 'RailAndGantryIntermodal';
-    railGroup.position.set(0, 0, -26);
-
-    const ballast = new THREE.Mesh(new THREE.PlaneGeometry(520, 14), this.materials.railGravel);
-    ballast.rotation.x = -Math.PI / 2;
-    ballast.position.y = 0.10;
-    ballast.receiveShadow = true;
-    railGroup.add(ballast);
-
-    // Dual Tracks (clean vertical layering: ballast at y=0.10, ties at y=0.16, rails at y=0.28)
-    const tiePositions = [];
-    [-3, 3].forEach((trackZ) => {
-      [-0.8, 0.8].forEach((railOffset) => {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(520, 0.15, 0.1), this.materials.railTrack);
-        rail.position.set(0, 0.28, trackZ + railOffset);
-        railGroup.add(rail);
-      });
-      for (let rx = -258; rx <= 258; rx += 1.8) tiePositions.push([rx, trackZ]);
+  createUrbanCar(color = 0x58758b) {
+    const car = new THREE.Group();
+    const paint = new THREE.MeshPhysicalMaterial({
+      color, roughness: 0.32, metalness: 0.18, clearcoat: 0.55, clearcoatRoughness: 0.24
     });
-    const ties = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.1, 2.2), this.materials.steelDark, tiePositions.length);
-    tiePositions.forEach(([x, z], i) => ties.setMatrixAt(i, new THREE.Matrix4().makeTranslation(x, 0.16, z)));
-    railGroup.add(ties);
+    const body = new THREE.Mesh(createProfileGeometry([
+      [-2.15, 0.32], [-1.82, 0.05], [1.75, 0.05], [2.15, 0.38],
+      [1.72, 0.78], [0.95, 0.92], [0.28, 1.48], [-0.92, 1.48], [-1.58, 0.86]
+    ], 1.72, { bevelSize: 0.1 }), paint);
+    body.position.y = 0.46;
+    body.castShadow = true;
+    car.add(body);
 
-    // Massive Red Portal Gantry Crane (matching screenshot 3)
-    const gantryGroup = new THREE.Group();
-    gantryGroup.position.set(-14, 0, 0);
-
-    const legL = new THREE.Mesh(new THREE.BoxGeometry(1.6, 15, 2.0), this.materials.coreRedAccent);
-    legL.position.set(0, 7.5, -6.5);
-    legL.castShadow = true;
-    gantryGroup.add(legL);
-
-    const legR = new THREE.Mesh(new THREE.BoxGeometry(1.6, 15, 2.0), this.materials.coreRedAccent);
-    legR.position.set(0, 7.5, 6.5);
-    legR.castShadow = true;
-    gantryGroup.add(legR);
-
-    const topGirder = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 17), this.materials.coreRedAccent);
-    topGirder.position.set(0, 15, 0);
-    topGirder.castShadow = true;
-    gantryGroup.add(topGirder);
-
-    const hoistTrolley = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.8, 3.2), this.materials.craneYellow);
-    hoistTrolley.position.set(0, 13.5, 0);
-    gantryGroup.add(hoistTrolley);
-
-    const spreaderBar = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 6.2), this.materials.steelDark);
-    spreaderBar.position.set(0, 7.0, 0);
-    spreaderBar.castShadow = true;
-    gantryGroup.add(spreaderBar);
-
-    railGroup.add(gantryGroup);
-    this.elements.railGantry = gantryGroup;
-
-    // Freight Train
-    const trainGroup = new THREE.Group();
-    trainGroup.position.set(-10, 0, 3);
-
-    const loco = new THREE.Mesh(new THREE.BoxGeometry(14, 3.6, 2.8), this.materials.coreRedAccent);
-    loco.position.set(0, 2.2, 0);
-    loco.castShadow = true;
-    trainGroup.add(loco);
-
-    const containerColors = [this.materials.coreRedAccent, this.materials.truckWhite, this.materials.truckBlue];
-    for (let c = 1; c <= 3; c++) {
-      const wagon = new THREE.Mesh(new THREE.BoxGeometry(16, 0.8, 2.6), this.materials.steelDark);
-      wagon.position.set(c * 18, 0.8, 0);
-      trainGroup.add(wagon);
-
-      const cont = new THREE.Mesh(new THREE.BoxGeometry(14, 3.2, 2.5), containerColors[c - 1]);
-      cont.position.set(c * 18, 2.8, 0);
-      cont.castShadow = true;
-      trainGroup.add(cont);
-    }
-
-    railGroup.add(trainGroup);
-    this.elements.trains.push(trainGroup);
-
-    root.add(railGroup);
+    const windowMat = this.materials.glassCab.clone();
+    windowMat.opacity = 0.76;
+    [-0.88, 0.88].forEach((z) => {
+      const glass = new THREE.Mesh(createProfileGeometry([
+        [-1.27, 0.88], [-0.78, 1.36], [0.18, 1.36], [0.78, 0.88]
+      ], 0.035, { bevelSize: 0 }), windowMat);
+      glass.position.set(0, 0.46, z);
+      car.add(glass);
+    });
+    [-1.35, 1.35].forEach((x) => [-0.9, 0.9].forEach((z) => {
+      const wheel = this.createDetailedWheel(0.38, 0.26);
+      wheel.position.set(x, 0.42, z);
+      car.add(wheel);
+    }));
+    [-0.48, 0.48].forEach((z) => {
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.3), this.materials.headlamp);
+      lamp.position.set(2.15, 0.78, z);
+      car.add(lamp);
+    });
+    return car;
   }
+
+  buildCityContext(root) {
+    const city = new THREE.Group();
+    city.name = 'UrbanCityContext';
+    const facadePalette = [0x8a9296, 0x9a8778, 0x707c86, 0xa4a39a, 0x768588];
+    const windowMat = new THREE.MeshStandardMaterial({
+      color: 0x6f8c99, emissive: 0x8da6ad, emissiveIntensity: 0.08, roughness: 0.34, metalness: 0.1
+    });
+
+    // Stepped, windowed city blocks close the horizon without competing with the main building.
+    const plots = [
+      [-42, -51, 18, 13, 15], [-18, -51, 17, 13, 22], [4, -51, 18, 13, 13],
+      [28, -53, 14, 15, 19], [57, -34, 15, 18, 25], [58, -8, 16, 16, 17],
+      [-55, -27, 18, 16, 20], [-58, -2, 15, 18, 14], [-57, 22, 18, 16, 18]
+    ];
+    plots.forEach(([x, z, w, d, h], index) => {
+      const building = new THREE.Group();
+      const material = new THREE.MeshStandardMaterial({ color: facadePalette[index % facadePalette.length], roughness: 0.88 });
+      const lower = new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.72, d), material);
+      lower.position.y = h * 0.36;
+      lower.castShadow = lower.receiveShadow = true;
+      building.add(lower);
+      const upper = new THREE.Mesh(new THREE.BoxGeometry(w * 0.72, h * 0.28, d * 0.72), material);
+      upper.position.set((index % 2 ? 1 : -1) * w * 0.08, h * 0.86, 0);
+      upper.castShadow = true;
+      building.add(upper);
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(w * 0.76, 0.35, d * 0.76), this.materials.concrete);
+      cap.position.copy(upper.position);
+      cap.position.y = h + 0.18;
+      building.add(cap);
+
+      const rows = Math.max(2, Math.floor(h / 3.3));
+      const cols = Math.max(2, Math.floor(w / 2.8));
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const win = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.35), windowMat);
+          win.position.set(-w * 0.38 + col * (w * 0.76 / Math.max(1, cols - 1)), 1.8 + row * 3.0, d / 2 + 0.011);
+          building.add(win);
+        }
+      }
+      building.position.set(x, 0.25, z);
+      city.add(building);
+    });
+
+    // Street furniture establishes human scale along all three visible roads.
+    const lampMat = this.materials.steelDark;
+    const addStreetLight = (x, z, rotate = 0) => {
+      const light = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 6.2, 10), lampMat);
+      pole.position.y = 3.1;
+      light.add(pole);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.1, 0.1), lampMat);
+      arm.position.set(0.62, 6.12, 0);
+      light.add(arm);
+      const fixture = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.16, 0.28), this.materials.headlamp);
+      fixture.position.set(1.25, 6.02, 0);
+      light.add(fixture);
+      light.position.set(x, 0.27, z);
+      light.rotation.y = rotate;
+      city.add(light);
+    };
+    for (let x = -48; x <= 52; x += 17) {
+      addStreetLight(x, 27.2, Math.PI / 2);
+      addStreetLight(x, -23.2, -Math.PI / 2);
+    }
+    for (let z = -18; z <= 22; z += 16) addStreetLight(46.7, z, Math.PI);
+
+    const movingCars = [
+      [this.createUrbanCar(0x365a72), -33, 0.31, 35, 0, 1],
+      [this.createUrbanCar(0xa64b45), 12, 0.31, -31, Math.PI, -1],
+      [this.createUrbanCar(0xd1d0c8), 39, 0.31, -16, Math.PI / 2, 1]
+    ];
+    movingCars.forEach(([car, x, y, z, rotation, direction], index) => {
+      car.position.set(x, y, z);
+      car.rotation.y = rotation;
+      car.userData.axis = index === 2 ? 'z' : 'x';
+      car.userData.base = index === 2 ? z : x;
+      car.userData.direction = direction;
+      city.add(car);
+      this.elements.cityVehicles.push(car);
+    });
+
+    root.add(city);
+  }
+
 
   buildVehiclesAndMachinery(root) {
     const fleetGroup = new THREE.Group();
@@ -2393,11 +2395,11 @@ export class BuildingComponents {
     this.elements.trucks.push(truck3);
 
     // Realistic Hydraulic Excavator (matching Image 3) working from the east lip of the excavation
-    const excavator = this.createExcavator();
-    excavator.position.set(32, 0, 3);
-    excavator.rotation.y = Math.PI;
-    fleetGroup.add(excavator);
-    // this.elements.excavator set inside createExcavator()
+    const excavator = buildExcavator(this.materials, this.detail);
+    excavator.root.position.set(32, 0, 3);
+    excavator.root.rotation.y = Math.PI;
+    fleetGroup.add(excavator.root);
+    this.elements.excavator = excavator;
 
     root.add(fleetGroup);
   }
