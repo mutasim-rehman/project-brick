@@ -2,49 +2,32 @@
 
 ## Run
 
-- `npm install`
-- `npm run dev -- --host 127.0.0.1`
-- `npm run build` generates the production assets and individual pre-rendered HTML pages in `dist`.
-- `npm run preview` serves the production build.
-- `npm test` checks pricing, configuration validation, snapshots, timezone/DST conversion and calendar exports.
-- `npm run test:browser` runs the Playwright integration suite. Install Playwright separately or expose it through `NODE_PATH`. Chrome is used by default; set `BROWSER_CHANNEL` to use another installed Playwright channel.
+- Install dependencies with `npm install`.
+- Start development with `npm run dev` (Vite defaults to `http://localhost:5173`).
+- Run `npm run build` to create the production bundle and prerendered pages in `dist`.
+- Use `npm run preview` to serve the production build.
+- `npm test` runs focused pricing and configuration checks. `npm run test:browser` is an optional Playwright browser check; Playwright and a supported browser must be installed separately.
 
-## Pages
+## Pages and product preview
 
-The site includes the homepage, Platform, How It Works, Pricing, Contact, About, a legal index, seven individual policy pages and a workspace-access page. Unknown URLs show a not-found view. Static hosting should resolve directory URLs to their `index.html` and use `404.html` for unknown paths.
+Routes include the homepage, Platform, How It Works, Pricing, Contact, About, a legal index, individual policy pages, workspace access and a not-found view. The build writes directly accessible HTML for known routes. Static hosting should serve directory `index.html` files and use `404.html` for unknown paths.
 
-The existing Three.js construction assets are retained and loaded only on the homepage. A pinned opening sequence runs through all six construction stages as the visitor scrolls, finishing before the remaining homepage enters view. Scrolling backward reverses the construction. Skip Story goes directly to the remaining homepage; reduced motion and WebGL failure collapse the long sequence to a static hero. The scene pauses outside the viewport. The remaining homepage includes the owner-dependency narrative, three interactive handover chapters, four operating pillars, evidence-oriented content and conversion links. It does not yet implement the bespoke owner-at-home character animation described in the specification.
+The homepage uses a custom Three.js construction sequence built for this redesign. It forms a full-width pinned canvas, with homepage sections passing over the open left side of the same background (the model remains above the content on phones), and native scrolling smoothly advances or reverses construction: a working excavator cuts the pit, reinforcement and foundations follow, then the crane mast and floor-by-floor structure rise; each elevated slab starts only after the columns below reach full height. The lift core and scaffold follow the same story-by-story schedule. Fifteen paired glazing cassettes ride upright on a delivery rack and are set in a shorter run of crane lifts before the roof and solar array are completed. Individual parts extend from fixed ends or pour edges rather than appearing as finished floors. Scaffolding clears after enclosure, the excavator drives off after earthworks, and the crane mast comes down from the top at handover. The three stage controls scroll to Groundwork, Structure and Handover; motion can be paused and reduced-motion preferences show the completed model. The scene is an architectural illustration, not a live jobsite, customer project or engineering model. The camera gradually reframes the rising structure; studio reflections give glass and metal more depth. The hoist cable stays attached to its carriage and hook when scrubbing in either direction, and unloaded vehicles park within the site. It caps rendering at 30 frames per second and is loaded only on the homepage. If WebGL is unavailable, the surrounding page content remains usable.
 
-Platform includes all six module groups with the six-part feature schema. How It Works includes all nine roles, seven onboarding steps per role, daily comparisons and expandable text guides. Approved character artwork and tutorial video/caption assets have not been supplied; there are no fabricated videos or pilot statistics.
+Platform and role pages explain six connected operational areas and provide interactive workflow examples. Each workflow is visibly marked as sample data and a proposed workflow. It does not connect to an account or store operational records. Pricing is an editable regional planning example, not an approved quote. Its values are not currency conversions; estimates exclude taxes and shipping. Preferences and saved budget choices remain local to the browser when the visitor enables optional storage.
 
-## Commercial preview
+Legal and policy content is draft material for review. The site makes no claim of a completed accessibility audit, security certification, insurance coverage or binding warranty.
 
-The six pricing tables and the 15% annual incentive are explicitly illustrative, not approved commercial rates. They are independently defined, not converted with foreign exchange rates. The calculator separates recurring charges, annual billing, hardware and onboarding; exports a draft snapshot; and passes the selected configuration to Contact. Shared links contain configuration only, never contact information.
+## Enquiry and workspace settings
 
-Without an API connection, Contact prepares a downloadable request and a **tentative, unconfirmed** calendar reminder. No appointment is booked, email sent, CRM inquiry stored or price hold activated. Sample slots are labelled as preferences, not live availability. Contact details are kept in memory, not local storage.
+The contact route offers a form only when an enquiry destination is configured. Without one, it explains that enquiries are not yet open and offers links to the workflow preview and budget planner. There is no appointment booking, waitlist submission or email delivery in the unconfigured preview.
 
-The support widget uses deterministic answers grounded in the local specification until a live assistant endpoint is configured. Legal pages are explicitly marked drafts. No security certification, verified compliance, insurance coverage or binding warranty is claimed.
+Copy `.env.example` to `.env` to configure public values:
 
-## API integration
+- `VITE_CONTACT_EMAIL` enables an email draft. The visitor reviews and sends the message in their email application; the website does not send it.
+- `VITE_API_BASE` is the origin or path prefix of an API implementing `POST /api/v1/inquiries/submit`. A successful JSON response must include `inquiryRef`. The server must validate and safely handle submissions and calculate any approved commercial quote.
+- `VITE_APP_URL` is an HTTPS URL for a separately hosted workspace. It enables a sign-in link; authentication and the workspace are not implemented by this marketing site.
 
-Copy the variable names from `.env.example` into your environment. `VITE_API_BASE` is the public API gateway origin or prefix; `VITE_APP_URL` is the HTTPS workspace sign-in URL. Neither is a secret. Never place backend credentials in a `VITE_` variable.
+The build reads these values when it prerenders pages so the static Contact and workspace-access markup matches the client configuration. `VITE_` values are public and must never contain secrets. No analytics or advertising trackers are included.
 
-The optional client adapter expects:
-
-- `GET /api/v1/scheduling/availability?territory=...&timezone=...` returns `{ slots: [{ id, startUTC }] }` with future ISO UTC timestamps.
-- `POST /api/v1/inquiries/submit` accepts qualification data, configuration, illustrative totals and intent; returns `{ inquiryRef }`. The server must validate all input, recalculate approved prices, persist immutable snapshots, enforce consent and rate limits, and apply approved hold terms. Client totals are not authoritative.
-- `POST /api/v1/scheduling/book` accepts `{ inquiryRef, slotId, timezone }`; returns `{ confirmed: true, startUTC }` only after atomic reservation. The server handles calendar routing, double-booking protection and confirmation emails.
-- Both writes include stable `Idempotency-Key` headers for retries during the current request. The backend must enforce idempotency.
-- `POST /api/v1/assistant/chat` accepts `{ message }`; returns `{ answer }`. This adapter expects JSON, not a streaming response. Grounding, legal/pricing guardrails, authentication where needed and abuse protection belong on the server.
-
-The approved pricing/content endpoints, streaming assistant, CRM, calendar infrastructure and transactional email services remain production integrations, not implemented backend services. Connecting an API does not turn the sample rate tables into approved pricing.
-
-## Consent and accessibility
-
-Only the consent decision is stored by default. Optional consent enables local pricing and reduced-motion preferences. Withdrawing it removes those keys. The site loads no analytics or advertising trackers. Google Fonts is an external font dependency.
-
-All interactions include labels and focus states. The site supports reduced motion, a skip link, keyboard-accessible module/role selectors and modal cookie preferences. The implementation is not a claim of a completed WCAG audit.
-
-## Verification
-
-Browser checks cover all routes, desktop/mobile overflow, a nonblank animated WebGL canvas, module/role switching, pricing math, shared-link reload, qualification validation, configuration handoff, timezone conversion, calendar download and support responses. Screenshots are generated in the ignored `artifacts` directory. Production readiness still requires approved content, real integrations, performance and accessibility audits.
+Construction pacing uses measured sticky chapters with extra scroll distance for the structural and enclosure phases. Progress is limited to the 36-second construction rate even after a large scroll jump, and the finished model has an additional hold before the footer. Reduced-motion mode removes the extended chapter holds.

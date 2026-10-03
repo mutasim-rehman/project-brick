@@ -20,9 +20,11 @@ test('shared configurations cannot introduce unknown modules, currencies or unbo
   assert.deepEqual(config.modules,['People']);assert.deepEqual(config.hardware,[0,0,10000,3]);
   assert.deepEqual(normalizeConfig(null),normalizeConfig({}));
 });
-test('snapshots explicitly remain drafts with an independent configuration and 14-day requested expiry',()=>{
+test('budget snapshots remain independent drafts and never create a price hold',()=>{
   const value=snapshot();assert.equal(value.status,'draft-not-submitted');
-  assert.equal(Date.parse(value.requestedHoldUntil)-Date.parse(value.timestampUTC),14*86400000);
+  assert.equal(Object.hasOwn(value,'requestedHoldUntil'),false);
+  value.configuration.modules.push('Tools');
+  assert.notDeepEqual(value.configuration.modules,snapshot().configuration.modules);
   assert(value.inquiryRef.startsWith('PREVIEW-'));
 });
 test('UTC slots convert across DST without changing their instant',()=>{

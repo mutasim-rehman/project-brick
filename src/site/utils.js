@@ -1,6 +1,7 @@
 export const escapeHtml = (value) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 export const icon = (name) => `<i data-lucide="${name}" aria-hidden="true"></i>`;
-export const apiBase = (import.meta.env?.VITE_API_BASE || '').replace(/\/$/, '');
+const publicEnv = import.meta.env || globalThis.__SITE_BUILD_ENV__ || {};
+export const apiBase = (publicEnv.VITE_API_BASE || '').replace(/\/$/, '');
 export async function api(path, options = {}) {
   if (!apiBase) throw new Error('Live service is not connected. Your information has not been sent.');
   const response = await fetch(`${apiBase}/api/v1/${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...options.headers }, signal: AbortSignal.timeout(15000) });
