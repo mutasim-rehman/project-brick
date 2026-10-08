@@ -90,3 +90,40 @@
 @media (max-width: 760px) { .blueprint-home .story-stage { width: calc(100% - 40px); } }
 @media (prefers-reduced-motion: reduce) { .blueprint-drawing, .blueprint-drawing > path:first-child { animation: none; } .bp-zone, .bp-plan-region, .bp-story-arrow svg { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .blueprint-surface.has-rollover { position: relative; top: auto; } .blueprint-home #home-workday { box-shadow: none; } }
+
+@media (min-width: 1101px) {
+  .blueprint-home .header-inner,
+  .blueprint-home:has(.chapter-rail) .wrap,
+  .blueprint-hero { width: min(1328px, calc(100% - 264px)); max-width: 1328px; margin-inline: auto; }
+  .blueprint-home .header-inner { padding-inline: 0; }
+  .blueprint-hero { padding-top: clamp(28px, 3vw, 54px); }
+  .bp-heading { gap: 32px; padding-bottom: 52px; }
+  .bp-heading h1 { font-size: clamp(62px, 5vw, 90px); line-height: .98; }
+  .bp-heading > p { width: 220px; font-size: 12px; line-height: 1.75; }
+  .bp-layout { grid-template-columns: minmax(0, 1fr) minmax(260px, 280px); gap: 32px; }
+  .bp-record { padding-left: 22px; }
+  .bp-record-metric { font-size: clamp(38px, 3vw, 54px); }
+  .bp-record p { font-size: 13px; }
+  .bp-record dl { font-size: 11px; }
+  .bp-record dl > div { padding: 10px 0; }
+  .bp-record > a { font-size: 11px; }
+  .blueprint-home .story-stage { width: min(1160px, calc(100% - 264px)); margin-inline: auto; }
+
+  .blueprint-home .chapter-rail { width: 154px; right: 24px; grid-template-columns: 1fr 18px; }
+  .blueprint-home .chapter-rail::before { right: 27px; font-size: 10px; letter-spacing: .1em; }
+  .blueprint-home .chapter-rail a { height: 22px; }
+  .blueprint-home .chapter-rail .chapter-label { right: 12px; padding: 4px 7px; border: 1px solid #91a29b80; background: #07171e; color: #d4ded6; font-size: 12px; line-height: 1.35; letter-spacing: .06em; }
+  .blueprint-home .chapter-rail a::after { right: -13px; width: 12px; height: 12px; background: #a9bab0; box-shadow: 0 0 0 2px #0b2028; }
+  .blueprint-home .chapter-rail a[aria-current]::after { right: -15px; width: 16px; height: 16px; background: #cedb4d; box-shadow: 0 0 0 3px #cedb4d35; }
+  .blueprint-home .chapter-rail-line { width: 3px; background: #91a29b9c; }
+  .blueprint-home .chapter-rail-line > span { background: #cedb4d; }
+}
+
+@media (min-width: 1101px) {
+  .blueprint-home:has(.chapter-rail) .header-inner { width: min(1328px, calc(100% - 264px)); max-width: 1328px; margin-inline: auto; padding-inline: 0; }
+}
+
+@media (max-width: 1100px) {
+  .blueprint-home .chapter-progress a { padding: 13px 12px; font-size: 12px; }
+  .blueprint-home .chapter-progress .chapter-index { font-size: 10px; }
+}
