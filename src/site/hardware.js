@@ -1,24 +1,25 @@
-import { storyPage, downLink, textLink, lightLink } from './story.js';
+import { intro } from './shared.js';
+import { icon, escapeHtml } from './utils.js';
 
 const nfc = `<svg viewBox="0 0 320 260" aria-hidden="true">
-  <rect x="54" y="28" width="148" height="196" rx="22" fill="#24382c"/>
-  <rect x="70" y="46" width="116" height="28" rx="6" fill="#314a3e"/>
+  <rect x="54" y="28" width="148" height="196" rx="22" fill="#102a47"/>
+  <rect x="70" y="46" width="116" height="28" rx="6" fill="#284561"/>
   <circle cx="128" cy="128" r="34" fill="none" stroke="#d2e15a" stroke-width="8"/>
   <path d="M116 128c4-10 12-16 24-14" fill="none" stroke="#f6f3ea" stroke-width="4" stroke-linecap="round"/>
   <path d="M112 112c10-16 28-22 46-12M108 100c16-22 46-28 70-12" fill="none" stroke="#d2e15a" stroke-width="4" stroke-linecap="round"/>
-  <rect x="176" y="118" width="92" height="112" rx="14" fill="#f7f4ea" stroke="#24382c" stroke-width="4"/>
-  <rect x="190" y="134" width="64" height="8" rx="2" fill="#24382c"/>
+  <rect x="176" y="118" width="92" height="112" rx="14" fill="#f7f4ea" stroke="#102a47" stroke-width="4"/>
+  <rect x="190" y="134" width="64" height="8" rx="2" fill="#102a47"/>
   <rect x="190" y="152" width="46" height="6" rx="2" fill="#9aa58f"/>
   <rect x="190" y="168" width="54" height="6" rx="2" fill="#c5d0b8"/>
   <circle cx="222" cy="204" r="10" fill="#d2e15a"/>
 </svg>`;
 
 const guard = `<svg viewBox="0 0 320 260" aria-hidden="true">
-  <rect x="78" y="58" width="164" height="144" rx="28" fill="#24382c"/>
-  <rect x="62" y="86" width="28" height="36" rx="8" fill="#314a3e"/>
-  <rect x="230" y="86" width="28" height="36" rx="8" fill="#314a3e"/>
-  <rect x="62" y="138" width="28" height="36" rx="8" fill="#314a3e"/>
-  <rect x="230" y="138" width="28" height="36" rx="8" fill="#314a3e"/>
+  <rect x="78" y="58" width="164" height="144" rx="28" fill="#102a47"/>
+  <rect x="62" y="86" width="28" height="36" rx="8" fill="#284561"/>
+  <rect x="230" y="86" width="28" height="36" rx="8" fill="#284561"/>
+  <rect x="62" y="138" width="28" height="36" rx="8" fill="#284561"/>
+  <rect x="230" y="138" width="28" height="36" rx="8" fill="#284561"/>
   <circle cx="108" cy="88" r="6" fill="#d2e15a"/>
   <circle cx="212" cy="88" r="6" fill="#d2e15a"/>
   <circle cx="108" cy="172" r="6" fill="#d2e15a"/>
@@ -28,7 +29,7 @@ const guard = `<svg viewBox="0 0 320 260" aria-hidden="true">
 </svg>`;
 
 const tool = `<svg viewBox="0 0 320 260" aria-hidden="true">
-  <rect x="96" y="70" width="128" height="120" rx="24" fill="#24382c"/>
+  <rect x="96" y="70" width="128" height="120" rx="24" fill="#102a47"/>
   <circle cx="124" cy="98" r="6" fill="#d2e15a"/>
   <circle cx="196" cy="98" r="6" fill="#d2e15a"/>
   <circle cx="124" cy="162" r="6" fill="#d2e15a"/>
@@ -43,7 +44,7 @@ const gateway = `<svg viewBox="0 0 320 260" aria-hidden="true">
   <rect x="140" y="46" width="14" height="22" rx="2" fill="#c6a15a"/>
   <rect x="162" y="46" width="14" height="22" rx="2" fill="#c6a15a"/>
   <rect x="184" y="46" width="14" height="22" rx="2" fill="#c6a15a"/>
-  <rect x="78" y="68" width="164" height="128" rx="16" fill="#24382c"/>
+  <rect x="78" y="68" width="164" height="128" rx="16" fill="#102a47"/>
   <rect x="98" y="90" width="86" height="8" rx="2" fill="#f6f3ea"/>
   <rect x="98" y="110" width="64" height="6" rx="2" fill="#9aa58f"/>
   <rect x="98" y="148" width="28" height="18" rx="4" fill="#d2e15a"/>
@@ -113,30 +114,7 @@ const devices = [
 ];
 
 export function hardwarePage() {
-  return storyPage({
-    hero: {
-      id: 'hardware-overview',
-      rail: 'Start',
-      kicker: 'Hardware / four connected devices',
-      titleHtml: 'Four pieces of hardware. <em>An entire operation in view.</em>',
-      copy: 'NFC site badges, guard tags, tool tags and vehicle gateways. Scroll each device to see the record it can leave behind.',
-      actions: downLink('#nfc-badge', 'Explore the hardware') + textLink('/legal/hardware', 'Hardware terms'),
-      note: 'Records on this page are examples. They are not a live site.',
-    },
-    chapters: devices.map(device => ({ ...device, caption: device.kicker + ' · example' })),
-    summary: {
-      id: 'operating-picture',
-      rail: 'Picture',
-      kicker: 'One operating picture',
-      title: 'The field and the office. On the same record.',
-      note: 'Example signals from the four devices. Availability is confirmed as part of a pilot.',
-      cards: [
-        { title: 'NFC site badge', copy: 'Attendance, hours and headcount.' },
-        { title: 'Guard tag', copy: 'A protected asset and its last known place.' },
-        { title: 'Tool tag', copy: 'Identity, custody and the latest handoff.' },
-        { title: 'Vehicle gateway', copy: 'Journey, arrival and service review.' },
-      ],
-      actions: lightLink('/platform', 'See the workflows') + textLink('/contact', 'Book a demo'),
-    },
-  });
+  return `${intro('Hardware / field devices', 'Four devices. Four kinds of site signal.', 'See what each device is for, and the kind of record it can contribute. Compatibility and availability are confirmed as part of a pilot.')}
+    <section class="wrap device-catalog"><div class="device-catalog-head"><h2>Choose a device to understand its job.</h2><p>These illustrations and records describe proposed workflows, not confirmed specifications or a live deployment.</p></div><div class="device-grid">${devices.map(device => `<article class="device-card" id="${device.id}"><div class="device-art">${device.figure}</div><div class="device-copy"><p class="eyebrow">${escapeHtml(device.kicker)}</p><h3>${escapeHtml(device.title)}</h3><p>${escapeHtml(device.copy)}</p><div class="device-steps" aria-label="Example workflow">${device.steps.map(step => `<span>${escapeHtml(step)}</span>`).join('')}</div></div></article>`).join('')}</div><p class="device-disclaimer">Illustrations are examples. Review <a href="/legal/hardware">hardware terms and warranty information</a> for current approved details.</p></section>
+    <section class="wrap utility-next"><div><h2>See how device signals connect to work.</h2><p>Explore the people, work, safety, tools and fleet records they can support.</p></div><a class="button light" href="/platform">Explore the platform ${icon('arrow-right')}</a></section>`;
 }

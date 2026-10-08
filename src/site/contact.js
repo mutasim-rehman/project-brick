@@ -1,6 +1,6 @@
 import { icon, api, apiBase } from './utils.js';
 import { contactEmail } from './shared.js';
-import { storyPage, downLink } from './story.js';
+import { intro } from './shared.js';
 
 const topics = `<ul class="check-list"><li>${icon('check')}Company and operating territory</li><li>${icon('check')}Employees, sites, tools and fleet</li><li>${icon('check')}Current process and priority pain point</li><li>${icon('check')}Target pilot timeline</li></ul><p class="small">Final qualification questions and scoring criteria require approval.</p>`;
 
@@ -9,39 +9,8 @@ export function contactPage() {
   const form = connected
     ? `<form id="contact-form" class="contact-form"><div class="form-grid"><label>Your name<input name="name" required maxlength="100" autocomplete="name"></label><label>Work email<input name="email" type="email" required maxlength="254" autocomplete="email"></label></div><label class="full-label">Company<input name="company" required maxlength="160" autocomplete="organization"></label><label class="full-label">Primary operational pain point<textarea name="message" rows="4" maxlength="2000" placeholder="Payroll discrepancies, tool loss, safety compliance or owner overload"></textarea></label><p class="form-privacy">${apiBase ? 'Your details will be sent to the configured enquiry service.' : 'This opens an email draft for you to review and send.'} Read the <a href="/legal/privacy">privacy information</a>.</p><div class="actions"><button class="button primary" type="submit">${apiBase ? 'Send enquiry' : 'Open email enquiry'} ${icon('arrow-up-right')}</button></div><p id="contact-status" role="status"></p></form>`
     : `<div class="contact-pending"><p class="eyebrow">Prelaunch preview</p><h2>Enquiries are not open here yet.</h2><p>This preview has no live qualification form or booking calendar. Review the proposed product workflows while Site Killick prepares the enquiry and scheduling systems.</p><div class="actions"><a class="button primary" href="/platform">Review product workflows ${icon('arrow-right')}</a><a class="text-link" href="/pricing">Pricing information ${icon('arrow-right')}</a></div></div>`;
-  return storyPage({
-    hero: {
-      id: 'contact-overview',
-      rail: 'Start',
-      kicker: 'Contact / qualification',
-      titleHtml: 'Discuss your <em>operational priorities.</em>',
-      copy: 'Contact Site Killick to discuss your company, operating territory and construction operations needs.',
-      actions: downLink('#contact-enquiry', 'Start the enquiry'),
-      note: 'No appointment is booked from this page.',
-    },
-    chapters: [{
-      id: 'contact-enquiry',
-      rail: 'Enquiry',
-      static: true,
-      kicker: 'Qualification topics',
-      title: 'Company, operations and timing.',
-      copy: 'Share enough for a conversation. A quote and a booking stay outside this form.',
-      body: `<div class="story-record">${topics}</div><div class="story-record">${form}</div>`,
-    }],
-    summary: {
-      id: 'contact-next',
-      rail: 'Next',
-      kicker: 'Before you write',
-      title: 'The workflows are here if you want to look first.',
-      note: 'Pricing on this site does not show a number until regional prices are approved.',
-      cards: [
-        { title: 'Platform', copy: 'Six workflows, shown as examples.', href: '/platform' },
-        { title: 'Hardware', copy: 'Four devices and the records they leave.', href: '/hardware' },
-        { title: 'How it works', copy: 'The same record, seen by role.', href: '/how-it-works' },
-        { title: 'Pricing', copy: 'What a quote will ask for. No prices yet.', href: '/pricing' },
-      ],
-    },
-  });
+  return `${intro('Contact / operational priorities', 'Start with the problem you want to solve.', 'Share the operating context that would make a conversation useful. This page does not book an appointment or create a quote.')}
+    <section class="wrap contact-page"><div class="contact-layout-new"><aside class="contact-context"><p class="eyebrow">Useful context</p><h2>What should we understand?</h2><p>A little background helps frame a useful discussion around the operation.</p>${topics}</aside><section class="contact-panel" aria-labelledby="contact-panel-title">${connected ? `<p class="eyebrow">Enquiry</p><h2 id="contact-panel-title">Tell us where the work gets stuck.</h2><p>Your information is used to respond to this enquiry. Read the <a href="/legal/privacy">privacy information</a>.</p>${form}` : form}</section></div></section>`;
 }
 
 export function bindContact(){
