@@ -4,14 +4,14 @@ import { icon, escapeHtml } from './utils.js';
 const nfc = `<svg viewBox="0 0 320 260" aria-hidden="true">
   <rect x="54" y="28" width="148" height="196" rx="22" fill="#102a47"/>
   <rect x="70" y="46" width="116" height="28" rx="6" fill="#284561"/>
-  <circle cx="128" cy="128" r="34" fill="none" stroke="#d2e15a" stroke-width="8"/>
+  <circle cx="128" cy="128" r="34" fill="none" stroke="var(--lime)" stroke-width="8"/>
   <path d="M116 128c4-10 12-16 24-14" fill="none" stroke="#f6f3ea" stroke-width="4" stroke-linecap="round"/>
-  <path d="M112 112c10-16 28-22 46-12M108 100c16-22 46-28 70-12" fill="none" stroke="#d2e15a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M112 112c10-16 28-22 46-12M108 100c16-22 46-28 70-12" fill="none" stroke="var(--lime)" stroke-width="4" stroke-linecap="round"/>
   <rect x="176" y="118" width="92" height="112" rx="14" fill="#f7f4ea" stroke="#102a47" stroke-width="4"/>
   <rect x="190" y="134" width="64" height="8" rx="2" fill="#102a47"/>
   <rect x="190" y="152" width="46" height="6" rx="2" fill="#9aa58f"/>
   <rect x="190" y="168" width="54" height="6" rx="2" fill="#c5d0b8"/>
-  <circle cx="222" cy="204" r="10" fill="#d2e15a"/>
+  <circle cx="222" cy="204" r="10" fill="var(--lime)"/>
 </svg>`;
 
 const guard = `<svg viewBox="0 0 320 260" aria-hidden="true">
@@ -20,22 +20,22 @@ const guard = `<svg viewBox="0 0 320 260" aria-hidden="true">
   <rect x="230" y="86" width="28" height="36" rx="8" fill="#284561"/>
   <rect x="62" y="138" width="28" height="36" rx="8" fill="#284561"/>
   <rect x="230" y="138" width="28" height="36" rx="8" fill="#284561"/>
-  <circle cx="108" cy="88" r="6" fill="#d2e15a"/>
-  <circle cx="212" cy="88" r="6" fill="#d2e15a"/>
-  <circle cx="108" cy="172" r="6" fill="#d2e15a"/>
-  <circle cx="212" cy="172" r="6" fill="#d2e15a"/>
-  <path d="M146 118h28M160 104v28" stroke="#d2e15a" stroke-width="6" stroke-linecap="square"/>
+  <circle cx="108" cy="88" r="6" fill="var(--lime)"/>
+  <circle cx="212" cy="88" r="6" fill="var(--lime)"/>
+  <circle cx="108" cy="172" r="6" fill="var(--lime)"/>
+  <circle cx="212" cy="172" r="6" fill="var(--lime)"/>
+  <path d="M146 118h28M160 104v28" stroke="var(--lime)" stroke-width="6" stroke-linecap="square"/>
   <rect x="124" y="154" width="72" height="8" rx="2" fill="#f6f3ea"/>
 </svg>`;
 
 const tool = `<svg viewBox="0 0 320 260" aria-hidden="true">
   <rect x="96" y="70" width="128" height="120" rx="24" fill="#102a47"/>
-  <circle cx="124" cy="98" r="6" fill="#d2e15a"/>
-  <circle cx="196" cy="98" r="6" fill="#d2e15a"/>
-  <circle cx="124" cy="162" r="6" fill="#d2e15a"/>
-  <circle cx="196" cy="162" r="6" fill="#d2e15a"/>
+  <circle cx="124" cy="98" r="6" fill="var(--lime)"/>
+  <circle cx="196" cy="98" r="6" fill="var(--lime)"/>
+  <circle cx="124" cy="162" r="6" fill="var(--lime)"/>
+  <circle cx="196" cy="162" r="6" fill="var(--lime)"/>
   <path d="M148 124c6-8 18-8 24 0" fill="none" stroke="#f6f3ea" stroke-width="4" stroke-linecap="round"/>
-  <path d="M140 112c10-14 30-14 40 0" fill="none" stroke="#d2e15a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M140 112c10-14 30-14 40 0" fill="none" stroke="var(--lime)" stroke-width="4" stroke-linecap="round"/>
   <rect x="132" y="146" width="56" height="7" rx="2" fill="#f6f3ea"/>
 </svg>`;
 
@@ -47,7 +47,7 @@ const gateway = `<svg viewBox="0 0 320 260" aria-hidden="true">
   <rect x="78" y="68" width="164" height="128" rx="16" fill="#102a47"/>
   <rect x="98" y="90" width="86" height="8" rx="2" fill="#f6f3ea"/>
   <rect x="98" y="110" width="64" height="6" rx="2" fill="#9aa58f"/>
-  <rect x="98" y="148" width="28" height="18" rx="4" fill="#d2e15a"/>
+  <rect x="98" y="148" width="28" height="18" rx="4" fill="var(--lime)"/>
 </svg>`;
 
 const devices = [

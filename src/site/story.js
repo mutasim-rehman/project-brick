@@ -23,7 +23,7 @@ export function storyPage({ hero, chapters = [], summary, rail }) {
   ].filter(Boolean);
   const summaryHtml = summary ? `<section class="story-summary" id="${summary.id}" data-chapter-section><div class="wrap"><p class="eyebrow">${text(summary.kicker)}</p><h2>${text(summary.title)}</h2><div class="story-signals">${summary.cards.map((card, index) => `<article class="${index % 2 ? 'is-lime' : ''}">${card.href ? `<a href="${card.href}">` : ''}<span>0${index + 1}</span><h3>${text(card.title)}</h3><p>${text(card.copy)}</p>${card.href ? '</a>' : ''}</article>`).join('')}</div>${summary.note ? `<p class="story-summary-note">${text(summary.note)}</p>` : ''}<div class="actions">${summary.actions || ''}</div></div></section>` : '';
   const heroCopy = `<div class="story-hero-copy"><p class="eyebrow">${text(hero.kicker)}</p><h1>${hero.titleHtml || text(hero.title)}</h1><p>${text(hero.copy)}</p><div class="actions">${hero.actions || ''}</div>${hero.note ? `<p class="story-note">${text(hero.note)}</p>` : ''}</div>`;
-  const heroVisual = hero.visual ? `<figure class="story-hero-visual">${hero.visual}</figure>` : '';
+  const heroVisual = hero.visual ? `<figure class="story-hero-visual${hero.id === 'home-overview' ? ' home-logo-visual' : ''}">${hero.visual}</figure>` : '';
   return `${chapterRail(items)}<article class="story-page"><section class="story-hero wrap${hero.visual ? ' has-visual' : ''}" id="${hero.id}" data-chapter-section>${hero.visual ? heroCopy + heroVisual : heroCopy}</section>${chapters.map(storyChapter).join('')}${summaryHtml}</article>${cta()}`;
 }
 
