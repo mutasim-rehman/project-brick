@@ -1,6 +1,4 @@
 import { icon } from './utils.js';
-
-const logo = new URL('../../SiteKillick_Final_Master_4096px.png', import.meta.url).href;
 const zones = [
   { id: 'office', name: 'Site office', position: 'office', title: 'The context stays with the work.', copy: 'A shared record gives the office a place to review the day, without rebuilding it from calls and messages.', metric: 'Review', label: 'Office workflow', rows: [['Record', 'Daily site report'], ['Owner', 'Project manager'], ['Next step', 'Review site updates']] },
   { id: 'equipment', name: 'Plant & equipment', position: 'equipment', title: 'Know what needs attention.', copy: 'Keep the equipment record, reported issues and service follow-up together so the next action has an owner.', metric: 'Service', label: 'Equipment workflow', rows: [['Record', 'Equipment issue'], ['Owner', 'Fleet manager'], ['Next step', 'Review service request']] },
@@ -8,8 +6,6 @@ const zones = [
   { id: 'work', name: 'Foundation works', position: 'work', title: 'Progress with a person responsible.', copy: 'Keep the day’s work and the supporting site records in context, ready for the person responsible to review.', metric: 'Progress', label: 'Work workflow', rows: [['Record', 'Daily work update'], ['Owner', 'Site supervisor'], ['Next step', 'Review recorded work']] },
   { id: 'stores', name: 'Tool storage', position: 'stores', title: 'Every handoff has a trail.', copy: 'Link a tagged tool to its last recorded custodian, so the next handoff starts with a clear record.', metric: 'Handoff', label: 'Assets workflow', rows: [['Signal', 'Tool tag'], ['Record', 'Last custodian'], ['Next step', 'Confirm tool handoff']] },
 ];
-
-export const blueprintBrand = () => `<a class="brand blueprint-brand" href="/" aria-label="Site Killick home"><span class="blueprint-brand-mark"><img src="${logo}" width="64" height="64" alt="" /></span><span>Site Killick</span></a>`;
 
 const ribs = (x, y, width, height, step = 9) => Array.from({ length: Math.floor(width / step) }, (_, i) => `<path d="M${x + i * step} ${y}v${height}"/>`).join('');
 const container = (x, y, width, height) => `<g><rect x="${x}" y="${y}" width="${width}" height="${height}"/><rect x="${x + 5}" y="${y + 5}" width="${width - 10}" height="${height - 10}"/>${ribs(x + 11, y + 7, width - 20, height - 14)}<path d="M${x - 4} ${y - 8}h${width + 8}m-${width + 4} -4v8m${width} -8v8"/></g>`;

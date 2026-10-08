@@ -125,6 +125,13 @@ p { color: var(--muted); }
 .legal-layout { border-top: 1px solid var(--line); }
 .policy-nav a[aria-current] { background: #ded6ca; border-color: var(--lime); }
 
+/* Use the supplied Site Killick emblem in place of the hand-drawn anchor. */
+.brand-mark-window { display: block; width: 46px; height: 46px; overflow: hidden; flex: none; }
+.brand-mark { display: block; width: 52px; height: 52px; max-width: none; object-fit: contain; }
+.blueprint-home .brand-mark { filter: brightness(0) invert(1); }
+.closing-inner > .closing-mark { position: absolute; display: block; width: 210px; height: 210px; right: -70px; bottom: -60px; overflow: hidden; opacity: .12; transform: rotate(-20deg); pointer-events: none; }
+.closing-mark .brand-mark { width: 210px; height: 210px; filter: grayscale(1) brightness(0) invert(1); }
+
 @media (max-width: 900px) {
   .brand { font-size: 15px; }
   .desktop-nav a { font-size: 10px; }
@@ -160,4 +167,10 @@ p { color: var(--muted); }
   .header-actions { gap: 6px; }
   .header-demo { min-height: 38px; padding: 8px 7px; font-size: 8px; gap: 4px; }
   .menu-toggle { width: 32px; }
+}
+@media (max-width: 600px) {
+  .brand-mark-window { width: 40px; height: 42px; }
+  .brand-mark { width: 48px; height: 48px; }
+  .closing-inner > .closing-mark { width: 175px; height: 175px; right: -40px; bottom: -38px; }
+  .closing-mark .brand-mark { width: 175px; height: 175px; }
 }
