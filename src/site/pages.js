@@ -6,7 +6,9 @@ import { storyPage, storyHero, downLink, textLink, lightLink } from './story.js'
 
 export { cta } from './shared.js';
 
-const card = () => `<svg viewBox="0 0 320 220" aria-hidden="true"><rect x="36" y="24" width="248" height="172" rx="20" fill="#24382c"/><rect x="58" y="48" width="84" height="10" rx="2" fill="#d2e15a"/><rect x="58" y="76" width="160" height="8" rx="2" fill="#f6f3ea"/><rect x="58" y="98" width="124" height="8" rx="2" fill="#9aa58f"/><rect x="58" y="132" width="36" height="28" rx="4" fill="#d2e15a"/></svg>`;
+const card = () => `<svg viewBox="0 0 320 220" aria-hidden="true"><rect x="36" y="24" width="248" height="172" rx="20" fill="#102a47"/><rect x="58" y="48" width="84" height="10" rx="2" fill="#d2e15a"/><rect x="58" y="76" width="160" height="8" rx="2" fill="#f6f3ea"/><rect x="58" y="98" width="124" height="8" rx="2" fill="#9aa58f"/><rect x="58" y="132" width="36" height="28" rx="4" fill="#d2e15a"/></svg>`;
+
+const homeVisual = `<svg viewBox="0 0 620 440" fill="none" aria-hidden="true"><rect x="22" y="26" width="576" height="388" rx="16" fill="#e2e8dc"/><path d="M58 344h504" stroke="#b8c4ae" stroke-width="2"/><path d="M117 344V198l119-70v216" fill="#82917c"/><path d="m236 198 124-76v222H236" fill="#61735f"/><path d="M360 344V176l115 53v115" fill="#a5ad9a"/><path d="M79 199 239 105l151 78M337 179l25-15 139 64" stroke="#102a47" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><path d="M138 223h39m-39 35h39m-39 35h39m88-84h43m-43 38h43m-43 38h43m98-76h35m-35 38h35" stroke="#e8eddf" stroke-width="10" stroke-linecap="round"/><path d="M322 104V57m0 0h116m-116 0-30 30m30-30 36 38m-36-38v88" stroke="#bc542e" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="322" cy="104" r="12" fill="#d2e15a" stroke="#102a47" stroke-width="4"/><path d="M99 356h420" stroke="#102a47" stroke-width="4"/><circle cx="510" cy="118" r="27" fill="#f7f7f0"/><path d="M510 102v18l12 8" stroke="#7b8b6d" stroke-width="4" stroke-linecap="round"/></svg>`;
 
 const ownerScene = () => `<div class="owner-scene" aria-label="Construction animation for the owner story"><div class="scene-room-label"><span class="status-dot"></span><span id="scene-moment">THE OWNER WHO CAN NEVER LEAVE</span></div><div id="construction-model" role="img" aria-label="Three-dimensional construction sequence showing a building assembled from foundations to handover"><div class="scene-loading" id="construction-loading">${icon('building-2')}<span>Preparing model</span></div><div class="scene-fallback" id="construction-fallback" hidden>${icon('building-2')}<span>Construction preview</span></div></div><div class="scene-caption" id="scene-caption">Every unanswered question finds its way home.</div><div class="scene-sequence" aria-hidden="true"><span class="active"></span><span></span><span></span></div></div><div class="scene-controls"><button id="motion-toggle" class="scene-control" aria-pressed="false" aria-label="Pause construction animation">${icon('pause')}<span>Pause animation</span></button></div>`;
 
@@ -22,6 +24,7 @@ export function homePage() {
       copy: 'Your company should not depend on one person carrying every unanswered question.',
       actions: `${downLink('#home-workday', 'See how it works')}${textLink('/platform', 'Explore the platform')}`,
       note: 'The Owner Who Can Never Leave. Records on this page are examples.',
+      visual: homeVisual,
     },
     chapters: [
       {
@@ -294,65 +297,11 @@ const policyLabels = { terms: 'Terms', privacy: 'Privacy', cookies: 'Cookies', '
 export function legalPage(slug) {
   const policy = policies.find(item => item.slug === slug);
   if (slug && !policy) return notFound();
-  const links = [{ id: 'legal-overview', label: 'Overview', href: '/legal', current: !slug }, ...policies.map(item => ({ id: item.slug, label: policyLabels[item.slug] || item.title, href: `/legal/${item.slug}`, current: item.slug === slug }))];
+  const nav = `<nav class="policy-nav" aria-label="Policy topics"><a href="/legal" ${!slug ? 'aria-current="page"' : ''}>All topics</a>${policies.map(item => `<a href="/legal/${item.slug}" ${item.slug === slug ? 'aria-current="page"' : ''}>${escapeHtml(policyLabels[item.slug] || item.title)}</a>`).join('')}</nav>`;
   if (!policy) {
-    return storyPage({
-      rail: links,
-      hero: {
-        id: 'legal-overview',
-        kicker: 'Legal policies',
-        titleHtml: 'Policy topics. <em>Pending approval.</em>',
-        copy: 'Final policy text requires legal review and approval before publication.',
-        actions: downLink('#legal-review', 'What is pending'),
-        note: 'Nothing on this page is a final policy, warranty or insurance statement.',
-      },
-      chapters: [{
-        id: 'legal-review',
-        rail: 'Review',
-        static: true,
-        kicker: 'Pending approval',
-        title: 'Policy text is not published yet.',
-        copy: 'Legal and insurance language is waiting on review.',
-        body: `<div class="notice">${icon('info')}<span>Legal and insurance language is pending approval.</span></div><div class="story-record"><p class="story-kicker">Notice</p><h3>Listed, not published.</h3><p>Each topic is a placeholder until the wording is approved.</p></div>`,
-      }],
-      summary: {
-        id: 'legal-topics',
-        kicker: 'Topics',
-        title: 'Choose a topic to see its placeholder.',
-        note: 'Opening a topic does not publish that policy.',
-        cards: policies.map(item => ({ title: item.title, copy: 'Pending approval.', href: `/legal/${item.slug}` })),
-      },
-    });
+    return `<section class="wrap page-intro"><p class="eyebrow">Trust / policy topics</p><h1>Policy topics are awaiting approval.</h1><p>Final policy text requires legal review before publication. These links show the topics being prepared, not current policy terms.</p></section><section class="wrap legal-layout">${nav}<div class="legal-content"><div class="notice">${icon('info')}<span>Nothing on this page is a final policy, warranty or insurance statement.</span></div><div class="policy-list">${policies.map(item => `<a href="/legal/${item.slug}"><div><h2>${escapeHtml(item.title)}</h2><p>Content is pending legal review and approval.</p></div>${icon('arrow-right')}</a>`).join('')}</div></div></section>`;
   }
-  return storyPage({
-    rail: links,
-    hero: {
-      id: 'policy-hero',
-      kicker: 'Legal policies',
-      title: policy.title,
-      copy: 'Final policy text requires legal review and approval before publication.',
-      note: 'This page is a placeholder for review.',
-    },
-    chapters: [{
-      id: 'policy-status',
-      rail: 'Status',
-      static: true,
-      kicker: policy.title,
-      title: 'Final content is pending legal review.',
-      copy: 'The approved wording is not available to publish.',
-      body: `<div class="notice">${icon('info')}<span>Legal and insurance language is pending approval.</span></div><div class="story-record"><p class="story-kicker">Placeholder</p><h3>${escapeHtml(policy.title)}</h3><p>Final content is pending legal review and approval.</p></div>`,
-    }],
-    summary: {
-      id: 'policy-next',
-      kicker: 'Still a placeholder',
-      title: 'The approved wording is not on this page.',
-      note: 'Legal and insurance language is pending approval.',
-      cards: [
-        { title: 'All topics', copy: 'Return to the policy list.', href: '/legal' },
-        { title: 'Contact', copy: 'Ask about the product, not a published policy.', href: '/contact' },
-      ],
-    },
-  });
+  return `<section class="wrap page-intro"><p class="eyebrow">Trust / policy topic</p><h1>${escapeHtml(policy.title)}</h1><p>Final policy text requires legal review and approval before publication.</p></section><section class="wrap legal-layout">${nav}<article class="legal-content"><div class="notice">${icon('info')}<span>This is a placeholder for review. It is not a final policy, warranty or insurance statement.</span></div><h2>Approved wording is not available yet.</h2><p>${escapeHtml(policy.title)} is listed here so visitors can see which information is being prepared. The final content will appear after review.</p><p><a class="text-link" href="/legal">Browse all policy topics ${icon('arrow-left')}</a></p></article></section>`;
 }
 
 export function signInPage(url) {
