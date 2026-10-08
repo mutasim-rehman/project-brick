@@ -7,6 +7,7 @@ globalThis.__SITE_BUILD_ENV__ = loadEnv('production', process.cwd(), 'VITE_');
 globalThis.location = new URL('http://localhost/');
 const { homePage, platformPage, rolesPage, aboutPage, legalPage, signInPage, notFound } = await import('../src/site/pages.js');
 const { pricingPage } = await import('../src/site/pricing.js');
+const { hardwarePage } = await import('../src/site/hardware.js');
 const { contactPage } = await import('../src/site/contact.js');
 const { policies } = await import('../src/site/content.js');
 const { escapeHtml } = await import('../src/site/utils.js');
@@ -15,6 +16,7 @@ const shell = await readFile('dist/index.html','utf8');
 const routes = [
   ['/', 'Construction Operations & Asset Intelligence',homePage],
   ['/platform','Platform & Features',platformPage],
+  ['/hardware','Four pieces of hardware',hardwarePage],
   ['/how-it-works','How It Works',rolesPage],
   ['/pricing','Configure Your Pricing',pricingPage],
   ['/contact','Contact & Booking',contactPage],

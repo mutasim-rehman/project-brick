@@ -1,46 +1,371 @@
 import { modules, roles, policies } from './content.js';
 import { icon, escapeHtml } from './utils.js';
-import { cta, intro, mark } from './shared.js';
-import { productDemo, bindDemos, examples } from './demo.js';
+import { cta } from './shared.js';
+import { examples } from './demo.js';
+import { storyPage, storyHero, downLink, textLink, lightLink } from './story.js';
+
 export { cta } from './shared.js';
-const stages = [['Groundwork','Know who’s on site.','Attendance, briefings and qualifications. A clear start before the first lift.','people'],['Structure','Keep the work moving.','A tool handoff. A delivery. A change of plan. Keep the record close to the work.','tools'],['Handover','Finish with fewer loose ends.','Review the exceptions and give every follow-up an owner before you leave.','intelligence']];
-function constructionStage(){return `<div class="hero-visual"><div class="scene-topline"><span><span class="status-dot"></span> A CONNECTED CONSTRUCTION SITE</span><span>SCROLL TO BUILD</span></div><div id="site-scene" role="img" aria-label="Animated architectural model showing excavation, reinforced foundations, a floor by floor structural build and glass facade panels installed by crane"><div class="scene-loading"><span class="loading-cross">+</span><span>Preparing the site model</span></div><div class="scene-fallback" hidden>${icon('building-2')}<strong>One site. Every stage connected.</strong><p>Explore the workflow examples below.</p></div></div><div class="scene-annotation"><span class="annotation-line"></span><span><b id="scene-record-title">Groundwork being prepared</b><small id="scene-record-detail">Excavation · Reinforcement · Foundations</small></span><span class="annotation-icon">${icon('check')}</span></div><div class="scene-bottomline"><span>BUILT AROUND YOUR WORKING DAY</span><button id="motion-toggle" aria-label="Pause scene animation" aria-pressed="false">${icon('pause')}<span>Pause motion</span></button></div><div class="scene-stages" role="group" aria-label="Construction stage">${stages.map((s,i)=>`<button data-stage="${i}" aria-pressed="${i===0}"><span>0${i+1}</span>${s[0]}${icon('arrow-up-right')}</button>`).join('')}</div><div class="scene-progress" id="scene-progress" role="progressbar" aria-label="Construction sequence" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="scene-progress-fill"></span></div></div>`;}
-export function homePage(){const html = `<div class="home-experience"><aside class="construction-stage" aria-label="Construction preview">${constructionStage()}</aside><div class="home-story">
-<section class="hero wrap"><div class="hero-copy"><p class="eyebrow"><span class="status-dot"></span> CONSTRUCTION OPERATIONS SOFTWARE</p><h1>Your site.<br>Your people.<br><em>All together.</em></h1><p class="hero-description">Crew hours, safety records, tools and equipment.<br class="desktop-only"> One connected workspace for the working day.</p><div class="actions"><a href="#walkthrough" class="button primary">Explore the platform ${icon('arrow-up-right')}</a><a href="/how-it-works" class="text-link">See how it works ${icon('arrow-right')}</a></div><p class="hero-footnote"><span class="fine-line"></span> Less chasing on site. More life off the clock.</p></div></section>
-<section class="site-connection wrap"><div class="connection-caption"><span class="eyebrow" id="stage-eyebrow">01 / GROUNDWORK</span><strong id="stage-heading">${stages[0][1]}</strong></div><p id="stage-copy">${stages[0][2]}</p><a class="text-link" id="stage-link" href="/platform?module=people">Explore this workflow ${icon('arrow-right')}</a></section>
-<section class="platform-strip"><div class="wrap"><span>ONE SITE. ONE SHARED RECORD.</span>${[['users','People'],['clipboard-list','Work'],['shield-check','Safety'],['wrench','Tools'],['truck','Fleet'],['chart-no-axes-combined','Insights']].map(([i,t])=>`<span>${icon(i)}${t}</span>`).join('')}</div></section>
-<section class="wrap section walkthrough" id="walkthrough"><div class="section-heading"><div><p class="eyebrow">FROM THE SITE TO THE OFFICE</p><h2>Less “who knows?”<br>More <em>“here it is.”</em></h2></div><p>Follow the record, not a trail of phone calls. Try a sample workflow and see how the next action reaches the right person.</p></div><div class="walkthrough-layout"><div class="workflow-select" role="group" aria-label="Example workflows">${[['people','01','Hours you can stand behind.','Review the clock-in, the correction and the supervisor’s note.'],['tools','02','Tools with a clear handoff.','See the last custodian and confirm who has it next.'],['intelligence','03','A quieter end to the day.','Review what needs you. Give the rest a responsible owner.']].map(([id,n,h,p],i)=>`<button data-home-demo="${id}" aria-pressed="${i===0}"><span class="workflow-number">${n}</span><span><strong>${h}</strong><span>${p}</span></span>${icon('arrow-up-right')}</button>`).join('')}<a class="text-link all-modules" href="/platform">Explore all six modules ${icon('arrow-right')}</a></div><div id="home-demo">${productDemo('people')}</div></div></section>
-<section class="purpose-band"><div class="wrap purpose-layout"><div><p class="eyebrow">THE RECORD DOES THE RUNNING AROUND.</p><h2>Your crew builds.<br>Your systems<br><em>should connect.</em></h2><p>One missing clock-out shouldn’t become five phone calls. One tool handoff shouldn’t disappear into a group chat.</p><a class="text-link" href="/how-it-works">Follow a working day ${icon('arrow-right')}</a></div><div class="connected-record"><div class="record-orbit"><span>${icon('hard-hat')} On site</span><i></i><span class="orbit-core">${mark}</span><i></i><span>${icon('building-2')} In the office</span></div><div class="handover-line"><span class="time-stamp">07:02</span><div><strong>The event is recorded</strong><p>A badge tap, an equipment handoff, a site observation.</p></div>${icon('check')}</div><div class="handover-line"><span class="time-stamp">14:25</span><div><strong>The right person reviews it</strong><p>The source record stays attached to the decision.</p></div>${icon('check')}</div><div class="handover-line"><span class="time-stamp">16:00</span><div><strong>You leave with the context</strong><p>Clear exceptions. Assigned follow-ups. A useful handover.</p></div>${icon('check')}</div><span class="sample-label">ILLUSTRATIVE WORKING DAY</span></div></div></section>
-<section class="wrap section"><div class="section-heading"><div><p class="eyebrow">A PRACTICAL PLACE TO START</p><h2>One site first.<br>Confidence follows.</h2></div><p>Start small, check the real conditions and agree what a useful result looks like. Then decide what comes next.</p></div><div class="pilot-steps">${[['01','Choose the friction.','Attendance corrections? Tool custody? Pick the workflow that costs your team the most attention.'],['02','Connect the people.','Agree the site, responsible roles and any hardware needed for the pilot.'],['03','Review the records.','Evaluate the workflow with your team before committing to a wider rollout.']].map(([n,h,p])=>`<article><span>${n}</span><h3>${h}</h3><p>${p}</p></article>`).join('')}</div></section>${cta()}</div></div>`;return html.replace(/(<section\b[^>]*>)([\s\S]*?)(<\/section>)/g, (_,open,content,close)=>`<div class="construction-chapter">${open}${content}${close}</div>`);}
-export async function bindHome(refreshIcons){
- bindDemos();
- document.querySelectorAll('[data-home-demo]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-home-demo]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.querySelector('#home-demo').innerHTML=productDemo(b.dataset.homeDemo);refreshIcons();bindDemos(document.querySelector('#home-demo'));});
- let world;let stage=-1;const media=matchMedia('(prefers-reduced-motion: reduce)');let paused=media.matches;
- const records=[['Groundwork being prepared','Excavation · Reinforcement · Foundations'],['Structure taking shape','Crane lifts · Deck pours · Floor by floor'],['Building enclosed','Facade installed · Final inspection next']];
- const updateSequence=(progress,nextStage)=>{const bar=document.querySelector('#scene-progress'),fill=document.querySelector('#scene-progress-fill');bar.setAttribute('aria-valuenow',String(Math.round(progress*100)));fill.style.transform=`scaleX(${progress})`;if(nextStage===stage)return;stage=nextStage;document.querySelectorAll('[data-stage]').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===stage)));document.querySelector('#stage-eyebrow').textContent=`0${stage+1} / ${stages[stage][0].toUpperCase()}`;document.querySelector('#stage-heading').textContent=stages[stage][1];document.querySelector('#stage-copy').textContent=stages[stage][2];document.querySelector('#stage-link').href=`/platform?module=${stages[stage][3]}`;document.querySelector('#scene-record-title').textContent=records[stage][0];document.querySelector('#scene-record-detail').textContent=records[stage][1];};
- const motion=document.querySelector('#motion-toggle');
- const syncMotion=()=>{motion.setAttribute('aria-pressed',String(paused));motion.setAttribute('aria-label',paused?'Play scene animation':'Pause scene animation');motion.innerHTML=icon(paused?'play':'pause')+`<span>${paused?'Play motion':'Pause motion'}</span>`;refreshIcons();world?.setPaused(paused);};
- motion.onclick=()=>{paused=!paused;syncMotion();};media.addEventListener('change',e=>{paused=e.matches;syncMotion();});syncMotion();
- const experience=document.querySelector('.home-experience');
- const chapters=[...experience.querySelectorAll('.construction-chapter')];
- const chapterObserver=new ResizeObserver(entries=>{for(const {target} of entries)target.parentElement.style.setProperty('--chapter-content-height',target.getBoundingClientRect().height+'px');onScroll();});
- const scrollTravel=()=>Math.max(1,experience.offsetHeight-innerHeight+document.querySelector('.site-header').offsetHeight-innerHeight*.8);
- const scrollProgress=()=>{const top=experience.getBoundingClientRect().top+window.scrollY;const header=document.querySelector('.site-header').offsetHeight;const travel=scrollTravel();return Math.max(0,Math.min(1,(window.scrollY-top+header)/travel));};
- const onScroll=()=>world?.setScrollProgress(scrollProgress());
- window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onScroll);chapters.forEach(chapter=>chapterObserver.observe(chapter.firstElementChild));
- document.querySelectorAll('[data-stage]').forEach(b=>b.onclick=()=>{const target=[.20,.58,1][Number(b.dataset.stage)];const header=document.querySelector('.site-header').offsetHeight;const top=experience.getBoundingClientRect().top+window.scrollY;window.scrollTo({top:top-header+target*scrollTravel(),behavior:media.matches?'instant':'smooth'});});
- window.addEventListener('pagehide',()=>{window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onScroll);chapterObserver.disconnect();},{once:true});
- try{const {SiteModel}=await import('../scene/SiteModel.js');world=new SiteModel(document.querySelector('#site-scene'),{paused,scrollDriven:true,onProgress:updateSequence});document.querySelector('.scene-loading').remove();document.querySelector('.hero-visual').classList.add('scene-ready');onScroll();}
- catch(error){console.warn('Site model unavailable:',error);document.querySelector('.scene-loading')?.remove();document.querySelector('.scene-fallback').hidden=false;motion.hidden=true;}
+
+const card = () => `<svg viewBox="0 0 320 220" aria-hidden="true"><rect x="36" y="24" width="248" height="172" rx="20" fill="#24382c"/><rect x="58" y="48" width="84" height="10" rx="2" fill="#d2e15a"/><rect x="58" y="76" width="160" height="8" rx="2" fill="#f6f3ea"/><rect x="58" y="98" width="124" height="8" rx="2" fill="#9aa58f"/><rect x="58" y="132" width="36" height="28" rx="4" fill="#d2e15a"/></svg>`;
+
+const ownerScene = () => `<div class="owner-scene" aria-label="Construction animation for the owner story"><div class="scene-room-label"><span class="status-dot"></span><span id="scene-moment">THE OWNER WHO CAN NEVER LEAVE</span></div><div id="construction-model" role="img" aria-label="Three-dimensional construction sequence showing a building assembled from foundations to handover"><div class="scene-loading" id="construction-loading">${icon('building-2')}<span>Preparing model</span></div><div class="scene-fallback" id="construction-fallback" hidden>${icon('building-2')}<span>Construction preview</span></div></div><div class="scene-caption" id="scene-caption">Every unanswered question finds its way home.</div><div class="scene-sequence" aria-hidden="true"><span class="active"></span><span></span><span></span></div></div><div class="scene-controls"><button id="motion-toggle" class="scene-control" aria-pressed="false" aria-label="Pause construction animation">${icon('pause')}<span>Pause animation</span></button></div>`;
+
+const killick = `<svg viewBox="0 0 500 380" fill="none" aria-hidden="true"><path d="M65 294H436M91 314H408" stroke="#b8bbae"/><path d="m136 262 220-114 15 22-218 115Z" fill="#967856"/><path d="m132 164 224 110 16-28-223-111Z" fill="#ba956b"/><path d="m166 235 20-91 110-12 51 100-90 48Z" fill="#828b80"/><path d="m166 235 91 45 90-48-77 14Z" fill="#626f64"/><path d="m186 144 84 102 26-114Z" fill="#a1a79a"/><path d="m219 280 9-205 19-8 6 213Z" fill="#927049"/><path d="m253 280-6-213 12 12 14 197Z" fill="#b38f63"/><path d="M245 82c-34-38-45-60-22-68 25-9 40 30 23 68Z" stroke="#d6c4a2" stroke-width="8"/><path d="m211 198 73-7m-73 16 73-7m-73 16 73-7" stroke="#d6c4a2" stroke-width="7"/></svg>`;
+
+export function homePage() {
+  return storyPage({
+    hero: {
+      id: 'home-overview',
+      rail: 'Start',
+      kicker: 'A construction owner’s day',
+      titleHtml: 'The site follows you <em>home.</em>',
+      copy: 'Your company should not depend on one person carrying every unanswered question.',
+      actions: `${downLink('#home-workday', 'See how it works')}${textLink('/platform', 'Explore the platform')}`,
+      note: 'The Owner Who Can Never Leave. Records on this page are examples.',
+    },
+    chapters: [
+      {
+        id: 'home-workday',
+        rail: 'Workday',
+        kicker: '01 / The workday follows',
+        title: 'The site follows you home.',
+        copy: 'A missing clock-out. A tool with no clear handoff. A vehicle moving after hours. Each question lands with the same person: you.',
+        figure: ownerScene(),
+        caption: 'Construction sequence · illustration',
+        beats: [
+          { label: 'Clock-out', caption: 'A missing clock-out finds its way home.', rows: [['Question', 'Missing clock-out'], ['Where it lands', 'The owner'], ['Record', 'Not in one place']] },
+          { label: 'Tool', caption: 'A tool with no clear handoff becomes your problem.', rows: [['Question', 'Who has the tool'], ['Trail', 'Messages and memory'], ['Record', 'No last custodian']] },
+          { label: 'Vehicle', caption: 'Movement after hours still reaches you.', rows: [['Question', 'Where the vehicle went'], ['When', 'After the shift'], ['Record', 'Scattered updates']] },
+          { label: 'Owner', caption: 'Every unanswered question finds the same person.', rows: [['Person', 'The owner'], ['Load', 'The whole day'], ['Need', 'A place for each issue']] },
+        ],
+      },
+      {
+        id: 'home-dinner',
+        rail: 'Dinner',
+        kicker: '02 / Dinner, interrupted',
+        title: 'You meant to be off the clock.',
+        copy: 'The calls keep coming, and the details are scattered across messages and paper invoices.',
+        figure: card(),
+        caption: 'Proposed workflow · example',
+        beats: [
+          { label: 'Calls', caption: 'The shift is over. The calls are not.', rows: [['Moment', 'After hours'], ['Channel', 'Phone calls'], ['Owner', 'Still the contact']] },
+          { label: 'Messages', caption: 'The detail is split across threads.', rows: [['Source', 'Messages'], ['Gap', 'No shared record'], ['Result', 'The day gets rebuilt']] },
+          { label: 'Invoices', caption: 'Paper still holds part of the day.', rows: [['Source', 'Paper invoices'], ['Need', 'A record with the work'], ['Status', 'Waiting on you']] },
+          { label: 'One person', caption: 'It is hard to leave the site when you are holding it together.', rows: [['Dependency', 'One person'], ['Cost', 'The evening'], ['Next', 'Give each issue a place']] },
+        ],
+      },
+      {
+        id: 'home-handoff',
+        rail: 'Handoff',
+        kicker: '03 / The handoff',
+        title: 'Give each issue a place to go.',
+        copy: 'Site Killick connects a record to the person responsible. Your team can follow up with the context, while you keep the decisions that truly need you.',
+        figure: card(),
+        caption: 'Proposed workflow · example',
+        beats: [
+          { label: 'Record', caption: 'Site information is recorded with the work.', rows: [['Record', 'Attendance, work, safety or assets'], ['Status', 'Captured'], ['Example', 'Sample record']] },
+          { label: 'Route', caption: 'The issue reaches the responsible role.', rows: [['To', 'Assigned role'], ['With', 'The record'], ['Owner', 'No longer the switchboard']] },
+          { label: 'Review', caption: 'A person reviews the record before it moves on.', rows: [['Review', 'Human review'], ['Context', 'Kept with the issue'], ['Status', 'Ready for a decision']] },
+          { label: 'Approve', caption: 'Human approval remains part of the workflow.', rows: [['Decision', 'Approve, correct or escalate'], ['Authority', 'A person'], ['Result', 'The day can close']] },
+        ],
+      },
+    ],
+    summary: {
+      id: 'home-picture',
+      rail: 'Picture',
+      kicker: 'One site',
+      title: 'Site records. Connected to the right people.',
+      note: 'A proposed workflow. Human supervisors retain approval.',
+      cards: [
+        { title: 'People and work', copy: 'Attendance and the day, with a person responsible.' },
+        { title: 'Safety and records', copy: 'Evidence that stays with the follow-up.' },
+        { title: 'Tools and assets', copy: 'A handoff with a last custodian.' },
+        { title: 'Vehicles and equipment', copy: 'Movement and service on the equipment record.' },
+      ],
+      actions: `${lightLink('/platform', 'Explore the platform')}${textLink('/hardware', 'See the hardware')}`,
+    },
+  });
 }
-function modulePanel(m){const d=examples[m.id];return `<div class="module-heading"><p class="eyebrow">${d.label.toUpperCase()}</p><h2>${d.title}</h2><p>${d.subtitle}</p></div>${productDemo(m.id)}<div class="module-benefits">${m.features.map(x=>`<span>${icon('check')}${x}</span>`).join('')}</div><details class="technical-detail"><summary>What this workflow needs</summary><p>${m.inputs}</p><p>${m.capability} Availability and compatibility are agreed as part of a pilot.</p></details>`;}
-export function platformPage(){const active=modules.find(m=>m.id===new URLSearchParams(location.search).get('module'))||modules[0];return `${intro('THE PLATFORM / SIX CONNECTED WORKFLOWS','The whole day.<br><em>In the same picture.</em>','Explore how people, work and equipment connect. Select a workflow, then try the sample action.')}<section class="wrap platform-layout"><nav class="module-nav" aria-label="Platform modules">${modules.map(m=>`<button data-module="${m.id}" aria-pressed="${m.id===active.id}">${icon(m.icon)}<span>${examples[m.id].label}</span>${icon('chevron-right')}</button>`).join('')}<div class="nav-note">Interactive product preview<br><span>All records shown are examples.</span></div></nav><div id="module-content">${modulePanel(active)}</div></section>${cta()}`;}
-export function bindPlatform(refreshIcons){bindDemos();document.querySelectorAll('[data-module]').forEach(b=>b.onclick=()=>{const m=modules.find(x=>x.id===b.dataset.module);document.querySelectorAll('[data-module]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.querySelector('#module-content').innerHTML=modulePanel(m);history.replaceState({},'',`/platform?module=${m.id}`);refreshIcons();bindDemos();});}
-const roleModule=r=>/Payroll|Worker|Foreman/.test(r.name)?'people':/Safety/.test(r.name)?'safety':/Fleet/.test(r.name)?'fleet':/Lead/.test(r.name)?'tools':/Project|Supervisor/.test(r.name)?'work':'intelligence';
-function rolePanel(r){return `<div class="role-heading"><p class="eyebrow">FOR THE ${r.name.toUpperCase()}</p><h2>${r.goal}</h2><p>${r.after}</p></div><div class="day-steps">${r.daily.map((s,i)=>`<div><span>${['07:00 / START CLEAR','12:00 / KEEP IT MOVING','16:00 / HAND OVER'][i]}</span><h3>${s}</h3></div>`).join('')}</div>${productDemo(roleModule(r))}<details class="technical-detail"><summary>Setting up your role</summary><ol class="onboarding">${r.steps.map(s=>`<li>${s}</li>`).join('')}</ol></details>`;}
-export function rolesPage(){const selected=roles.find(r=>r.name===new URLSearchParams(location.search).get('role'))||roles[0];return `${intro('HOW IT WORKS / A SHARED WORKING DAY','Right person.<br><em>Right next step.</em>','From the first clock-in to the final handover, see how a connected record helps each person do their part.')}<section class="wrap role-layout"><div class="role-selector"><label for="role-select">See the day as a</label><select id="role-select">${roles.map(r=>`<option ${r===selected?'selected':''}>${r.name}</option>`).join('')}</select><span>Every role connects to the same site record.</span></div><div id="role-content">${rolePanel(selected)}</div></section>${cta()}`;}
-export function bindRoles(refreshIcons){bindDemos();document.querySelector('#role-select').onchange=e=>{const r=roles.find(x=>x.name===e.target.value);document.querySelector('#role-content').innerHTML=rolePanel(r);history.replaceState({},'',`/how-it-works?role=${encodeURIComponent(r.name)}`);refreshIcons();bindDemos();};}
-export function aboutPage(){return `${intro('OUR APPROACH / A STEADY POINT','Built around the work.<br><em>And the people doing it.</em>','Site Killick is being developed around a simple idea: the answer should live with the record, not with the one person everyone calls.')}<section class="wrap about-layout"><div class="killick-art" aria-label="Illustration of a traditional stone and timber anchor"><svg viewBox="0 0 500 380" fill="none" role="img" aria-label="Stone held by a timber frame, a traditional killick"><path d="M65 294H436M91 314H408" stroke="#b8bbae"/><path d="m136 262 220-114 15 22-218 115Z" fill="#967856"/><path d="m132 164 224 110 16-28-223-111Z" fill="#ba956b"/><path d="m166 235 20-91 110-12 51 100-90 48Z" fill="#828b80"/><path d="m166 235 91 45 90-48-77 14Z" fill="#626f64"/><path d="m186 144 84 102 26-114Z" fill="#a1a79a"/><path d="m219 280 9-205 19-8 6 213Z" fill="#927049"/><path d="m253 280-6-213 12 12 14 197Z" fill="#b38f63"/><path d="M245 82c-34-38-45-60-22-68 25-9 40 30 23 68Z" stroke="#d6c4a2" stroke-width="8"/><path d="m211 198 73-7m-73 16 73-7m-73 16 73-7" stroke="#d6c4a2" stroke-width="7"/></svg><span>THE KILLICK / STONE, TIMBER & A STEADY HOLD</span></div><div><p class="eyebrow">A NAME WITH SOMETHING BEHIND IT</p><h2>Simple pieces.<br>A stronger whole.</h2><p>A killick is a traditional anchor made from stone and timber, associated with Atlantic Canada. Separate pieces, brought together to hold steady.</p><p>That is the idea behind Site Killick: connect the attendance event, the handoff, the safety record and the person responsible. Give the working day a steady point.</p><p>Our focus is construction teams that want less fragmented administration and a clearer view of the work.</p></div></section><section class="wrap section"><div class="section-heading"><h2>Principles that<br>show up in the product.</h2><p>A useful system should make responsibility clearer and keep the evidence easy to find.</p></div><div class="pilot-steps">${[['01','Show the source.','Keep the original site event attached to the record and the decision.'],['02','Keep people in control.','Summaries assist review. Your team retains approval of hours, safety actions and follow-ups.'],['03','Start with reality.','Agree hardware compatibility, site conditions and available features before a pilot.']].map(([n,h,p])=>`<article><span>${n}</span><h3>${h}</h3><p>${p}</p></article>`).join('')}</div></section><section class="wrap launch-note"><div><p class="eyebrow">WHERE WE ARE TODAY</p><h2>A product preview.<br>A practical next conversation.</h2></div><div><p>This website demonstrates proposed workflows using sample records. It does not represent a live customer workspace. Pilot availability, supported hardware and commercial terms must be agreed before deployment.</p><a class="text-link" href="/legal">Read the current policy drafts ${icon('arrow-right')}</a></div></section>${cta()}`;}
-export function legalPage(slug){const p=policies.find(p=>p.slug===slug);if(slug&&!p)return notFound();return `${intro('TRUST & POLICIES',p?p.title:'Clear expectations.<br><em>Before you start.</em>',p?p.summary:'Review the proposed approach to privacy, security, hardware and responsible use.')}<section class="wrap legal-layout"><nav class="policy-nav" aria-label="Legal policies"><a href="/legal" ${!slug?'aria-current="page"':''}>Overview</a>${policies.map(p=>`<a href="/legal/${p.slug}" ${slug===p.slug?'aria-current="page"':''}>${p.title}</a>`).join('')}</nav><article class="legal-content"><div class="notice">${icon('info')}<span>Prelaunch policy drafts. Final policies and contracting details must be agreed before a production rollout.</span></div>${p?p.sections.map(([h,t],i)=>`<section><h2>${i+1}. ${h}</h2><p>${t}</p></section>`).join(''):`<div class="policy-list">${policies.map(p=>`<a href="/legal/${p.slug}"><div><h2>${p.title}</h2><p>${p.summary}</p></div>${icon('arrow-up-right')}</a>`).join('')}</div>`}</article></section>`;}
-export function signInPage(url){return `${intro('WORKSPACE ACCESS',url?'Welcome back.':'Your workspace.<br><em>When your pilot begins.</em>',url?'Continue to your Site Killick workspace.':'Workspace access is provided to participating teams when their pilot is set up. Explore the sample workflows while you plan your rollout.')}<div class="wrap access-actions"><a class="button primary" href="${url?escapeHtml(url):'/platform'}">${url?'Open workspace':'Explore sample workflows'} ${icon('arrow-right')}</a></div>`;}
-export function notFound(){return `${intro('404 / A LITTLE OFF SITE','Let’s get you<br><em>back on track.</em>','This page could not be found.')}<div class="wrap access-actions"><a class="button primary" href="/">Back to the site ${icon('arrow-right')}</a></div>`;}
+
+export function bindHome(refreshIcons) {
+  const motion = document.querySelector('#motion-toggle');
+  const modelHost = document.querySelector('#construction-model');
+  if (!motion || !modelHost) return;
+  const media = matchMedia('(prefers-reduced-motion: reduce)');
+  let paused = media.matches;
+  let constructionModel;
+  const syncMotion = () => {
+    motion.setAttribute('aria-pressed', String(paused));
+    motion.setAttribute('aria-label', paused ? 'Play construction animation' : 'Pause construction animation');
+    motion.innerHTML = `${icon(paused ? 'play' : 'pause')}<span>${paused ? 'Play animation' : 'Pause animation'}</span>`;
+    refreshIcons();
+    constructionModel?.setPaused(paused);
+  };
+  motion.onclick = () => { paused = !paused; syncMotion(); };
+  media.addEventListener('change', event => { paused = event.matches; syncMotion(); });
+  syncMotion();
+  import('../scene/SiteModel.js').then(({ SiteModel }) => {
+    constructionModel = new SiteModel(modelHost, { paused, scrollDriven: false, duration: 12, zoom: .78 });
+    document.querySelector('#construction-loading')?.remove();
+    syncMotion();
+  }).catch(error => {
+    console.warn('Construction preview unavailable:', error);
+    document.querySelector('#construction-loading')?.remove();
+    const fallback = document.querySelector('#construction-fallback');
+    if (fallback) fallback.hidden = false;
+    refreshIcons();
+    motion.hidden = true;
+  });
+}
+
+const platformLabels = { people: 'People', work: 'Work', safety: 'Safety', tools: 'Tools', fleet: 'Fleet', intelligence: 'Office' };
+
+export function platformPage() {
+  return storyPage({
+    hero: {
+      id: 'platform-overview',
+      rail: 'Start',
+      kicker: 'The platform / six connected workflows',
+      titleHtml: 'The whole day. <em>In the same picture.</em>',
+      copy: 'Move through people, work, safety, tools, fleet and the office. Each record shown is an example.',
+      actions: `${downLink('#module-people', 'Start with people')}${textLink('/hardware', 'See the hardware')}`,
+      note: 'Interactive examples are proposed workflows, not a live workspace.',
+    },
+    chapters: modules.map(module => {
+      const example = examples[module.id];
+      return {
+        id: `module-${module.id}`,
+        rail: platformLabels[module.id],
+        kicker: example.label,
+        title: example.title,
+        copy: module.capability,
+        figure: card(),
+        caption: 'Proposed workflow · example',
+        beats: [
+          { label: 'Problem', caption: module.problem, rows: [['Area', example.label], ['Gap', module.problem], ['Roles', module.roles]] },
+          { label: 'Record', caption: example.detail, rows: [['Record', example.heading], ['Person', example.name], ['Context', example.role]] },
+          { label: 'Review', caption: 'A person reviews the sample before anything moves on.', rows: [['Action', example.action], ['Status', example.badge], ['Approval', 'Human review']] },
+          { label: 'Result', caption: module.decision, rows: [['Output', module.output], ['Decision', module.decision], ['Source', 'Example record']] },
+        ],
+      };
+    }),
+    summary: {
+      id: 'platform-picture',
+      rail: 'Picture',
+      kicker: 'Six workflows',
+      title: 'One operating picture for the whole day.',
+      note: 'Availability and compatibility are agreed as part of a pilot.',
+      cards: modules.map(module => ({ title: examples[module.id].label, copy: module.short })),
+      actions: `${lightLink('/how-it-works', 'How it works')}${textLink('/contact', 'Book a demo')}`,
+    },
+  });
+}
+
+export function bindPlatform() {
+  const id = new URLSearchParams(location.search).get('module');
+  if (id) document.getElementById(`module-${id}`)?.scrollIntoView({ behavior: 'instant', block: 'start' });
+}
+
+const roleLabels = { 'Business Owner': 'Owner', 'Project Manager': 'Manager', 'Safety Administrator': 'Safety', 'Payroll Administrator': 'Payroll', Foreman: 'Foreman', Supervisor: 'Supervisor', 'Lead Hand': 'Lead', 'Worker / Labourer': 'Worker', 'Fleet Manager': 'Fleet' };
+const roleTitles = {
+  'Business Owner': 'The day should not follow you home.',
+  'Project Manager': 'Progress stays with the work.',
+  'Safety Administrator': 'Evidence stays with the response.',
+  'Payroll Administrator': 'Hours arrive ready for review.',
+  Foreman: 'The field stays a few taps away.',
+  Supervisor: 'Follow-up has a name on it.',
+  'Lead Hand': 'The handoff stays with the tool.',
+  'Worker / Labourer': 'Clock in. See the shift. Keep the record.',
+  'Fleet Manager': 'The fleet stays on one record.',
+};
+const roleSlug = name => `role-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+
+export function rolesPage() {
+  return storyPage({
+    hero: {
+      id: 'roles-overview',
+      rail: 'Start',
+      kicker: 'How it works / role-based learning',
+      titleHtml: 'Workflows for <em>each role.</em>',
+      copy: 'Scroll a role to see the record it works from. Onboarding steps, training videos, captions and transcripts require approved content.',
+      actions: downLink('#role-business-owner', 'Start with the owner'),
+      note: 'Each example is a proposed workflow.',
+    },
+    chapters: roles.map(role => {
+      const example = examples[role.module];
+      return {
+        id: roleSlug(role.name),
+        rail: roleLabels[role.name],
+        kicker: `For the ${role.name}`,
+        title: roleTitles[role.name],
+        copy: role.need,
+        figure: card(),
+        caption: `${example.label} · example`,
+        beats: [
+          { label: 'Need', caption: role.need, rows: [['Role', role.name], ['Looks for', example.label], ['Status', 'Proposed workflow']] },
+          { label: 'Record', caption: example.detail, rows: [['Record', example.heading], ['Person', example.name], ['Context', example.role]] },
+          { label: 'Review', caption: 'A person keeps the decision.', rows: [['Action', example.action], ['Approval', 'Human review'], ['Training', 'Pending approved content']] },
+        ],
+      };
+    }),
+    summary: {
+      id: 'roles-picture',
+      rail: 'Picture',
+      kicker: 'Nine roles',
+      title: 'The same record. A different responsible person.',
+      note: 'Role-specific training material requires approved content.',
+      cards: [
+        { title: 'Office', copy: 'Owner, project manager, safety and payroll.' },
+        { title: 'Field', copy: 'Foreman, supervisor, lead hand and worker.' },
+        { title: 'Fleet', copy: 'Vehicles, equipment and maintenance.' },
+        { title: 'Approval', copy: 'A person still makes the decision.' },
+      ],
+      actions: `${lightLink('/platform', 'See the workflows')}${textLink('/contact', 'Book a demo')}`,
+    },
+  });
+}
+
+export function bindRoles() {
+  const name = new URLSearchParams(location.search).get('role');
+  const role = roles.find(item => item.name === name);
+  if (role) document.getElementById(roleSlug(role.name))?.scrollIntoView({ behavior: 'instant', block: 'start' });
+}
+
+export function aboutPage() {
+  return storyPage({
+    hero: {
+      id: 'about-overview',
+      rail: 'Start',
+      kicker: 'About and trust / Atlantic Canadian roots',
+      titleHtml: 'Site Killick. <em>An anchor for the day.</em>',
+      copy: 'Site Killick’s mission is to restore balance to construction founders by reducing owner dependency, operational friction and uncertainty.',
+      actions: downLink('#about-name', 'The name'),
+      note: 'Security, insurance and warranty language require approved content.',
+    },
+    chapters: [
+      {
+        id: 'about-name',
+        rail: 'Name',
+        kicker: 'The name',
+        title: 'A traditional Atlantic Canadian anchor.',
+        copy: 'A killick is a stone-and-timber anchor associated with Atlantic Canada. Site Killick is a construction operations and asset intelligence platform.',
+        figure: killick,
+        caption: 'The killick · stone and timber',
+        beats: [
+          { label: 'Stone', caption: 'A killick holds with stone and timber.', rows: [['Name', 'Killick'], ['Origin', 'Atlantic Canada'], ['Form', 'Stone and timber']] },
+          { label: 'Anchor', caption: 'The name is an anchor, not a claim about a finished product.', rows: [['Meaning', 'Something that holds'], ['Place', 'Atlantic Canada'], ['Use', 'The company name']] },
+          { label: 'Platform', caption: 'The product is construction operations and asset intelligence.', rows: [['Product', 'Site Killick'], ['Work', 'Operations and assets'], ['Promise', 'Described in the workflows']] },
+        ],
+      },
+      {
+        id: 'about-approval',
+        rail: 'Approval',
+        kicker: 'Responsible AI',
+        title: 'Human approval stays in the workflow.',
+        copy: 'AI generates recommendations and draft reports. Human supervisors retain final approval authority.',
+        figure: card(),
+        caption: 'Proposed workflow · example',
+        beats: [
+          { label: 'Draft', caption: 'A draft can be prepared from site records.', rows: [['Output', 'Draft summary'], ['Source', 'Site activity'], ['Status', 'Not a decision']] },
+          { label: 'Recommend', caption: 'A recommendation stays attached to its source.', rows: [['Output', 'Recommendation'], ['Context', 'Supporting record'], ['Limit', 'Not an approval']] },
+          { label: 'Decide', caption: 'A supervisor keeps final approval.', rows: [['Authority', 'Human supervisor'], ['Choice', 'Approve, correct or escalate'], ['Record', 'The decision stays with the source']] },
+        ],
+      },
+    ],
+    summary: {
+      id: 'about-trust',
+      rail: 'Trust',
+      kicker: 'Trust information',
+      title: 'Security, privacy and insurance.',
+      note: 'Security and privacy information, insurance details, warranty terms and legal policies require approved content.',
+      cards: [
+        { title: 'Policies', copy: 'Topics are listed for review. Final text is pending.', href: '/legal' },
+        { title: 'Hardware terms', copy: 'Warranty language is not published yet.', href: '/legal/hardware' },
+        { title: 'Security contact', copy: 'A contact path for vulnerability reports.', href: '/legal/security' },
+        { title: 'Privacy', copy: 'Privacy information requires approval.', href: '/legal/privacy' },
+      ],
+      actions: lightLink('/legal', 'View policy topics'),
+    },
+  });
+}
+
+const policyLabels = { terms: 'Terms', privacy: 'Privacy', cookies: 'Cookies', 'acceptable-use': 'Use', accessibility: 'Access', subscription: 'Plan', hardware: 'Warranty', service: 'Service', 'data-processing': 'Data', ai: 'AI', security: 'Contact' };
+
+export function legalPage(slug) {
+  const policy = policies.find(item => item.slug === slug);
+  if (slug && !policy) return notFound();
+  const links = [{ id: 'legal-overview', label: 'Overview', href: '/legal', current: !slug }, ...policies.map(item => ({ id: item.slug, label: policyLabels[item.slug] || item.title, href: `/legal/${item.slug}`, current: item.slug === slug }))];
+  if (!policy) {
+    return storyPage({
+      rail: links,
+      hero: {
+        id: 'legal-overview',
+        kicker: 'Legal policies',
+        titleHtml: 'Policy topics. <em>Pending approval.</em>',
+        copy: 'Final policy text requires legal review and approval before publication.',
+        actions: downLink('#legal-review', 'What is pending'),
+        note: 'Nothing on this page is a final policy, warranty or insurance statement.',
+      },
+      chapters: [{
+        id: 'legal-review',
+        rail: 'Review',
+        static: true,
+        kicker: 'Pending approval',
+        title: 'Policy text is not published yet.',
+        copy: 'Legal and insurance language is waiting on review.',
+        body: `<div class="notice">${icon('info')}<span>Legal and insurance language is pending approval.</span></div><div class="story-record"><p class="story-kicker">Notice</p><h3>Listed, not published.</h3><p>Each topic is a placeholder until the wording is approved.</p></div>`,
+      }],
+      summary: {
+        id: 'legal-topics',
+        kicker: 'Topics',
+        title: 'Choose a topic to see its placeholder.',
+        note: 'Opening a topic does not publish that policy.',
+        cards: policies.map(item => ({ title: item.title, copy: 'Pending approval.', href: `/legal/${item.slug}` })),
+      },
+    });
+  }
+  return storyPage({
+    rail: links,
+    hero: {
+      id: 'policy-hero',
+      kicker: 'Legal policies',
+      title: policy.title,
+      copy: 'Final policy text requires legal review and approval before publication.',
+      note: 'This page is a placeholder for review.',
+    },
+    chapters: [{
+      id: 'policy-status',
+      rail: 'Status',
+      static: true,
+      kicker: policy.title,
+      title: 'Final content is pending legal review.',
+      copy: 'The approved wording is not available to publish.',
+      body: `<div class="notice">${icon('info')}<span>Legal and insurance language is pending approval.</span></div><div class="story-record"><p class="story-kicker">Placeholder</p><h3>${escapeHtml(policy.title)}</h3><p>Final content is pending legal review and approval.</p></div>`,
+    }],
+    summary: {
+      id: 'policy-next',
+      kicker: 'Still a placeholder',
+      title: 'The approved wording is not on this page.',
+      note: 'Legal and insurance language is pending approval.',
+      cards: [
+        { title: 'All topics', copy: 'Return to the policy list.', href: '/legal' },
+        { title: 'Contact', copy: 'Ask about the product, not a published policy.', href: '/contact' },
+      ],
+    },
+  });
+}
+
+export function signInPage(url) {
+  return url
+    ? storyHero({ kicker: 'Workspace access', title: 'Continue to Site Killick.', copy: 'Open the Site Killick application workspace.', actions: `<a class="button primary" href="${escapeHtml(url)}">Sign in ${icon('arrow-right')}</a>` })
+    : notFound();
+}
+
+export function notFound() {
+  return storyHero({
+    kicker: '404 / A little off site',
+    titleHtml: 'Let’s get you <em>back on track.</em>',
+    copy: 'This page could not be found.',
+    actions: `<a class="button primary" href="/">Back to the site ${icon('arrow-right')}</a>`,
+  });
+}

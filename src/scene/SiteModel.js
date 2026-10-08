@@ -8,9 +8,9 @@ export function advanceConstructionProgress(current,target,dt,duration=36){
 
 // A self-contained architectural model. No dependency on the original scene.
 export class SiteModel {
- constructor(container,{paused=false,scrollDriven=false,onProgress=()=>{}}={}) {
+ constructor(container,{paused=false,scrollDriven=false,onProgress=()=>{},duration=36,zoom=1}={}) {
   this.container=container;this.paused=paused;this.visible=true;this.stage=paused?2:0;this.time=0;this.last=0;this.pointer=new THREE.Vector2();this.disposed=false;this.onProgress=onProgress;
-  this.scrollDriven=scrollDriven;this.scrollTarget=paused?1:0;this.progress=paused?1:0;this.sequenceStart=this.progress;this.sequenceTarget=1;this.sequenceElapsed=0;this.duration=36;this.sequenceDuration=this.duration;this.sequencePlaying=!paused&&!scrollDriven;this.motionParts=[];this.panelFlights=[];this.scaffoldParts=[];this.mastParts=[];this.animationContext=null;
+  this.scrollDriven=scrollDriven;this.scrollTarget=paused?1:0;this.progress=paused?1:0;this.sequenceStart=this.progress;this.sequenceTarget=1;this.sequenceElapsed=0;this.duration=duration;this.zoom=zoom;this.sequenceDuration=this.duration;this.sequencePlaying=!paused&&!scrollDriven;this.motionParts=[];this.panelFlights=[];this.scaffoldParts=[];this.mastParts=[];this.animationContext=null;
   this.scene=new THREE.Scene();this.scene.background=new THREE.Color('#e7ebe1');
   this.camera=new THREE.OrthographicCamera(-14,14,14,-14,.1,160);
   this.camera.position.set(25,22,29);this.target=new THREE.Vector3(0,5.2,0);this.camera.lookAt(this.target);
@@ -30,7 +30,7 @@ export class SiteModel {
   this.root=new THREE.Group();this.scene.add(this.root);this.foundation=new THREE.Group();this.structure=new THREE.Group();this.finished=new THREE.Group();this.equipment=new THREE.Group();this.root.add(this.foundation,this.structure,this.finished,this.equipment);
   this.buildGround();this.buildBuilding();this.buildCrane();this.buildEquipment();this.buildDetails();
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({color:'#364732',opacity:.14}));floor.rotation.x=-Math.PI/2;floor.position.y=-.62;floor.receiveShadow=true;this.scene.add(floor);
-  this.resize=()=>{const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;this.renderer.setSize(w,h);const aspect=w/h;const cinematic=window.innerWidth>760;const span=Math.max(12.1,(cinematic?23:15.3)/aspect);this.camera.left=-span*aspect*(cinematic?1.36:1);this.camera.right=span*aspect*(cinematic?.64:1);this.camera.top=span;this.camera.bottom=-span;this.camera.zoom=1;this.camera.updateProjectionMatrix();this.render();};
+  this.resize=()=>{const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;this.renderer.setSize(w,h);const aspect=w/h;const cinematic=window.innerWidth>760;const span=Math.max(12.1,(cinematic?23:15.3)/aspect);this.camera.left=-span*aspect*(cinematic?1.36:1);this.camera.right=span*aspect*(cinematic?.64:1);this.camera.top=span;this.camera.bottom=-span;this.camera.zoom=this.zoom;this.camera.updateProjectionMatrix();this.render();};
   this.observer=new ResizeObserver(this.resize);this.observer.observe(container);
   this.intersection=new IntersectionObserver(([entry])=>{this.visible=entry.isIntersecting;this.last=0;},{rootMargin:'100px'});this.intersection.observe(container);
   this.onPointer=e=>{if(this.paused||e.pointerType==='touch')return;const r=container.getBoundingClientRect();this.pointer.set((e.clientX-r.left)/r.width-.5,(e.clientY-r.top)/r.height-.5);};
