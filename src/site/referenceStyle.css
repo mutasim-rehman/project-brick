@@ -128,7 +128,8 @@ p { color: var(--muted); }
 /* Use the supplied Site Killick emblem in place of the hand-drawn anchor. */
 .brand-mark-window { display: block; width: 46px; height: 46px; overflow: hidden; flex: none; }
 .brand-mark { display: block; width: 52px; height: 52px; max-width: none; object-fit: contain; }
-.blueprint-home .brand-mark { filter: brightness(0) invert(1); }
+.blueprint-home .brand-mark-window { background: #eee6da; border: 1px solid #91a29b; }
+.blueprint-home .brand-mark { filter: none; }
 .closing-inner > .closing-mark { position: absolute; display: block; width: 210px; height: 210px; right: -70px; bottom: -60px; overflow: hidden; opacity: .12; transform: rotate(-20deg); pointer-events: none; }
 .closing-mark .brand-mark { width: 210px; height: 210px; filter: grayscale(1) brightness(0) invert(1); }
 
