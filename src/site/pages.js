@@ -3,13 +3,11 @@ import { icon, escapeHtml } from './utils.js';
 import { cta } from './shared.js';
 import { examples } from './demo.js';
 import { storyPage, storyHero, downLink, textLink, lightLink } from './story.js';
+import { blueprintHero, bindBlueprint } from './blueprint.js';
 
 export { cta } from './shared.js';
 
 const card = () => `<svg viewBox="0 0 320 220" aria-hidden="true"><rect x="36" y="24" width="248" height="172" rx="20" fill="#102a47"/><rect x="58" y="48" width="84" height="10" rx="2" fill="var(--lime)"/><rect x="58" y="76" width="160" height="8" rx="2" fill="#f6f3ea"/><rect x="58" y="98" width="124" height="8" rx="2" fill="#9aa58f"/><rect x="58" y="132" width="36" height="28" rx="4" fill="var(--lime)"/></svg>`;
-
-const homeLogo = new URL('../../SiteKillick_Final_Master_4096px.png', import.meta.url).href;
-const homeVisual = `<img class="home-logo-art" src="${homeLogo}" alt="Site Killick logo showing a construction worker secured to an anchor above the company name." />`;
 
 const ownerScene = () => `<div class="owner-scene" aria-label="Construction animation for the owner story"><div class="scene-room-label"><span class="status-dot"></span><span id="scene-moment">THE OWNER WHO CAN NEVER LEAVE</span></div><div id="construction-model" role="img" aria-label="Three-dimensional construction sequence showing a building assembled from foundations to handover"><div class="scene-loading" id="construction-loading">${icon('building-2')}<span>Preparing model</span></div><div class="scene-fallback" id="construction-fallback" hidden>${icon('building-2')}<span>Construction preview</span></div></div><div class="scene-caption" id="scene-caption">Every unanswered question finds its way home.</div><div class="scene-sequence" aria-hidden="true"><span class="active"></span><span></span><span></span></div></div><div class="scene-controls"><button id="motion-toggle" class="scene-control" aria-pressed="false" aria-label="Pause construction animation">${icon('pause')}<span>Pause animation</span></button></div>`;
 
@@ -25,7 +23,7 @@ export function homePage() {
       copy: 'Your company should not depend on one person carrying every unanswered question.',
       actions: `${downLink('#home-workday', 'See how it works')}${textLink('/platform', 'Explore the platform')}`,
       note: 'The Owner Who Can Never Leave. Records on this page are examples.',
-      visual: homeVisual,
+      html: blueprintHero(),
     },
     chapters: [
       {
@@ -92,6 +90,7 @@ export function homePage() {
 }
 
 export function bindHome(refreshIcons) {
+  bindBlueprint();
   const motion = document.querySelector('#motion-toggle');
   const modelHost = document.querySelector('#construction-model');
   if (!motion || !modelHost) return;
