@@ -16,7 +16,7 @@ export function platformPage() {
     <section class="wrap utility-next"><div><h2>See how a record moves through the day.</h2><p>Follow one example from the first signal to a human decision.</p></div><a class="button light" href="/how-it-works">How it works ${icon('arrow-right')}</a></section>`;
 }
 
-export function bindPlatform() {
+export function bindPlatform(refreshIcons = () => {}) {
   const host = document.querySelector('#module-detail');
   const picker = document.querySelector('.module-picker');
   if (!host || !picker) return;
@@ -25,6 +25,7 @@ export function bindPlatform() {
     const module = modules.find(item => item.id === id) || modules[0];
     buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.module === module.id)));
     host.innerHTML = modulePanel(module);
+    refreshIcons();
     bindDemos(host);
   };
   buttons.forEach(button => button.addEventListener('click', () => choose(button.dataset.module)));

@@ -87,7 +87,14 @@ p { color: var(--muted); }
 .module-sample .product-topbar { background: #102a47; color: #eee6da; border-color: #526174; }
 .module-sample .mini-brand, .module-sample .sample-label { color: #eee6da; }
 .module-sample .product-content { background: #102a47; }
-.module-sample .product-page-heading h3, .module-sample .record-person strong { color: #102a47; }
+.module-sample .product-page-heading h3 { color: #f2edda; }
+.module-sample .record-person strong { color: #102a47; }
+.module-sample .product-page-heading .mini-label { color: #b9c9bf; }
+.module-sample .demo-metrics strong { color: #f2edda; }
+.module-sample .demo-metrics span { color: #b9c9bf; }
+.module-sample .demo-status svg { color: var(--lime); }
+.module-sample .product-page-heading > div { flex: 1; min-width: 0; }
+.module-sample .product-page-heading > .badge { flex: none; }
 .module-sample .record-card, .module-sample .record-history { color: #102a47; background: #eee6da; }
 .module-sample .product-caption { color: #e9e1d6; background: #0b2037; border-color: #526174; }
 .module-sample .badge { border-radius: 0; }
