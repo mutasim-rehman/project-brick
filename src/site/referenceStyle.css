@@ -205,7 +205,8 @@ p { color: var(--muted); }
 
 /* Keep the interactive workflow's table legible inside its product frame. */
 .module-sample .record-history { min-width: 0; }
-.module-sample .record-history > div:not(.mini-label) { grid-template-columns: minmax(64px, .38fr) minmax(0, 1fr) minmax(100px, .9fr); gap: 12px; min-width: 0; padding: 10px 8px; font-size: 11px; line-height: 1.5; }
+.module-sample .record-history > .mini-label { padding-inline: 12px; }
+.module-sample .record-history > div:not(.mini-label) { grid-template-columns: minmax(64px, .38fr) minmax(0, 1fr) minmax(100px, .9fr); gap: 12px; min-width: 0; padding: 10px 12px; font-size: 11px; line-height: 1.5; }
 .module-sample .record-history time, .module-sample .record-history small { min-width: 0; font-size: 10px; line-height: 1.45; white-space: normal; overflow-wrap: anywhere; }
 .module-sample .record-history > div > span { min-width: 0; overflow-wrap: anywhere; }
 .module-sample .mini-label, .module-sample .sample-label { font-size: 10px; }
