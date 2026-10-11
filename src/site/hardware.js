@@ -1,5 +1,6 @@
-import { intro } from './shared.js';
-import { icon, escapeHtml } from './utils.js';
+import { hardwarePresentation } from './hardwarePresentation.js';
+import { bindHardwareScroll } from './hardwareScroll.js';
+import { bindHardwareScenes } from './hardwareMotion.js';
 
 const nfc = `<svg viewBox="0 0 320 260" aria-hidden="true">
   <rect x="54" y="28" width="148" height="196" rx="22" fill="#102a47"/>
@@ -113,8 +114,10 @@ const devices = [
   },
 ];
 
-export function hardwarePage() {
-  return `${intro('Hardware / field devices', 'Four devices. Four kinds of site signal.', 'See what each device is for, and the kind of record it can contribute. Compatibility and availability are confirmed as part of a pilot.')}
-    <section class="wrap device-catalog"><div class="device-catalog-head"><h2>Choose a device to understand its job.</h2><p>These illustrations and records describe proposed workflows, not confirmed specifications or a live deployment.</p></div><div class="device-grid">${devices.map(device => `<article class="device-card" id="${device.id}"><div class="device-art">${device.figure}</div><div class="device-copy"><p class="eyebrow">${escapeHtml(device.kicker)}</p><h3>${escapeHtml(device.title)}</h3><p>${escapeHtml(device.copy)}</p><div class="device-steps" aria-label="Example workflow">${device.steps.map(step => `<span>${escapeHtml(step)}</span>`).join('')}</div></div></article>`).join('')}</div><p class="device-disclaimer">Illustrations are examples. Review <a href="/legal/hardware">hardware terms and warranty information</a> for current approved details.</p></section>
-    <section class="wrap utility-next"><div><h2>See how device signals connect to work.</h2><p>Explore the people, work, safety, tools and fleet records they can support.</p></div><a class="button light" href="/platform">Explore the platform ${icon('arrow-right')}</a></section>`;
+export function hardwarePage() { return hardwarePresentation(devices); }
+
+export function bindHardware() {
+  bindHardwareScroll();
+  bindHardwareScenes();
+  import('./HardwareRenderer.js').then(({ mountHardwareModels }) => mountHardwareModels()).catch(() => {});
 }
