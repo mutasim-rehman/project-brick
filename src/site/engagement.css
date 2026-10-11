@@ -1,0 +1,135 @@
+/* Shared reading rhythm and interaction finish, after the page-specific styles. */
+:root {
+  --motion-ease: cubic-bezier(.22, 1, .36, 1);
+  --reading-progress: 0;
+}
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+.story-hero-copy, .story-stage-head > div, .module-detail-copy,
+.device-copy, .contact-panel, .contact-context { min-width: 0; }
+.story-hero-copy > p:not(.eyebrow):not(.story-note),
+.page-intro > p:not(.eyebrow) { max-width: 56ch; line-height: 1.75; }
+.story-hero-copy .story-note { max-width: 66ch; line-height: 1.65; margin-top: 22px; }
+.story-stage-head { align-items: start; gap: clamp(24px, 4vw, 64px); }
+.story-stage-head h2 { max-width: 18ch; line-height: 1.02; }
+.story-stage-head > p { max-width: 44ch; margin: 0; padding-top: 6px; line-height: 1.8; }
+.story-panel h3 { margin-bottom: 20px; line-height: 1.1; }
+.story-panel dl > div { align-items: start; gap: 16px; }
+.story-panel dd { min-width: 0; overflow-wrap: anywhere; }
+.story-caption { max-width: 72ch; line-height: 1.65; }
+.story-signals h3 { line-height: 1.05; }
+.story-signals p { line-height: 1.7; }
+.page-intro .eyebrow { margin-bottom: 20px; }
+.page-intro h1 { max-width: 17ch; }
+.page-intro > p:not(.eyebrow) { margin-top: 24px; }
+.closing-inner { align-items: center; gap: 40px; }
+.closing-inner > div:first-child > p:not(.eyebrow) { max-width: 46ch; }
+.closing-action { max-width: 32ch; }
+.actions { row-gap: 16px; }
+.text-link, .text-button { min-height: 44px; }
+.bp-heading { align-items: end; }
+.bp-heading h1 { max-width: none; line-height: .99; }
+.bp-heading > p { font-size: 13px; line-height: 1.8; }
+.bp-record h2 { font-size: 29px; line-height: 1.08; }
+.bp-record p { line-height: 1.8; }
+.bp-record dd { overflow-wrap: anywhere; }
+.bp-zone { min-height: 44px; }
+.bp-zone--office, .bp-zone--equipment { top: 22%; }
+.bp-story-caption { line-height: 1.6; }
+.site-header::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  background: var(--lime);
+  transform: scaleX(var(--reading-progress));
+  transform-origin: left;
+  pointer-events: none;
+}
+
+@media (min-width: 901px) {
+  .page-intro:not(.page-intro--split) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(260px, .65fr);
+    column-gap: clamp(36px, 5vw, 80px);
+    align-items: end;
+  }
+  .page-intro:not(.page-intro--split) > .eyebrow { grid-column: 1 / -1; }
+  .page-intro:not(.page-intro--split) > h1 { max-width: none; }
+  .page-intro:not(.page-intro--split) > p:not(.eyebrow) {
+    grid-column: 2;
+    grid-row: 2;
+    max-width: 38ch;
+    margin: 0 0 6px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.has-scroll-reveal .motion-reveal {
+    transform: translate3d(0, 24px, 0);
+    transition: opacity 560ms ease, transform 760ms var(--motion-ease);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  html.has-scroll-reveal .motion-reveal.is-in-view { transform: none; }
+  .button, .bp-zone, .story-signals article, .device-card,
+  .journey-step, .policy-list > a {
+    transition: transform 300ms var(--motion-ease), background-color 220ms ease,
+      border-color 220ms ease, box-shadow 300ms ease;
+  }
+  .button svg, .text-link svg, .text-button svg, .bp-record > a span {
+    transition: transform 300ms var(--motion-ease);
+  }
+  .button:is(:hover, :focus-visible) svg,
+  .text-link:is(:hover, :focus-visible) svg,
+  .text-button:is(:hover, :focus-visible) svg { transform: translateX(4px); }
+  .bp-record > * { animation: detail-enter 480ms var(--motion-ease) both; }
+  .bp-record > :nth-child(2) { animation-delay: 35ms; }
+  .bp-record > :nth-child(3) { animation-delay: 70ms; }
+  .bp-record > :nth-child(4) { animation-delay: 100ms; }
+  .bp-record > :nth-child(5) { animation-delay: 130ms; }
+  .story-panel.is-active { animation: detail-enter 420ms var(--motion-ease) both; }
+  .story-steps button { transition: background-color 220ms, color 220ms; }
+  .story-steps button::before { transition: background-color 220ms, transform 220ms; }
+  .story-steps button[aria-selected='true']::before { transform: scale(1.18); }
+  .chapter-rail-line > span { transition: transform 400ms var(--motion-ease); }
+  .mobile-nav:not([hidden]) { animation: detail-enter 250ms var(--motion-ease) both; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .story-signals article:hover, .device-card:hover, .journey-step:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px #102a4710;
+  }
+  .bp-zone:hover { transform: translateY(-2px); }
+  .bp-story-link:hover .bp-story-arrow svg { transform: translateX(12px); }
+}
+@keyframes detail-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 760px) {
+  .bp-heading h1 { max-width: 100%; }
+  .bp-heading > p { max-width: 45ch; margin-top: 22px; font-size: 13px; }
+  .bp-record dl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .story-stage-head > p { padding-top: 0; }
+  .closing-inner { gap: 28px; }
+}
+@media (max-width: 600px) {
+  .story-stage-head { gap: 20px; }
+  .story-stage-head h2 { font-size: clamp(38px, 10.5vw, 58px); }
+  .story-hero h1, .page-intro h1 { font-size: clamp(44px, 11.5vw, 64px); }
+  .story-hero-copy > p:not(.eyebrow):not(.story-note) { font-size: 16px; }
+  .story-hero-copy .actions { gap: 14px 22px; }
+  .story-steps button { min-height: 52px; overflow-wrap: anywhere; }
+  .bp-heading h1 { font-size: clamp(44px, 11vw, 64px); }
+  .bp-record h2 { font-size: 30px; }
+  .bp-record p { font-size: 14px; }
+  .bp-map-heading { line-height: 1.65; gap: 8px; }
+  .bp-zone { flex: 1 1 calc(50% - 7px); padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .button, .button svg, .text-link svg, .bp-story-arrow svg,
+  .bp-zone, .story-signals article, .device-card, .journey-step {
+    transition: none;
+  }
+}

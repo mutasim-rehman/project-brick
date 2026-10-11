@@ -1,0 +1,95 @@
+/* Original adaptations of the researched interaction patterns. */
+.device-grid { display: block; }
+.device-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 7vw, 100px); padding: 72px 0; border: 0; border-top: 1px solid var(--line); background: transparent; overflow: visible; align-items: start; }
+.device-card .device-art { position: sticky; top: 120px; min-height: 440px; padding: 36px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #b7c5bc; background-color: #e9eee5; background-image: linear-gradient(#102a4709 1px, transparent 1px), linear-gradient(90deg,#102a4709 1px,transparent 1px); background-size: 26px 26px; perspective: 900px; }
+.device-art svg { width: 90%; max-width: 380px; height: auto; transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform 180ms ease-out; filter: drop-shadow(12px 24px 12px #102a471a); }
+.device-drawing-label, .device-drawing-note { align-self: start; color: #46605a; font: 10px/1.6 monospace; letter-spacing: .1em; }
+.device-drawing-label { position: absolute; top: 22px; left: 24px; }
+.device-drawing-note { position: absolute; bottom: 22px; left: 24px; }
+.device-card .device-copy { padding: 10px 0 0; }
+.device-copy h3 { font-size: clamp(30px, 3.1vw, 46px); line-height: 1.12; }
+.device-copy > p:not(.eyebrow) { margin: 22px 0; }
+.device-steps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 5px; margin-top: 28px; }
+.device-steps button { padding: 13px 5px; border: 1px solid var(--line); color: var(--ink); background: transparent; font-size: 11px; cursor: pointer; transition: background .25s, border-color .25s; }
+.device-steps button[aria-pressed=true] { background: var(--lime); border-color: var(--lime); }
+.device-example { background: #102a47; color: #f6f3ea; padding: 28px; margin-top: 16px; min-height: 270px; }
+.device-example .eyebrow { color: var(--lime); }
+.device-example h4 { font-size: 21px; line-height: 1.35; margin: 14px 0 22px; }
+.device-example dl { margin: 0; }
+.device-example dl > div { display: grid; grid-template-columns: 1fr 1.5fr; padding: 10px 0; border-top: 1px solid #ffffff26; gap: 12px; }
+.device-example dt { font-size: 11px; color: #a7b8be; }
+.device-example dd { margin: 0; font-size: 13px; }
+.signal-section { padding-top: 60px; padding-bottom: 90px; }
+.signal-heading { max-width: 680px; margin-bottom: 36px; }
+.signal-heading h2 { font-size: clamp(32px, 4vw, 52px); line-height: 1.1; }
+.signal-heading > p:last-child { margin: 20px 0 0; max-width: 52ch; }
+.signal-board { display: grid; grid-template-columns: minmax(190px,1fr) 80px minmax(190px,1fr) 80px minmax(190px,1fr); align-items: center; background: #102a47; padding: 48px 32px; color: #f6f3ea; border: 1px solid #314a62; }
+.signal-sources { display: grid; gap: 10px; }
+.signal-sources button { display: flex; align-items: center; gap: 12px; padding: 17px 14px; border: 1px solid #ffffff28; color: inherit; background: #ffffff05; font-size: 12px; text-align: left; cursor: pointer; }
+.signal-sources button svg { width: 18px; flex: none; }
+.signal-sources button[aria-pressed=true] { border-color: var(--lime); background: #cbeb7b12; }
+.signal-source-dot { width: 6px; height: 6px; margin-left: auto; background: #637486; border-radius: 50%; flex: none; }
+[aria-pressed=true] .signal-source-dot { background: var(--lime); box-shadow: 0 0 14px #d2f48080; }
+.signal-hub, .signal-destination { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 30px 16px; min-height: 230px; justify-content: center; }
+.signal-hub { border: 1px solid #cee68d66; background: #cee68d07; }
+.signal-hub-mark { font-size: 38px; letter-spacing: -.08em; font-weight: 700; }
+.signal-hub-mark > span { color: var(--lime); }
+.signal-board .eyebrow { color: #b9ce9a; font-size: 9px; margin: 0; }
+.signal-board strong { color: #f6f3ea; font-size: 19px; }
+.signal-hub > span:last-child, .signal-destination > span:last-child { color: #a7b8be; font-size: 11px; }
+.signal-destination > svg { width: 34px; height: 34px; color: var(--lime); }
+.signal-path { height: 2px; background: #f6f3ea26; position: relative; overflow: hidden; }
+.signal-path i { display: block; width: 35px; height: 2px; background: linear-gradient(90deg,transparent,var(--lime)); animation: signal-travel 2.4s linear infinite; }
+.signal-path:nth-of-type(4) i { animation-delay: 1.2s; }
+.signal-note { color: #6d7b70; font-size: 11px; margin-top: 18px; }
+.signal-footer { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+.signal-pause { padding: 10px 0; min-height: 44px; border: 0; background: transparent; color: inherit; font-size: 11px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.is-paused .signal-path i { animation-play-state: paused; }
+@keyframes signal-travel { from { transform: translateX(-35px); } to { transform: translateX(120px); } }
+.module-picker { position: relative; isolation: isolate; }
+.module-selection { position: absolute; left: 0; top: 0; z-index: -1; pointer-events: none; background: #e1e9cd; border-bottom: 3px solid #102a47; transition: transform 350ms cubic-bezier(.22,1,.36,1), width 350ms, height 350ms; }
+.module-picker button[aria-pressed=true], .module-picker button:hover { background: transparent; }
+.module-picker button[aria-pressed=true]::after { display: none; }
+.module-proof > div, .about-principle { background-image: radial-gradient(180px circle at var(--spot-x,-200px) var(--spot-y,-200px), #cbe58740, transparent 80%); }
+.journey-line { position: relative; display: grid; grid-template-columns: 1fr; gap: 0; max-width: 900px; margin: 48px auto; padding: 0; }
+.journey-line::before, .journey-line::after { content: ''; position: absolute; left: 0; top: 0; width: 2px; height: 100%; background: #bdc6b7; }
+.journey-line::after { background: #69803c; transform: scaleY(var(--journey-progress,0)); transform-origin: top; }
+.journey-line .journey-step { position: relative; padding: 28px 30px 40px; min-height: 170px; }
+.journey-step::before { content: ''; position: absolute; top: 24px; left: -5px; width: 12px; height: 12px; border: 2px solid #bdc6b7; background: #f6f3ea; border-radius: 50%; z-index: 1; transition: background .3s; }
+.journey-step.is-reached::before { background: var(--lime); border-color: #69803c; }
+.utility-next { position: relative; overflow: hidden; }
+.utility-next::after { content: ''; position: absolute; bottom: 0; height: 2px; width: 25%; background: linear-gradient(90deg,transparent,#83a33c,transparent); animation: cta-beam 5s ease-in-out infinite; pointer-events: none; }
+@keyframes cta-beam { from { left: -25%; } to { left: 100%; } }
+.draft-heading-word { position: relative; transition: color .35s; -webkit-text-stroke: .5px currentColor; }
+.draft-heading-word:hover { color: var(--lime); -webkit-text-stroke: .7px var(--lime); }
+.draft-heading-word::after { content: ''; position: absolute; inset: -7px -8px; border: 1px dashed #cde68466; opacity: 0; transform: scaleX(.95); transition: opacity .35s, transform .35s; pointer-events: none; }
+.draft-heading-word:hover::after { opacity: 1; transform: scaleX(1); }
+.blueprint-home .signal-heading, .blueprint-home .signal-note { color: #b4c1c5; }
+.blueprint-home .signal-heading h2 { color: #f6f3ea; }
+button:focus-visible { outline: 2px solid #7a9b39; outline-offset: 4px; }
+@media(max-width: 1000px) {
+  .signal-board { grid-template-columns: 1fr 35px 1fr 35px 1fr; padding: 30px 20px; }
+  .device-card { gap: 36px; }
+}
+@media(max-width: 700px) {
+  .device-card { grid-template-columns: 1fr; padding: 32px 0 48px; gap: 24px; }
+  .device-card .device-art { position: relative; top: auto; min-height: 320px; }
+  .signal-board { grid-template-columns: 1fr; padding: 24px; }
+  .signal-sources { grid-template-columns: 1fr 1fr; }
+  .signal-sources button { padding: 14px 10px; gap: 8px; font-size: 11px; }
+  .signal-hub, .signal-destination { min-height: 190px; }
+  .signal-path { height: 42px; width: 2px; justify-self: center; }
+  .signal-path i { width: 2px; height: 20px; background: linear-gradient(transparent,var(--lime)); animation-name: signal-travel-vertical; }
+  .module-picker { display: flex; overflow-x: auto; }
+  .module-picker button { flex: 0 0 140px; }
+  .journey-line::before { display: block; left: 0; top: 0; height: 100%; }
+}
+@keyframes signal-travel-vertical { from { transform: translateY(-20px); } to { transform: translateY(62px); } }
+@media(prefers-reduced-motion: reduce) {
+  .signal-path i, .utility-next::after { animation: none; }
+  .signal-pause { display: none; }
+  .device-art svg { transform: none; transition: none; }
+  .device-card .device-art { position: relative; top: auto; }
+  .module-selection, .journey-step::before { transition: none; }
+  .journey-line::after { transform: none; }
+}

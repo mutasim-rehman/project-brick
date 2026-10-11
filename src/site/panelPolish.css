@@ -1,0 +1,61 @@
+:root { --panel-inset: clamp(22px, 2.6vw, 40px); }
+.device-catalog .device-card { padding: var(--panel-inset); column-gap: clamp(20px,2.5vw,38px); }
+.has-hardware-scroll .device-card { padding: 26px var(--panel-inset); }
+.device-catalog .device-copy { padding: 0; }
+.device-catalog .device-copy h3 { font-size: clamp(26px,2.55vw,39px); max-width: 15ch; }
+.device-catalog .device-copy > p:not(.eyebrow) { max-width: 34ch; }
+.device-record-column { padding: 0; }
+.device-record-column > .eyebrow { margin: 0 0 20px; }
+.hardware-beat-cards { display: grid; gap: 10px; }
+.hardware-beat-card { display: grid; grid-template-columns: 22px minmax(0,1fr); gap: 10px; align-items: start; padding: 15px 17px; border: 1px solid #a6b69e45; border-radius: 5px; background: #f4f0e84d; color: #687668; transition: background .45s, border-color .45s, box-shadow .45s, color .45s; }
+.beat-number { font: 9px/1.7 monospace; color: #92a080; padding-top: 2px; }
+.beat-label { font: 9px/1.6 monospace; text-transform: uppercase; letter-spacing: .09em; margin: 0 0 5px; }
+.hardware-beat-card h4 { font: 600 13px/1.5 Manrope,sans-serif; margin: 0; color: inherit; text-wrap: pretty; }
+.beat-detail { margin: 7px 0 0; font-size: 10px; line-height: 1.5; color: inherit; opacity: .8; }
+.hardware-beat-card.is-current-beat { background: #102d43; color: #f3f1e6; border-color: #102d43; box-shadow: 0 9px 22px #102a4715; }
+.is-current-beat .beat-label,.is-current-beat .beat-number { color: #d0e587; }
+.hardware-beat-card.is-complete-beat { border-color: #9dac785c; background: #e3e8d655; }
+.nfc-field { stroke: #708d59; stroke-width: 1; }
+.nfc-scan { stroke: #99b938; stroke-width: 2; opacity: .5; }
+.guard-map { stroke: #8fa088; stroke-width: .6; }
+.guard-boundary { stroke: #799640; stroke-width: 1.5; stroke-dasharray: 5 5; fill: #9ab64f08; }
+.guard-sweep { fill: #90ac4b1f; stroke: none; }
+.guard-lock { stroke: #718e35; stroke-width: 1.2; }
+.tool-network { stroke: #8d9d7e; stroke-width: 1; }.tool-network > path { stroke-dasharray: 4 5; opacity: .5; }
+.tool-node { fill: #e7ecdf; stroke: #799153; stroke-width: 1.4; }
+.gateway-road { stroke: #bdc7b2; stroke-width: 1; }.gateway-road > path:first-child { stroke: #a9b69c35; }
+.gateway-road .road-dashes { stroke: #f6f3e9; stroke-width: 2; stroke-dasharray: 9 9; }
+.gateway-pin { fill: #dce6c4; stroke: #829b40; stroke-width: 1.4; }
+.device-catalog .device-art::before { opacity: .35; }
+[data-scene="guard-tag"]::before,[data-scene="vehicle-gateway"]::before { display: none; }
+[data-scene="tool-tag"] .device-coordinate { display: none; }
+/* Shared content insets for painted surfaces, independent of outer page gutters. */
+.story-record { padding: var(--panel-inset); }
+.story-signals article { padding: var(--panel-inset); }
+.contact-panel,.contact-context,.pricing-status,.journey-role-panel,.about-trust { padding: var(--panel-inset); }
+.utility-next { padding: clamp(25px,3vw,44px); }
+.notice { padding: 20px 24px; }
+.platform-browser .record-card { overflow: hidden; }
+.platform-browser .record-heading,.platform-browser .record-person,.platform-browser .record-evidence,.platform-browser .record-bottom { padding-inline: 22px; }
+.platform-browser .record-heading { padding-block: 16px; }
+.platform-browser .record-person { padding-block: 18px; }
+.platform-browser .record-evidence { margin-inline: 0; padding-block: 14px; }
+.platform-browser .record-bottom { padding-block: 16px; }
+.platform-browser .demo-result { margin: 0; padding: 16px 22px; }
+.journey-line .journey-step { padding: 26px 32px 32px; }
+@media(max-width:700px) {
+  .device-catalog .device-card { padding: 25px 20px; margin-bottom: 20px; }
+  .device-catalog .device-copy h3 { max-width: none; font-size: 31px; }
+  .hardware-beat-card { padding: 15px 17px; }.hardware-beat-card h4 { font-size: 14px; }
+  .device-record-column { padding-top: 12px; }.hardware-beat-cards { gap: 12px; }
+  .platform-browser .record-heading,.platform-browser .record-person,.platform-browser .record-evidence,.platform-browser .record-bottom { padding-inline: 17px; }
+  .story-record,.contact-panel,.contact-context,.pricing-status,.journey-role-panel,.about-trust { padding: 23px; }
+}
+@media(prefers-reduced-motion:reduce) { .hardware-beat-card { transition: none; } }
+@media(min-width:1050px) and (max-height:800px) {
+  .has-hardware-scroll .hardware-beat-card { padding: 10px 13px; }
+  .has-hardware-scroll .hardware-beat-card h4 { font-size: 12px; }
+  .has-hardware-scroll .device-art { min-height: 390px; }
+  .has-hardware-scroll .device-stage { height: 310px; }
+  .has-hardware-scroll .device-card { padding-block: 18px; }
+}

@@ -1,5 +1,13 @@
 const revealSelectors = [
-  '.story-hero-copy',
+  '.story-hero-copy > *',
+  '.story-hero > .eyebrow',
+  '.story-hero > h1',
+  '.story-hero > p',
+  '.story-hero > .actions',
+  '.page-intro > *',
+  '.bp-heading > *',
+  '.bp-map-column',
+  '.bp-story-link',
   '.story-hero-visual',
   '.story-stage-head',
   '.story-stage-body',
@@ -22,7 +30,9 @@ const revealSelectors = [
 ];
 
 export function bindReveals() {
+  bindReadingProgress();
   if (!('IntersectionObserver' in window)) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const nodes = [...new Set(revealSelectors.flatMap(selector => [...document.querySelectorAll(selector)]))];
   if (!nodes.length) return;
@@ -43,8 +53,30 @@ export function bindReveals() {
       entry.target.classList.add('is-in-view');
       observer.unobserve(entry.target);
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -36px 0px' });
+  }, { threshold: 0, rootMargin: '0px 0px -16px 0px' });
 
   nodes.forEach(node => observer.observe(node));
   window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
+}
+
+function bindReadingProgress() {
+  let frame = 0;
+  const update = () => {
+    frame = 0;
+    const range = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = range > 0 ? Math.min(1, Math.max(0, window.scrollY / range)) : 0;
+    document.documentElement.style.setProperty('--reading-progress', String(progress));
+  };
+  const queue = () => { if (!frame) frame = requestAnimationFrame(update); };
+  const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(queue) : null;
+  resize?.observe(document.body);
+  window.addEventListener('scroll', queue, { passive: true });
+  window.addEventListener('resize', queue, { passive: true });
+  update();
+  window.addEventListener('pagehide', () => {
+    cancelAnimationFrame(frame);
+    resize?.disconnect();
+    window.removeEventListener('scroll', queue);
+    window.removeEventListener('resize', queue);
+  }, { once: true });
 }
