@@ -1,0 +1,151 @@
+/* Shared palette and reading rhythm across the marketing pages. */
+:root {
+  --ink: #142b49;
+  --muted: #4f6279;
+  --line: #ccd4dc;
+  --paper: #eee6da;
+  --soft: #eaf0f5;
+  --sage: #dce6ef;
+  --green: #254b72;
+  --orange: #254b72;
+  --blue-deep: #10243d;
+  --blue-mid: #254b72;
+  --blue-soft: #eaf0f5;
+  --lime: #c6d65c;
+  --lime-hover: #d4e37c;
+  --lime-soft: #edf1d8;
+}
+.site-header { background: #eee6daf5; }
+.desktop-nav a, .eyebrow { color: var(--blue-mid); }
+.story-page { --story-ink: var(--ink); --story-muted: var(--muted); --story-line: var(--line); --story-green: var(--blue-mid); }
+.page-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding-block: clamp(48px, 5vw, 80px) 56px;
+}
+.page-intro .eyebrow { margin: 0 0 20px; }
+.page-intro h1 {
+  max-width: 960px;
+  font-size: clamp(48px, 5.2vw, 76px);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.page-intro > p:not(.eyebrow) {
+  grid-column: auto;
+  align-self: auto;
+  max-width: 62ch;
+  margin: 24px 0 0;
+  font-size: 17px;
+  line-height: 1.75;
+}
+.page-intro:has(+ .platform-explorer), .page-intro:has(+ .device-catalog),
+.page-intro:has(+ .journey-page), .page-intro:has(+ .contact-page) { padding-bottom: 56px; }
+.platform-explorer { width: calc(100% - 112px); max-width: 1328px; }
+.platform-explorer-head, .device-catalog-head, .journey-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.platform-explorer-head h2, .device-catalog-head h2, .journey-intro h2 {
+  max-width: 760px;
+  font-size: clamp(32px, 3vw, 44px);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+.platform-explorer-head p, .device-catalog-head p, .journey-intro p {
+  max-width: 65ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.about-editorial { padding-top: 0; }
+.about-origin { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 64px; align-items: center; padding-block: 64px 72px; }
+.about-origin h1 { max-width: 20ch; font-size: clamp(46px, 4.8vw, 68px); line-height: 1.06; text-wrap: balance; }
+.about-origin-copy .eyebrow { margin-bottom: 20px; }
+.about-origin-copy > p:not(.eyebrow) { max-width: 60ch; margin: 24px 0 0; line-height: 1.75; }
+.about-origin-copy .actions { margin-top: 28px; gap: 24px; }
+.intro-art, .contact-context, .about-trust { background: var(--blue-soft); border-color: var(--line); }
+.workspace-sidebar { background: var(--blue-deep); }
+.hardware-stage { background: radial-gradient(ellipse at 50% 58%, #2b4c70 0, #183554 45%, #10243d 90%); border-color: #355677; }
+.browser-chrome { background: #e1e8ee; border-color: var(--line); }
+.browser-address { background: #f3f6f9; color: var(--muted); }
+.platform-browser { border-color: var(--line); }
+.module-features span { background: var(--blue-soft); color: var(--blue-mid); }
+.about-principle h3 { line-height: 1.15; }
+.about-principle p { line-height: 1.75; }
+.utility-next { background: var(--blue-deep); }
+.utility-next h2 { color: #f5f7fa; line-height: 1.1; }
+.utility-next p { color: #c8d5e3; }
+.site-footer { background: #e4dbcf; border-top: 1px solid #c9c1b6; }
+.blueprint-home .site-header .brand-mark-window { background: transparent; border: 0; }
+.blueprint-home .site-header .brand-mark {
+  filter: grayscale(1) invert(1) sepia(.22);
+}
+.about-brand-art { display: block; width: min(100%, 360px); height: auto; object-fit: contain; }
+.about-origin-art { background: transparent; border: 0; padding: 20px; gap: 24px; }
+.closing-inner { isolation: isolate; }
+.closing-inner > .closing-mark {
+  z-index: 2;
+  right: 0;
+  bottom: 16px;
+  width: 170px;
+  height: 170px;
+  opacity: .85;
+  transform: none;
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+.closing-mark .brand-mark { width: 100%; height: 100%; object-fit: contain; filter: grayscale(1) invert(1) sepia(.22); }
+.closing-inner > div { position: relative; z-index: 3; }
+.blueprint-home .closing { overflow: hidden; }
+.blueprint-home .closing-inner > .closing-mark {
+  position: absolute;
+  width: 330px;
+  height: 330px;
+  right: -105px;
+  bottom: -100px;
+  margin: 0;
+  transform: rotate(-45deg);
+  opacity: .7;
+}
+.blueprint-home .chapter-rail {
+  background: transparent;
+  border-radius: 0;
+}
+.blueprint-home .chapter-rail .chapter-label,
+.blueprint-home .chapter-rail a[aria-current] .chapter-label {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--ink);
+  font-weight: 600;
+  text-shadow: 0 0 2px var(--paper), 0 0 4px var(--paper);
+}
+@media (max-width: 900px) {
+  .blueprint-home .closing-inner > .closing-mark { width: 240px; height: 240px; right: -110px; bottom: -90px; opacity: .4; }
+}
+@media (min-width: 901px) { .closing-inner { padding-right: 200px; } }
+@media (max-width: 900px) {
+  .closing-inner > .closing-mark { position: relative; right: auto; bottom: auto; width: 120px; height: 120px; margin-top: 24px; grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
+  .platform-explorer { width: calc(100% - 64px); }
+  .about-origin { gap: 32px; }
+}
+@media (max-width: 600px) {
+  .page-intro { padding-block: 40px 40px; }
+  .page-intro h1 { font-size: clamp(42px, 11vw, 58px); }
+  .page-intro > p:not(.eyebrow) { font-size: 16px; margin-top: 20px; }
+  .page-intro:has(+ .platform-explorer), .page-intro:has(+ .device-catalog),
+  .page-intro:has(+ .journey-page), .page-intro:has(+ .contact-page) { padding-bottom: 40px; }
+  .platform-explorer { width: calc(100% - 40px); }
+  .platform-explorer-head, .device-catalog-head, .journey-intro { gap: 12px; margin-bottom: 24px; }
+  .about-origin { grid-template-columns: 1fr; padding-block: 40px 48px; gap: 32px; }
+  .about-origin h1 { max-width: 20ch; font-size: clamp(42px, 11vw, 58px); }
+  .about-origin-copy > p:not(.eyebrow) { margin-top: 20px; }
+}

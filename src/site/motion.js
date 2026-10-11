@@ -11,14 +11,10 @@ const revealSelectors = [
   '.story-hero-visual',
   '.story-stage-head',
   '.story-stage-body',
-  '.story-summary .story-signals > article',
   '.platform-explorer-head',
-  '.module-detail',
-  '.device-card',
   '.journey-line > *',
   '.about-origin-copy',
   '.about-origin-art',
-  '.about-principle',
   '.about-trust',
   '.pricing-status',
   '.pricing-factor',
@@ -32,7 +28,8 @@ const revealSelectors = [
 export function bindReveals() {
   bindReadingProgress();
   if (!('IntersectionObserver' in window)) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduce.matches) return;
 
   const nodes = [...new Set(revealSelectors.flatMap(selector => [...document.querySelectorAll(selector)]))];
   if (!nodes.length) return;
@@ -56,7 +53,16 @@ export function bindReveals() {
   }, { threshold: 0, rootMargin: '0px 0px -16px 0px' });
 
   nodes.forEach(node => observer.observe(node));
-  window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
+  const showAll = () => {
+    if (!reduce.matches) return;
+    observer.disconnect();
+    nodes.forEach(node => node.classList.add('is-in-view'));
+  };
+  reduce.addEventListener('change', showAll);
+  window.addEventListener('pagehide', () => {
+    observer.disconnect();
+    reduce.removeEventListener('change', showAll);
+  }, { once: true });
 }
 
 function bindReadingProgress() {

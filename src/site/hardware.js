@@ -119,5 +119,6 @@ export function hardwarePage() { return hardwarePresentation(devices); }
 export function bindHardware() {
   bindHardwareScroll();
   bindHardwareScenes();
-  import('./HardwareRenderer.js').then(({ mountHardwareModels }) => mountHardwareModels()).catch(() => {});
+  import('./HardwareRenderer.js').then(({ mountHardwareModels }) => mountHardwareModels()).catch(error => { console.error('[Site Killick] Hardware renderer failed to load or initialize.', error); });
 }
+

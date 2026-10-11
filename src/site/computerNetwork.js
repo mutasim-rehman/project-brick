@@ -30,7 +30,7 @@ export function bindComputerNetwork(section,reduce) {
   const wire=document.createElementNS('http://www.w3.org/2000/svg','svg');wire.classList.add('network-wires');wire.setAttribute('aria-hidden','true');stage.prepend(wire);
   let selected=0,visible=false,timeline;
   const pause=section.querySelector('.signal-pause');
-  const sync=()=>{if(visible&&!reduce.matches&&!section.classList.contains('is-paused'))timeline?.play();else timeline?.pause();};
+  const sync=()=>{if(visible&&!document.hidden&&!reduce.matches&&!section.classList.contains('is-paused'))timeline?.play();else timeline?.pause();};
   const select=index=>{selected=index;buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===selected)));section.querySelector('.network-event').textContent=sources[index][2];section.querySelector('.network-record').textContent=sources[index][3];};
   const draw=()=>{
     timeline?.kill();
@@ -53,5 +53,6 @@ export function bindComputerNetwork(section,reduce) {
   pause.addEventListener('click',()=>{const paused=section.classList.toggle('is-paused');pause.setAttribute('aria-pressed',String(paused));pause.textContent=paused?'Play network animation':'Pause network animation';sync();});
   const observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;sync();},{threshold:.15});observer.observe(stage);
   const resize=new ResizeObserver(draw);resize.observe(stage);reduce.addEventListener('change',sync);draw();
-  window.addEventListener('pagehide',()=>{timeline?.kill();observer.disconnect();resize.disconnect();reduce.removeEventListener('change',sync);},{once:true});
+  document.addEventListener('visibilitychange',sync);
+  window.addEventListener('pagehide',()=>{timeline?.kill();observer.disconnect();resize.disconnect();reduce.removeEventListener('change',sync);document.removeEventListener('visibilitychange',sync);},{once:true});
 }

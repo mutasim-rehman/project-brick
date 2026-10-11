@@ -24,5 +24,6 @@ export function bindVisualPages() {
   const holder=document.createElement('div');holder.className='workflow-model';holder.setAttribute('aria-hidden','true');art.before(holder);holder.append(art);
   const pause=document.createElement('button');pause.type='button';pause.className='workflow-motion-toggle';pause.textContent='Pause motion';pause.setAttribute('aria-pressed','false');visual.append(pause);
   pause.addEventListener('click',()=>{const paused=pause.getAttribute('aria-pressed')!=='true';pause.setAttribute('aria-pressed',String(paused));pause.textContent=paused?'Play motion':'Pause motion';host.dispatchEvent(new Event('workflow-motion'));});
-  import('./WorkflowRenderer.js').then(({mountWorkflowModel})=>mountWorkflowModel(host)).catch(()=>{pause.hidden=true;});
+  import('./WorkflowRenderer.js').then(({mountWorkflowModel})=>mountWorkflowModel(host)).catch(error=>{pause.hidden=true;console.error('[Site Killick] Workflow renderer failed to load or initialize.',error);});
 }
+

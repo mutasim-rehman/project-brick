@@ -1,3 +1,4 @@
+import { createSceneRenderer } from './sceneRenderer.js';
 import * as THREE from 'three';
 
 const lime = 0xcde875;
@@ -142,8 +143,8 @@ function model(id) {
 export function mountHardwareModels() {
   document.querySelectorAll('[data-scene]').forEach(host=>{
     const holder=host.querySelector('.device-object');
-    let renderer;
-    try { renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'}); } catch { return; }
+    const renderer=createSceneRenderer(host, host.dataset.scene);
+    if(!renderer)return;
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
     renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;renderer.outputColorSpace=THREE.SRGBColorSpace;
     const scene=new THREE.Scene();
@@ -182,3 +183,4 @@ export function mountHardwareModels() {
     window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();reduce.removeEventListener('change',sync);scene.traverse(object=>{object.geometry?.dispose();const list=Array.isArray(object.material)?object.material:[object.material];list.filter(Boolean).forEach(material=>{material.map?.dispose();if(!Object.values(materials).includes(material))material.dispose();});});renderer.dispose();},{once:true});
   });
 }
+

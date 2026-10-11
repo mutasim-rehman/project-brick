@@ -1,3 +1,4 @@
+import { createSceneRenderer } from './sceneRenderer.js';
 import * as THREE from 'three';
 
 function shape(w,h,d,r=.09) {
@@ -7,8 +8,8 @@ function shape(w,h,d,r=.09) {
   const g=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:true,bevelSegments:4,bevelSize:bevel,bevelThickness:bevel,steps:1,curveSegments:12});g.translate(0,0,-d/2);return g;
 }
 export function mountWorkflowModel(host) {
-  const holder=host.querySelector('.workflow-model'),pause=host.querySelector('.workflow-motion-toggle');let renderer;
-  try{renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});}catch{pause.hidden=true;return;}
+  const holder=host.querySelector('.workflow-model'),pause=host.querySelector('.workflow-motion-toggle');
+  const renderer=createSceneRenderer(host,'Workflow');if(!renderer){pause.hidden=true;return;}
   // Supersample even on standard-density displays to keep fine edges crisp.
   renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio,2),3));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
   const scene=new THREE.Scene(),group=new THREE.Group();scene.add(group);
@@ -61,28 +62,31 @@ export function mountWorkflowModel(host) {
     c.fillStyle='#a8bd86';c.fillRect(47,810,674,2);c.fillStyle='#617e49';c.font='bold 31px sans-serif';c.fillText([step?'Event captured':'Waiting for signal','Context attached',step?'Delivered to reviewer':'Sending record',step?'Reviewed · example':'Awaiting review'][stage],47,862);texture.needsUpdate=true;
   }
   const render=stamp=>{frame=0;const delta=last?Math.min((stamp-last)/1000,.05):.016;last=stamp;const paused=pause.getAttribute('aria-pressed')==='true';if(!paused&&!reduce.matches){time+=delta;stageTime+=delta;}blend+=(stage-blend)*(reduce.matches?1:.07);
-    const still=paused||reduce.matches,cycle=still?3.1:stageTime%5.5;
+    const still=paused||reduce.matches,cycle=still?3.1:Math.min(stageTime, 4.8);
     const ease=p=>{p=THREE.MathUtils.clamp(p,0,1);return p*p*(3-2*p);};
     group.rotation.y=-.17+Math.sin(time*.35)*.025;group.rotation.x=.025;record.position.y=Math.sin(time*.55)*.008;record.rotation.y=Math.sin(blend*Math.PI/3)*-.045;
     device.position.set(-1.13,-.54,.42);device.rotation.set(.02,.12,-.09);device.scale.setScalar(stage===0?1.13:.82);
     badge.visible=stage>1;badge.position.set(1.15,-.44,.44);badge.rotation.y=-.14;badge.scale.setScalar(stage>1?1.2:1);
     // Maintain a real air gap: the reader face is at roughly z=.65.
-    tapCard.visible=stage===0;const tap=still?1:ease(cycle/.9)-ease((cycle-2)/.8);tapCard.position.set(-1.5+tap*.22,.32-tap*.49,1.14-tap*.18);tapCard.rotation.set(.02,-.06,-.12+tap*.1);
+    tapCard.visible=stage===0;const tap=still?0:ease(cycle/.9)-ease((cycle-2)/.8);tapCard.position.set(-1.5+tap*.22,.32-tap*.49,1.14-tap*.18);tapCard.rotation.set(.02,-.06,-.12+tap*.1);
     contextCards.forEach((card,i)=>{card.visible=stage===1;const dock=still?1:ease((cycle-i*.4)/.85);card.position.set((i%2?1:-1)*(1-dock)*.68,.03-i*.3+(1-dock)*.23,.27+(1-dock)*.3);card.rotation.y=(1-dock)*(i%2?-.3:.3);card.scale.setScalar(.85+dock*.15);});
     route.visible=stage===2;inbox.visible=stage===2;ticket.visible=stage===2;const transfer=still?1:ease((cycle-.3)/2.1);ticket.position.copy(routeCurve.getPoint(transfer));ticket.scale.setScalar(1.45);ticket.rotation.set(0,0,-.04+Math.sin(transfer*Math.PI)*.1);
     reviewFocus.visible=stage===2;reviewFocus.position.copy(badge.position);reviewFocus.position.z+=.18;reviewFocus.scale.setScalar(1.03+(still?0:Math.sin(time*2)*.035));
     const decided=still||cycle>1.5;seal.visible=stage===3&&decided;seal.position.set(.56,-.55,.49+(still?0:(1-ease((cycle-1.5)/.45))*.35));seal.scale.setScalar(1.35);seal.rotation.z=-.08;
-    waves.forEach((wave,i)=>{const p=(cycle*.7+i/3)%1;wave.visible=stage===0&&cycle>.65&&cycle<2.5&&!still;wave.position.set(-1.13+p*.55,-.42+p*.27,.64);wave.scale.setScalar(.45+p*1.6);wave.material.opacity=(1-p)*.38;});
+    waves.forEach((wave,i)=>{const p=THREE.MathUtils.clamp((cycle-.7-i*.18)/1.25,0,1);wave.visible=stage===0&&cycle>.65&&cycle<2.5&&p>0&&p<1&&!still;wave.position.set(-1.13+p*.55,-.42+p*.27,.64);wave.scale.setScalar(.45+p*1.6);wave.material.opacity=(1-p)*.38;});
     lime.emissiveIntensity=stage===0?.25+Math.sin(time*1.7)**2*.25:.15;dot.scale.setScalar(stage===1?1.2:1);drawRecord(3,stage===0?(still||cycle>.9):stage===2?(still||cycle>2.4):decided);
-    renderer.render(scene,camera);if(visible&&!paused&&!reduce.matches)frame=requestAnimationFrame(render);
+    if(stageTime>=4.8&&!still){pause.textContent='Replay motion';pause.setAttribute('aria-pressed','true');}
+    renderer.render(scene,camera);if(visible&&!paused&&!reduce.matches&&stageTime<4.8)frame=requestAnimationFrame(render);
   };
   const sync=()=>{cancelAnimationFrame(frame);frame=0;last=0;if(visible)frame=requestAnimationFrame(render);};
-  host.addEventListener('workflow-stage',event=>{stage=event.detail;stageTime=0;drawn='';sync();});host.addEventListener('workflow-motion',sync);reduce.addEventListener('change',sync);
+  host.addEventListener('workflow-stage',event=>{stage=event.detail;stageTime=0;drawn='';pause.setAttribute('aria-pressed','false');pause.textContent='Pause motion';sync();});host.addEventListener('workflow-motion',()=>{if(stageTime>=4.8&&pause.getAttribute('aria-pressed')==='false'){stageTime=0;drawn='';}sync();});reduce.addEventListener('change',sync);
   const resize=new ResizeObserver(()=>{const r=holder.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.fov=camera.aspect<1.15?38:34;camera.updateProjectionMatrix();sync();});resize.observe(holder);
   const observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;sync();},{threshold:.1});observer.observe(holder);
   renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();cancelAnimationFrame(frame);holder.classList.remove('is-rendered');renderer.domElement.remove();pause.hidden=true;});
   window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();reduce.removeEventListener('change',sync);scene.traverse(object=>{object.geometry?.dispose();object.material?.map?.dispose();object.material?.dispose();});renderer.dispose();},{once:true});
 }
+
+
 
 
 

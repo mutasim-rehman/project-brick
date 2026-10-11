@@ -1,3 +1,4 @@
+import { scrollToPosition } from './scrollNavigation.js';
 import { gsap } from 'gsap';
 
 export function bindHardwareScroll() {
@@ -14,12 +15,13 @@ export function bindHardwareScroll() {
       const changed = i === index && !beat.classList.contains('is-current-beat');
       beat.classList.toggle('is-current-beat', i === index);
       beat.classList.toggle('is-complete-beat', i < index);
+      if (changed) card.dispatchEvent(new CustomEvent('device-step', { detail: index }));
       if (changed && media.matches) gsap.fromTo(beat, { x: 12 }, { x: 0, duration: .5, ease: 'power3.out', overwrite: true });
     });
   };
   const activate = index => {
     if (index === active) return;
-    sequence?.kill();
+    sequence?.progress(1).kill();
     const previous = active;
     active = index;
     cards.forEach((card,i) => {
@@ -31,8 +33,8 @@ export function bindHardwareScroll() {
     });
     const card = cards[index];
     sequence = gsap.timeline();
-    sequence.fromTo(card.querySelector('.device-art'), { opacity: 0, scale: .83, y: previous > index ? -50 : 50, filter: 'blur(10px)' }, { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)', duration: .85, ease: 'power3.out' }, 0)
-      .fromTo(card.querySelectorAll('.device-copy > *, .device-record-column > *'), { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: .6, stagger: .055, ease: 'power3.out' }, .16);
+    sequence.fromTo(card.querySelector('.device-art'), { opacity: 0, scale: .98, y: previous > index ? -12 : 12 }, { opacity: 1, scale: 1, y: 0, duration: .5, ease: 'power3.out', clearProps: 'opacity,transform' }, 0)
+      .fromTo(card.querySelectorAll('.device-copy > *, .device-record-column > *'), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .4, stagger: .025, ease: 'power3.out', clearProps: 'opacity,transform' }, .04);
   };
   const update = () => {
     frame = 0;
@@ -69,7 +71,7 @@ export function bindHardwareScroll() {
     if (media.matches) {
       const top = wrapper.getBoundingClientRect().top + scrollY - 100;
       const range = wrapper.offsetHeight - wrapper.querySelector('.hardware-stage').offsetHeight;
-      scrollTo({ top: top + range * (i / cards.length + .035), behavior: 'smooth' });
+      scrollToPosition(top + range * (i / cards.length + .035));
     } else cards[i].scrollIntoView({ block: 'start', behavior: 'instant' });
   }));
   media.addEventListener('change', configure);
@@ -78,3 +80,5 @@ export function bindHardwareScroll() {
   configure();
   window.addEventListener('pagehide', () => { sequence?.kill(); cancelAnimationFrame(frame); media.removeEventListener('change', configure); window.removeEventListener('scroll', queue); window.removeEventListener('resize', queue); }, { once: true });
 }
+
+

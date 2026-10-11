@@ -47,22 +47,6 @@ p { text-wrap: pretty; }
   pointer-events: none;
 }
 
-@media (min-width: 901px) {
-  .page-intro:not(.page-intro--split) {
-    display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(260px, .65fr);
-    column-gap: clamp(36px, 5vw, 80px);
-    align-items: end;
-  }
-  .page-intro:not(.page-intro--split) > .eyebrow { grid-column: 1 / -1; }
-  .page-intro:not(.page-intro--split) > h1 { max-width: none; }
-  .page-intro:not(.page-intro--split) > p:not(.eyebrow) {
-    grid-column: 2;
-    grid-row: 2;
-    max-width: 38ch;
-    margin: 0 0 6px;
-  }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   html.has-scroll-reveal .motion-reveal {

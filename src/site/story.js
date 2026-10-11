@@ -1,3 +1,4 @@
+import { scrollToPosition } from './scrollNavigation.js';
 import { icon, escapeHtml } from './utils.js';
 import { cta } from './shared.js';
 import { chapterRail } from './chapters.js';
@@ -64,7 +65,7 @@ export function bindStory() {
     const count = chapter.querySelectorAll('[data-beat]').length;
     const top = chapter.getBoundingClientRect().top + window.scrollY;
     const range = Math.max(0, chapter.offsetHeight - window.innerHeight);
-    window.scrollTo({ top: top + range * ((index + 0.45) / count), behavior: 'instant' });
+    scrollToPosition(top + range * ((index + 0.45) / count));
   };
   chapters.forEach(chapter => {
     const tabs = [...chapter.querySelectorAll('[data-beat]')];
@@ -73,7 +74,7 @@ export function bindStory() {
         const index = Number(tab.dataset.beat);
         setBeat(chapter, index);
         if (!canScrub()) return;
-        lockUntil = performance.now() + 120;
+        lockUntil = performance.now() + 950;
         scrollToBeat(chapter, index);
       });
       tab.addEventListener('keydown', event => {
@@ -114,3 +115,4 @@ export const signalActions = (primary, secondary) => `${primary}${secondary || '
 export const downLink = (href, label) => `<a class="button primary" href="${href}">${label} ${icon('arrow-down')}</a>`;
 export const textLink = (href, label) => `<a class="text-link" href="${href}">${label} ${icon('arrow-right')}</a>`;
 export const lightLink = (href, label) => `<a class="button light" href="${href}">${label} ${icon('arrow-right')}</a>`;
+
