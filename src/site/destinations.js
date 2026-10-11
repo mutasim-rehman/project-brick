@@ -1,5 +1,5 @@
 import { animateWorkflow } from './experiences.js';
-
+import { workflowVisual } from './visualPages.js';
 import { modules, roles } from './content.js';
 import { icon, escapeHtml as e } from './utils.js';
 import { examples, productDemo, bindDemos } from './demo.js';
@@ -77,8 +77,8 @@ const workSteps = [
 
 export function rolesPage() {
   const roleLinks = roles.map(role => `<a href="/platform?module=${encodeURIComponent(role.module)}">${safe(role.name)} ${icon('arrow-up-right')}</a>`).join('');
-  return `${intro('How it works / one record, clear ownership', 'From a site signal to a clear next step.', 'Site information should travel with the work. These four stages show the proposed handoff; a person stays responsible for the decision.')}
-    <section class="wrap journey-page"><div class="journey-intro"><h2>One connected handoff.</h2><p>Records can begin in the field and reach the office with their source and follow-up attached.</p></div><div class="journey-line" aria-label="Four stages of a proposed workflow">${workSteps.map(([number, title, copy]) => `<article class="journey-step"><span>${number} / WORKFLOW</span><h3>${title}</h3><p>${copy}</p></article>`).join('')}</div><section class="journey-role-panel"><div><p class="eyebrow">Different roles, shared context</p><h3>Start with the person doing the work.</h3><p>Choose a role to open a relevant example in the platform preview.</p></div><div class="role-chips">${roleLinks}</div></section></section>`;
+  return `${intro('How It Works / a connected working day', 'A signal. A record. The right person.', 'Follow an example from a field event to a human decision.')}
+    <section class="wrap journey-page">${workflowVisual(workSteps)}<section class="journey-role-panel"><div><p class="eyebrow">Different roles, shared context</p><h3>Find your part in the workflow.</h3><p>Explore the platform through the role you play.</p></div><div class="role-chips">${roleLinks}</div></section><details class="page-more"><summary>Onboarding and learning resources ${icon('plus')}</summary><div><p>Each role has an initial learning path: overview, account or role setup, daily workflow, common exceptions, approvals and the next recommended video.</p><p>Example owner onboarding: create a company and confirm region; configure roles and permissions; add sites and invite administrative staff; select product modules and hardware; configure notifications and escalation rules; review the owner dashboard and exceptions; confirm billing and support contacts.</p><p>Approved onboarding sequences, product workflows, videos, captions and transcripts will be added when available. Role-specific videos will include duration, captions, transcript, chapters and playback-speed controls.</p></div></details></section>`;
 }
 
 const anchorArt = `<svg viewBox="0 0 500 380" fill="none" aria-hidden="true"><path d="M65 294H436M91 314H408" stroke="#b8bbae"/><path d="m136 262 220-114 15 22-218 115Z" fill="#967856"/><path d="m132 164 224 110 16-28-223-111Z" fill="#ba956b"/><path d="m166 235 20-91 110-12 51 100-90 48Z" fill="#828b80"/><path d="m166 235 91 45 90-48-77 14Z" fill="#626f64"/><path d="m186 144 84 102 26-114Z" fill="#a1a79a"/><path d="m219 280 9-205 19-8 6 213Z" fill="#927049"/><path d="m253 280-6-213 12 12 14 197Z" fill="#b38f63"/><path d="M245 82c-34-38-45-60-22-68 25-9 40 30 23 68Z" stroke="#d6c4a2" stroke-width="8"/><path d="m211 198 73-7m-73 16 73-7m-73 16 73-7" stroke="#d6c4a2" stroke-width="7"/></svg>`;
