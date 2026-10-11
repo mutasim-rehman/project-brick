@@ -51,6 +51,8 @@ function setBeat(chapter, index) {
   });
   if (caption && panels[index]) caption.textContent = panels[index].dataset.caption;
   chapter.classList.add('is-live');
+  chapter.dataset.activeBeat=index;
+  chapter.dispatchEvent(new CustomEvent('story-beat',{detail:index}));
 }
 
 export function bindStory() {

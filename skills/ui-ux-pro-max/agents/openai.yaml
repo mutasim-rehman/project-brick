@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI/UX Pro Max"
+  short_description: "Build coherent UI systems with structured design reasoning"
+  default_prompt: "Use $ui-ux-pro-max to develop a coherent design system and UI for this product."

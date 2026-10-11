@@ -1,0 +1,9 @@
+.device-object.has-hardware-model { transform: none !important; perspective: none; }
+.device-object.has-hardware-model > svg { display: none; }
+.device-object.has-hardware-model canvas { width: 100%; height: 100%; display: block; max-width: none; border-radius: 0; }
+.hardware-stage .model-ready .device-object { inset: 5px 0 10px; }
+.model-ready .device-field { opacity: .18; }
+.model-ready .device-plinth,.model-ready .device-shadow { visibility: hidden; }
+.model-ready .device-callout { opacity: .8; }
+.hardware-stage .model-ready { background: radial-gradient(ellipse at 40% 30%,#fffff6 0,#e8eedf 60%,#cbd9c1 100%) !important; }
+@media(max-width:700px) { .hardware-stage .model-ready .device-object { inset: 0 -5px 0; } }

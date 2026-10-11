@@ -1,0 +1,4 @@
+interface:
+  display_name: "Astra Frontend Design"
+  short_description: "Design and verify responsive frontend experiences"
+  default_prompt: "Use $astra-frontend-design to design, implement, and visually verify this frontend request."

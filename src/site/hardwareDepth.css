@@ -1,0 +1,50 @@
+/* A framed product stage with distinct foreground, device and workflow layers. */
+.hardware-stage { position: relative; border: 1px solid #28495b; border-radius: 18px; background: radial-gradient(ellipse at 50% 58%,#264c59 0,#153346 40%,#0d2234 85%); box-shadow: 0 35px 70px #102a472c, 0 6px 16px #102a4720, inset 0 1px #ffffff17; color: #e9f0e7; isolation: isolate; }
+.hardware-stage::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(ellipse at 50% 95%,#b9d37310,transparent 60%); pointer-events: none; z-index: -1; }
+.hardware-stage .hardware-device-nav { margin: 0 26px; border-bottom: 1px solid #bfd3c61d; padding: 12px 0; }
+.hardware-stage .hardware-device-nav button { color: #a6bab9; border-radius: 5px; transition: background .3s,color .3s; }
+.hardware-stage .hardware-device-nav button span { color: #7e9791; }
+.hardware-stage .hardware-device-nav button[aria-pressed=true] { color: #e4f5b2; background: #c7e97b0a; box-shadow: inset 0 -2px #cce88a; }
+.hardware-stage .device-card { background: transparent; border: 0; }
+.hardware-stage .device-copy .eyebrow { color: #b6ce95; }
+.hardware-stage .device-copy h3 { color: #f7f5e9; text-shadow: 0 2px 5px #00000018; }
+.hardware-stage .device-copy > p:not(.eyebrow) { color: #b7c7c7; }
+.hardware-stage .hardware-scroll-hint { color: #9cb184; }
+.hardware-stage .device-record-column > .eyebrow { color: #aebfaf; }
+.device-catalog .hardware-stage .device-card .device-art { background: radial-gradient(ellipse at 50% 35%,#fcfdf5,#e6ecdc 70%,#d1dcc8); border: 1px solid #ffffffb3; border-radius: 16px; box-shadow: 0 30px 35px #030f2060, 0 8px 12px #030f202b, inset 0 1px #fff; min-height: 460px; overflow: hidden; transform-style: preserve-3d; }
+.hardware-stage .device-art::before { opacity: .65; }
+.hardware-stage .device-drawing-label { color: #526c53; left: 20px; top: 19px; font-size: 8px; }
+.hardware-stage .device-coordinate { left: 20px; top: 20px; }
+.hardware-stage .device-scene-footer { border-top-color: #78906430; }
+.hardware-stage .device-object { inset: 22px 6% 45px; }
+.hardware-stage .device-object > svg { filter: drop-shadow(2px 4px 0 #091e3060) drop-shadow(12px 20px 15px #13352735); }
+.device-plinth { position: absolute; left: 13%; right: 13%; bottom: 64px; height: 56px; border-radius: 50%; background: linear-gradient(175deg,#fafff3 0,#d8e0cb 55%,#acbca3 56%,#bfceb0 85%); box-shadow: 0 17px 16px #304c3730, inset 0 1px 3px #fff; transform: perspective(700px) rotateX(48deg); z-index: 1; }
+.hardware-stage .device-shadow { bottom: 77px; z-index: 1; filter: blur(10px); }
+.hardware-stage .hardware-beat-card { position: relative; border: 1px solid #b9d0c726; background: linear-gradient(130deg,#294555a8,#1c394b90); color: #c2d0cc; box-shadow: 0 4px 9px #08172620,inset 0 1px #ffffff08; border-radius: 8px; }
+.hardware-stage .beat-number { color: #9fbd8e; }
+.hardware-stage .beat-detail { color: #aabfb6; }
+.hardware-stage .hardware-beat-card.is-current-beat { background: linear-gradient(125deg,#f7f9ec,#e0eaca); color: #173543; border-color: #d2e793; box-shadow: 0 16px 25px #02111f55,0 0 20px #b8d07912,inset 0 1px #ffffff; transform: translateX(-7px); }
+.hardware-stage .is-current-beat .beat-label,.hardware-stage .is-current-beat .beat-number { color: #587331; }
+.hardware-stage .is-current-beat .beat-detail { color: #5d715d; }
+.hardware-stage .is-current-beat::before { content: ''; position: absolute; inset: 13px auto 13px -1px; width: 3px; border-radius: 3px; background: #a6c94f; }
+.hardware-stage .hardware-beat-card.is-complete-beat { background: #29483e6b; border-color: #b0cc7b3b; }
+.hardware-stage .hardware-position { margin-inline: 28px; background: #d4e2c724; }
+.hardware-stage .hardware-position-fill { background: #cbe78e; box-shadow: 0 0 10px #cbe78e55; }
+.device-catalog .device-disclaimer { margin-top: 25px; }
+.has-hardware-scroll .hardware-stage { top: 98px; height: calc(100svh - 120px); }
+@media(max-width:1049px) {
+  .hardware-stage { background: transparent; box-shadow: none; border: 0; color: inherit; }
+  .hardware-stage .hardware-device-nav { background: #10283c; border: 1px solid #28495b; border-radius: 10px; margin: 0 0 20px; }
+  .hardware-stage .device-card { background: radial-gradient(ellipse at 60% 50%,#234957,#10283c 70%); border: 1px solid #28495b; border-radius: 14px; box-shadow: 0 20px 40px #102a4720; margin-bottom: 28px; }
+}
+@media(max-width:700px) {
+  .device-catalog .hardware-stage .device-card .device-art { min-height: 380px; }
+  .hardware-stage .device-stage { height: 300px; }
+  .hardware-stage .hardware-beat-card.is-current-beat { transform: none; }
+  .hardware-stage .device-drawing-label { font-size: 7px; left: 15px; }
+  .device-plinth { bottom: 49px; height: 46px; }
+}
+@media(min-width:1050px) and (max-height:800px) {
+  .device-catalog .has-hardware-scroll .device-card .device-art { min-height: 390px; }
+}
+@media(prefers-reduced-motion:reduce) { .hardware-stage .hardware-device-nav button { transition: none; } }

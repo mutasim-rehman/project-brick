@@ -1,0 +1,56 @@
+/* Layered field context remains behind the physical device and its shadow. */
+.hardware-stage .device-stage .device-field { opacity: .58; }
+.scene-floor { opacity:.58; }
+.floor-top { fill:#cfdbc7; stroke:#9aac96; stroke-width:.8; }
+.floor-edge { fill:#9faf97; stroke:none; }
+.floor-grid { stroke:#7d957b; stroke-width:.65; opacity:.35; }
+.building-shadow { fill:#193b3220; stroke:none; }
+.building-side { fill:#a0b49e; stroke:#8ba389; stroke-width:.5; }
+.building-front { fill:#b7c8ad; stroke:#8ba389; stroke-width:.5; }
+.building-roof { fill:#edf1de; stroke:#9db294; stroke-width:.9; }
+.building-detail { fill:none; stroke:#becbb0; stroke-width:1; }
+.scene-contours { stroke:#7b9677; stroke-width:.8; opacity:.15; }
+.beacon-base { fill:#a0bd6260; stroke:none; }
+.beacon-ring { fill:none; stroke:#77973c; stroke-width:1.2; }
+.beacon-stem { stroke:#6d8c47; stroke-width:1; stroke-dasharray:2 2; }
+.beacon-light { fill:#d5ed8b; stroke:#567534; stroke-width:1.2; }
+.hardware-stage .field-route-track { stroke:#71815e; stroke-width:1.2; opacity:.25; stroke-dasharray:3 5; }
+.hardware-stage .field-route-glow { stroke:#9bbe38; stroke-width:4; opacity:.15; }
+.hardware-stage .field-route { stroke:#819960; stroke-width:1.3; }
+.hardware-stage .field-packet { fill:#e5efc7; stroke:#7c9660; stroke-width:1.5; }
+.field-packet-halo { fill:#aacd57; stroke:none; }
+.hardware-stage .field-source,.hardware-stage .field-target { fill:#a7c954; stroke:#f6faec; stroke-width:2.5; }
+.hardware-stage .guard-boundary { stroke:#74963c; stroke-width:1.4; stroke-dasharray:5 4; fill:#aacb5f0d; }
+.hardware-stage .guard-sweep { fill:#9ebc3f24; }
+.hardware-stage .guard-lock { stroke:#7a915d; stroke-width:1.2; }
+.hardware-stage .tool-node { fill:#f1f5e4; stroke:#829f58; stroke-width:1.2; filter:drop-shadow(2px 5px 2px #25442f26); }
+.hardware-stage .tool-network > path { stroke:#819869; stroke-width:1.2; opacity:.55; }
+.hardware-stage .gateway-road .road-bed { stroke:#8eaa88; stroke-width:24; opacity:.38; filter:drop-shadow(0 2px 0 #6e886c30); }
+.hardware-stage .road-dashes { stroke:#f6f7e9; stroke-width:1.7; stroke-dasharray:7 9; }
+.hardware-stage .gateway-pin { fill:#deeba9; stroke:#5f7e31; stroke-width:1.3; filter:drop-shadow(0 3px 3px #53692f35); }
+.gateway-pin .pin-shadow { fill:#78934025; stroke:none; }
+.hardware-stage .device-callout { padding:9px 10px; border:1px solid #e9f1dc80; border-radius:7px; background:linear-gradient(130deg,#fffff4bb,#eff5e399); box-shadow:0 3px 8px #29462d0c; backdrop-filter:blur(7px); gap:9px; color:#294639; opacity:1; letter-spacing:0; max-width:42%; }
+.hardware-stage .device-callout span { display:grid; gap:3px; }
+.hardware-stage .device-callout small { font:8px/1.3 monospace; letter-spacing:.09em; text-transform:uppercase; color:#748462; }
+.hardware-stage .device-callout strong { font:600 10px/1.4 Manrope,sans-serif; color:#344d39; }
+.hardware-stage .device-callout i { width:4px; height:4px; flex-shrink:0; box-shadow:0 0 0 3px #a4c45a14; }
+.hardware-stage .callout-source { left:14px; bottom:18px; }
+.hardware-stage .callout-target { right:14px; top:47px; }
+.hardware-stage .device-coordinate { left:20px; top:8px; font:8px/1.7 monospace; letter-spacing:.07em; color:#6b805d; display:block; }
+.hardware-stage .device-coordinate b { font-weight:400; font-size:7px; color:#8b9980; }
+.hardware-stage .device-drawing-label { font-size:9px; letter-spacing:.07em; }
+.hardware-stage .device-scene-status { font-size:10px; }
+.hardware-stage .device-art::before { opacity:.15; }
+@media(max-width:700px) {
+  .hardware-stage .device-callout { padding:7px 8px; gap:7px; }
+  .hardware-stage .device-callout strong { font-size:9px; }
+  .hardware-stage .device-callout small { font-size:7px; }
+  .hardware-stage .callout-source { left:10px; bottom:10px; }
+  .hardware-stage .callout-target { right:10px; top:41px; }
+  .hardware-stage .device-coordinate { left:15px; font-size:7px; }
+  .hardware-stage .device-drawing-label { font-size:8px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .hardware-stage .field-packet-halo { display:none; }
+  .hardware-stage .field-route-glow { opacity:.2!important; }
+}

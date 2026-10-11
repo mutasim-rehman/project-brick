@@ -2,6 +2,7 @@ import { modules, roles, policies } from './content.js';
 import { icon, escapeHtml } from './utils.js';
 import { cta } from './shared.js';
 import { examples } from './demo.js';
+import { dinnerScene, handoffScene, bindHomeNarrative } from './homeNarrative.js';
 import { storyPage, storyHero, downLink, textLink, lightLink } from './story.js';
 import { blueprintHero, bindBlueprint } from './blueprint.js';
 
@@ -47,8 +48,7 @@ export function homePage() {
         kicker: '02 / Dinner, interrupted',
         title: 'You meant to be off the clock.',
         copy: 'The calls keep coming, and the details are scattered across messages and paper invoices.',
-        figure: card(),
-        caption: 'Proposed workflow · example',
+        figure: dinnerScene(), caption: 'After-hours interruptions · example',
         beats: [
           { label: 'Calls', caption: 'The shift is over. The calls are not.', rows: [['Moment', 'After hours'], ['Channel', 'Phone calls'], ['Owner', 'Still the contact']] },
           { label: 'Messages', caption: 'The detail is split across threads.', rows: [['Source', 'Messages'], ['Gap', 'No shared record'], ['Result', 'The day gets rebuilt']] },
@@ -62,8 +62,7 @@ export function homePage() {
         kicker: '03 / The handoff',
         title: 'Give each issue a place to go.',
         copy: 'Site Killick connects a record to the person responsible. Your team can follow up with the context, while you keep the decisions that truly need you.',
-        figure: card(),
-        caption: 'Proposed workflow · example',
+        figure: handoffScene(), caption: 'Connected handoff · example',
         beats: [
           { label: 'Record', caption: 'Site information is recorded with the work.', rows: [['Record', 'Attendance, work, safety or assets'], ['Status', 'Captured'], ['Example', 'Sample record']] },
           { label: 'Route', caption: 'The issue reaches the responsible role.', rows: [['To', 'Assigned role'], ['With', 'The record'], ['Owner', 'No longer the switchboard']] },
@@ -91,6 +90,7 @@ export function homePage() {
 
 export function bindHome(refreshIcons) {
   bindBlueprint();
+  bindHomeNarrative();
   const motion = document.querySelector('#motion-toggle');
   const modelHost = document.querySelector('#construction-model');
   if (!motion || !modelHost) return;
@@ -318,3 +318,5 @@ export function notFound() {
     actions: `<a class="button primary" href="/">Back to the site ${icon('arrow-right')}</a>`,
   });
 }
+
+
