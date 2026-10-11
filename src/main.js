@@ -15,6 +15,7 @@ import './site/hardwareModels.css';
 import './site/hardwareEnvironments.css';
 import './site/computerNetwork.css';
 import './site/visualPages.css';
+import './site/homeNarrative.css';
 import { bindVisualPages } from './site/visualPages.js';
 import { bindExperiences } from './site/experiences.js';
 import { createIcons, ArrowUpRight, ArrowRight, ArrowLeft, ArrowDown, Check, ChevronRight, Users, ClipboardList, ShieldCheck, Wrench, Truck, ChartNoAxesCombined, BriefcaseBusiness, ReceiptText, HardHat, UserCheck, Hammer, Contact, Info, Link, Download, ScanLine, Radio, FileCheck, Eye, Clock, Paperclip, Menu, X, Settings2, Pause, Play, Plus, Minus, CheckCheck, MapPin, Circle, Mail, ChevronDown, Building2, Layers3 } from 'lucide';
