@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Design"
+  short_description: "Create distinctive greenfield frontend concepts"
+  default_prompt: "Use $frontend-design to create a distinctive frontend concept for this product."
