@@ -32,6 +32,13 @@ try {
   await page.evaluate(()=>scrollTo(0,0));
   await page.waitForTimeout(1000);
   assert.equal(await page.locator('.cinema-canvas').getAttribute('data-build-progress'),initialProgress,'Scrolling back must reverse the build');
+  await page.locator('.cinema-statement').evaluate(node=>scrollTo(0,node.offsetTop-160));
+  await page.waitForTimeout(1500);
+  await page.screenshot({path:`${output}/editorial.png`});
+  const ribbonBefore=await page.locator('.cinema-flow-blue path').evaluate(node=>getComputedStyle(node).strokeDashoffset);
+  await page.locator('.cinema-statement').evaluate(node=>scrollTo(0,node.offsetTop+200));
+  await page.waitForTimeout(1000);
+  assert.notEqual(await page.locator('.cinema-flow-blue path').evaluate(node=>getComputedStyle(node).strokeDashoffset),ribbonBefore,'Ribbon drawing must follow scroll');
   await page.locator('.cinema-record-journey').evaluate(node => scrollTo(0, node.offsetTop + node.offsetHeight - innerHeight));
   await page.waitForTimeout(1500);
   await page.screenshot({ path: `${output}/handoff.png` });
@@ -39,6 +46,9 @@ try {
   await page.locator('[data-site-zone="stores"]').click();
   assert.equal(await page.locator('[data-site-zone="stores"]').getAttribute('aria-pressed'), 'true');
   assert.match(await page.locator('#bp-record').innerText(), /Every handoff has a trail/);
+  await page.locator('.cinema-plan-intro').evaluate(node=>scrollTo(0,node.offsetTop-100));
+  await page.waitForTimeout(1500);
+  await page.screenshot({path:`${output}/editorial-cyan.png`});
   for (const width of [390, 768]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto(root);
@@ -67,6 +77,8 @@ try {
   assert.equal(await page.locator('.cinema-pause').getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('.cinema-stage').evaluate(node => getComputedStyle(node).position), 'relative');
   assert.equal(await page.locator('[data-cinema-state]').innerText(), 'ONE CONNECTED PICTURE');
+  assert.equal(await page.locator('.cinema-flow-blue path').evaluate(node=>getComputedStyle(node).strokeDasharray),'none');
+  assert.equal(await page.locator('#cinema-title .cinema-title-line').first().evaluate(node=>getComputedStyle(node).transform),'none');
   assert.deepEqual(errors, []);
   console.log('PASS: WebGL, assembly, record handoff, site zones, 390/768/1440px layouts, navigation and reduced motion.');
 } finally { await browser.close(); }

@@ -8,12 +8,13 @@ Run `npm run dev` and open the URL printed by Vite. The experiment is the `/` ro
 
 ## Direction
 
-Inspired by the pacing and coordinated scenes on lusion.co, with original construction imagery and Site Killick's navy, warm paper and citron palette:
+Inspired by the pacing and coordinated scenes on lusion.co, with original construction imagery and a restrained pale-neutral, charcoal and blue palette:
 
 - A blue drafting surface draws a floor plan, footings, three storeys, facade windows and roof details in fine architectural linework. The orthographic camera moves from an overhead plan to an angled building view. The build follows scroll position in both directions, with no automatic playback. At completion, internal linework fades away and a depth-occluding exterior shell reveals only the visible outside edges and windows. Mouse movement gently changes the view.
 - A second scroll sequence brings scattered attendance, tool and work records into alignment, then reveals the responsible people.
 - The completed building includes a roof access pavilion, pergola, terrace furniture, solar array, planters, balconies, side garage, driveway, parked vehicle, garden trees and shrubs, entrance path, pavement and marked road. The final scroll phase pulls back to frame the whole site.
 - Editorial headings reveal as they enter the viewport; the existing interactive site plan remains available below the story.
+- The editorial sections use a pale neutral canvas, near-black regular-weight headings, white/charcoal record cards and blue/cyan accents. Decorative curved SVG strokes draw and drift with scroll in the quieter statement sections. Masked heading lines enter from alternating directions, with staggered timing; reduced motion keeps them static and fully readable.
 - The scene loads separately from the page. A CSS blueprint illustration remains available if graphics initialization fails.
 - Pause controls stop pointer motion; the building continues to follow intentional scrolling. Reduced motion starts with the finished exterior, removes long pinned sequences and displays records immediately. Mobile displays the record sequence as readable stacked cards.
 
