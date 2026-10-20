@@ -47,6 +47,9 @@ try {
     await page.screenshot({ path: `${output}/mobile-${width}.png`, fullPage: true });
     if (width === 390) {
       await page.screenshot({ path: `${output}/mobile-hero.png` });
+      await page.locator('.cinema-journey').evaluate(node=>scrollTo(0,node.offsetTop+node.offsetHeight-innerHeight));
+      await page.waitForTimeout(1000);
+      await page.screenshot({path:`${output}/mobile-finished.png`});
       for (const [selector, name] of [['.cinema-statement', 'mobile-story'], ['.cinema-record-stage', 'mobile-records'], ['.blueprint-surface', 'mobile-plan']]) {
         await page.locator(selector).scrollIntoViewIfNeeded();
         await page.waitForTimeout(1200);

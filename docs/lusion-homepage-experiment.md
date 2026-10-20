@@ -12,6 +12,7 @@ Inspired by the pacing and coordinated scenes on lusion.co, with original constr
 
 - A blue drafting surface draws a floor plan, footings, three storeys, facade windows and roof details in fine architectural linework. The orthographic camera moves from an overhead plan to an angled building view. The build follows scroll position in both directions, with no automatic playback. At completion, internal linework fades away and a depth-occluding exterior shell reveals only the visible outside edges and windows. Mouse movement gently changes the view.
 - A second scroll sequence brings scattered attendance, tool and work records into alignment, then reveals the responsible people.
+- The completed building includes a roof access pavilion, pergola, terrace furniture, solar array, planters, balconies, side garage, driveway, parked vehicle, garden trees and shrubs, entrance path, pavement and marked road. The final scroll phase pulls back to frame the whole site.
 - Editorial headings reveal as they enter the viewport; the existing interactive site plan remains available below the story.
 - The scene loads separately from the page. A CSS blueprint illustration remains available if graphics initialization fails.
 - Pause controls stop pointer motion; the building continues to follow intentional scrolling. Reduced motion starts with the finished exterior, removes long pinned sequences and displays records immediately. Mobile displays the record sequence as readable stacked cards.
