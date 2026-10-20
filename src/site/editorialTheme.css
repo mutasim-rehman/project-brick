@@ -25,7 +25,16 @@
 .editorial-site .editorial-intro { position:relative; isolation:isolate; }
 .editorial-site .editorial-intro> :not(.editorial-flow) { position:relative; z-index:1; }
 .editorial-flow { position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; overflow:visible; }
-.editorial-flow path { stroke:#36d1df; stroke-width:18; stroke-linecap:round; }
+.editorial-flow path { stroke:var(--flow-color,#36d1df); stroke-width:18; stroke-linecap:round; stroke-linejoin:round; }
+.editorial-flow-connections path:last-child { stroke-width:10; opacity:.5; }
+.editorial-flow-signal-rings path { stroke-width:12; }
+.editorial-flow-signal-rings path:nth-child(2) { opacity:.6; }
+.editorial-flow-signal-rings path:nth-child(3) { opacity:.3; }
+.editorial-flow-rising-arcs path { stroke-width:13; }
+.editorial-flow-rising-arcs path:nth-child(2) { opacity:.4; }
+.editorial-flow-rising-arcs path:nth-child(3) { opacity:.7; }
+.editorial-flow-anchor-orbit path { stroke-width:20; }
+.editorial-flow-meeting-lines path:last-child { opacity:.55; }
 .editorial-word-mask { display:inline-block; overflow:hidden; vertical-align:bottom; padding-bottom:.12em; margin-bottom:-.12em; }
 .editorial-word { display:inline-block; }
 .editorial-site .platform-explorer-head h2,.editorial-site .device-catalog-head h2,.editorial-site .utility-intro>h2 { font-size:clamp(32px,3.3vw,48px); line-height:1.1; max-width:800px; }

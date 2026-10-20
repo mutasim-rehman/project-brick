@@ -8,7 +8,7 @@ const output='artifacts/editorial-theme';await mkdir(output,{recursive:true});
 const routes=['/platform','/hardware','/how-it-works','/pricing','/about','/contact','/legal',...policies.map(p=>`/legal/${p.slug}`),'/sign-in','/not-found'];
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 try{
-  const page=await browser.newPage({viewport:{width:1440,height:1000}}), errors=[];
+  const page=await browser.newPage({viewport:{width:1440,height:1000}}), errors=[], flowShapes=new Set();
   page.on('pageerror',e=>errors.push(e.message));
   for(const route of routes){
     await page.goto(root+route,{waitUntil:'domcontentloaded'});
@@ -17,11 +17,13 @@ try{
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`Desktop overflow: ${route}`);
     assert(await page.locator('body').evaluate(node=>node.classList.contains('editorial-site')));
     if(routes.indexOf(route)<6){
+      flowShapes.add(await page.locator('.editorial-flow').evaluate(svg=>[...svg.querySelectorAll('path')].map(p=>p.getAttribute('d')).join('|')));
       await page.waitForFunction(()=>[...document.querySelectorAll('h1 .editorial-word')].every(node=>getComputedStyle(node).transform==='none'));
       await page.waitForTimeout(400);
       await page.screenshot({path:`${output}/${route.slice(1)}-desktop.png`});
     }
   }
+  assert.equal(flowShapes.size,6,'Each marketing page needs a distinct flow silhouette');
   await page.goto(root+'/platform');
   for(const button of await page.locator('[data-module]').all()){
     await button.click();
@@ -59,7 +61,7 @@ try{
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.goto(root+'/platform');
   assert.equal(await page.locator('h1 .editorial-word').first().evaluate(node=>getComputedStyle(node).transform),'none');
-  assert.equal(await page.locator('.editorial-flow path').evaluate(node=>getComputedStyle(node).strokeDasharray),'none');
+  assert.equal(await page.locator('.editorial-flow path').first().evaluate(node=>getComputedStyle(node).strokeDasharray),'none');
   assert.deepEqual(errors,[]);
   console.log(`PASS: ${routes.length} routes at desktop and phone widths; six platform workflows, four workflow stages, four devices, accordion, navigation, reduced motion; no page errors.`);
 }finally{await browser.close();}

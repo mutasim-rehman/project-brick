@@ -30,6 +30,8 @@ This is a local visual experiment, with no deployment or merge. Performance on p
 
 ## Shared theme across pages
 
-The other routes use `editorialTheme.css` and `editorialTheme.js`: shared neutral palette, regular-weight typography, consistent header/footer/buttons, and masked word entrances on editorial headings. Marketing introductions include a scroll-driven cyan stroke. Legal/access pages remain quieter. Existing product tabs, review/reset controls, workflow stages, hardware scrolling, contact behavior and policy content retain their original controllers. Hardware and workflow renderers use neutral lighting and cool accent colors.
+The other routes use `editorialTheme.css` and `editorialTheme.js`: shared neutral palette, regular-weight typography, consistent header/footer/buttons, and masked word entrances on editorial headings. Marketing introductions use page-specific scroll drawings. Legal/access pages remain quieter. Existing product tabs, review/reset controls, workflow stages, hardware scrolling, contact behavior and policy content retain their original controllers. Hardware and workflow renderers use neutral lighting and cool accent colors.
+
+Each marketing route has its own scroll motif and motion: Platform uses linked strands; Hardware uses signal rings; How It Works uses a stepped handoff route; Pricing uses rising arcs; About uses an orbit; Contact uses converging lines. Draw directions, stagger, drift and rotation vary by route within the shared cyan/violet palette.
 
 `npm run test:editorial` checks all 20 non-home routes at 1440px and 390px, the six product workflows and review/reset controls, four workflow stages, four hardware selectors, pricing accordion, mobile menu, and reduced motion. Visual captures are saved to `artifacts/editorial-theme/` (ignored by Git).
