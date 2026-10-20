@@ -5,8 +5,9 @@ import { loadEnv } from 'vite';
 // Each public URL receives crawlable HTML as well as the interactive client app.
 globalThis.__SITE_BUILD_ENV__ = loadEnv('production', process.cwd(), 'VITE_');
 globalThis.location = new URL('http://localhost/');
-const { homePage, platformPage, rolesPage, aboutPage, legalPage, signInPage, notFound } = await import('../src/site/pages.js');
+const { platformPage, rolesPage, aboutPage, legalPage, signInPage, notFound } = await import('../src/site/pages.js');
 const { pricingPage } = await import('../src/site/pricing.js');
+const { cinematicHome } = await import('../src/site/cinematicHome.js');
 const { hardwarePage } = await import('../src/site/hardware.js');
 const { contactPage } = await import('../src/site/contact.js');
 const { policies } = await import('../src/site/content.js');
@@ -14,7 +15,7 @@ const { escapeHtml } = await import('../src/site/utils.js');
 const { appUrl } = await import('../src/site/shared.js');
 const shell = await readFile('dist/index.html','utf8');
 const routes = [
-  ['/', 'Construction Operations & Asset Intelligence',homePage],
+  ['/', 'A whole site. A lighter mind.',cinematicHome],
   ['/platform','Platform & Features',platformPage],
   ['/hardware','Four pieces of hardware',hardwarePage],
   ['/how-it-works','How It Works',rolesPage],

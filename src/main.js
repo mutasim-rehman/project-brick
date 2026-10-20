@@ -20,10 +20,14 @@ import './site/computerNetwork.css';
 import './site/visualPages.css';
 import './site/homeNarrative.css';
 import './site/designSystem.css';
+import './site/cinematicHome.css';
+import './site/editorialTheme.css';
+import { bindEditorialTheme } from './site/editorialTheme.js';
+import { cinematicHome, bindCinematicHome } from './site/cinematicHome.js';
 import { bindVisualPages } from './site/visualPages.js';
 import { bindExperiences } from './site/experiences.js';
 import { createIcons, ArrowUpRight, ArrowRight, ArrowLeft, ArrowDown, Check, ChevronRight, Users, ClipboardList, ShieldCheck, Wrench, Truck, ChartNoAxesCombined, BriefcaseBusiness, ReceiptText, HardHat, UserCheck, Hammer, Contact, Info, Link, Download, ScanLine, Radio, FileCheck, Eye, Clock, Paperclip, Menu, X, Settings2, Pause, Play, Plus, Minus, CheckCheck, MapPin, Circle, Mail, ChevronDown, Building2, Layers3 } from 'lucide';
-import { homePage, bindHome, legalPage, notFound, signInPage } from './site/pages.js';
+import { legalPage, notFound, signInPage } from './site/pages.js';
 import { platformPage, bindPlatform, rolesPage, aboutPage } from './site/destinations.js';
 import { pricingPage } from './site/pricing.js';
 import { contactPage, bindContact } from './site/contact.js';
@@ -38,12 +42,14 @@ const icons = { ArrowUpRight, ArrowRight, ArrowLeft, ArrowDown, Check, ChevronRi
 const refreshIcons = () => createIcons({ icons, attrs: { 'stroke-width': 1.6 } });
 const path = location.pathname.replace(/\/$/, '') || '/';
 document.body.classList.toggle('blueprint-home', path === '/');
+document.body.classList.toggle('cinematic-home', path === '/');
+document.body.classList.toggle('editorial-site', path !== '/');
 const nav = [['/platform','Platform'],['/hardware','Hardware'],['/how-it-works','How It Works'],['/pricing','Pricing'],['/about','About'],['/contact','Contact']];
-const titles = { '/':'The site follows you home', '/platform':'Explore the platform', '/hardware':'Four pieces of hardware', '/how-it-works':'A working day, connected', '/pricing':'Pricing', '/contact':'Contact', '/about':'About & Trust', '/legal':'Trust & policies', '/sign-in':'Workspace access' };
+const titles = { '/':'A whole site. A lighter mind.', '/platform':'Explore the platform', '/hardware':'Four pieces of hardware', '/how-it-works':'A working day, connected', '/pricing':'Pricing', '/contact':'Contact', '/about':'About & Trust', '/legal':'Trust & policies', '/sign-in':'Workspace access' };
 const policy = path.startsWith('/legal/') ? policies.find(p => p.slug === path.split('/')[2]) : null;
 document.title = `${policy?.title || titles[path] || 'Page not found'} — Site Killick`;
 document.querySelector('meta[name="description"]').content = path === '/' ? 'See how Site Killick helps construction teams connect crew attendance, safety records, tools and equipment, so every question does not have to reach the owner.' : path === '/hardware' ? 'Four Site Killick devices: an NFC site badge, guard tag, tool tag and vehicle gateway. Example records show how each signal reaches the office.' : 'Explore Site Killick: construction operations software designed to connect crew attendance, safety records, tools and equipment. Interactive product preview.';
-const pages = {'/':homePage,'/platform':platformPage,'/hardware':hardwarePage,'/how-it-works':rolesPage,'/pricing':pricingPage,'/contact':contactPage,'/about':aboutPage,'/legal':()=>legalPage(),'/sign-in':()=>signInPage(appUrl)};
+const pages = {'/':cinematicHome,'/platform':platformPage,'/hardware':hardwarePage,'/how-it-works':rolesPage,'/pricing':pricingPage,'/contact':contactPage,'/about':aboutPage,'/legal':()=>legalPage(),'/sign-in':()=>signInPage(appUrl)};
 const page = pages[path] ? pages[path]() : path.startsWith('/legal/') ? legalPage(path.split('/')[2]) : notFound();
 document.querySelector('#app').innerHTML = `<header class="site-header"><div class="header-inner">${brand()}<nav class="desktop-nav" aria-label="Main navigation">${nav.map(([url,label])=>`<a href="${url}" ${path===url?'aria-current="page"':''}>${label}</a>`).join('')}</nav><div class="header-actions">${appUrl?'<a class="sign-in" href="/sign-in">Sign in</a>':''}<a class="button primary header-demo" href="/platform">${ctaLabel} ${icon('arrow-up-right')}</a><button class="menu-toggle icon-button" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav">${icon('menu')}</button></div></div><nav id="mobile-nav" class="mobile-nav" aria-label="Mobile navigation" hidden>${nav.map(([url,label])=>`<a href="${url}" ${path===url?'aria-current="page"':''}>${label}${icon('arrow-right')}</a>`).join('')}</nav></header><main id="main" tabindex="-1">${page}</main><footer class="site-footer"><div class="wrap footer-top"><div class="footer-brand">${brand()}<p>Leave the site at the site.<br>Your business should not follow you to bed.</p><span class="footer-location">${icon('map-pin')} Inspired by Atlantic Canada</span></div><div><h2>Explore</h2>${nav.map(([url,label])=>`<a href="${url}">${label}</a>`).join('')}</div><div><h2>Explore the preview</h2><a href="/platform">${ctaLabel}</a><a href="/contact">Contact</a><a href="/legal/security">Security contact & vulnerability disclosure</a><a href="/legal/hardware">Hardware terms & warranty</a></div><div class="footer-note"><span class="status-dot"></span> Product preview<p>Explore the proposed workflows. Current, pilot and planned feature availability is subject to confirmation.</p></div></div><div class="wrap footer-bottom"><span>© ${new Date().getFullYear()} Site Killick</span><div><a href="/legal/privacy">Privacy</a><a href="/legal/terms">Terms</a><a href="/legal/cookies">Cookies</a><a href="/legal/accessibility">Accessibility</a></div><span>Leave the site at the site.</span></div></footer>`;
 refreshIcons();
@@ -52,7 +58,7 @@ const menu = document.querySelector('.menu-toggle'), mobile = document.querySele
 const closeMenu = () => { mobile.hidden=true;menu.setAttribute('aria-expanded','false');menu.setAttribute('aria-label','Open navigation'); };
 menu.onclick=()=>{const open=mobile.hidden;mobile.hidden=!open;menu.setAttribute('aria-expanded',String(open));menu.setAttribute('aria-label',open?'Close navigation':'Open navigation');};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
-if(path==='/')bindHome(refreshIcons);
+if(path==='/'){window.addEventListener('cinema-icons', refreshIcons);bindCinematicHome();}
 if(path==='/platform')bindPlatform(refreshIcons);
 if(path==='/contact')bindContact(refreshIcons);
 bindStory();
@@ -63,4 +69,4 @@ bindVisualPages();
 if (path === '/hardware') bindHardware();
 
 bindInteractionPolish();
-
+if(path!=='/')bindEditorialTheme();

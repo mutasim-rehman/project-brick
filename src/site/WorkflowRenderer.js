@@ -13,7 +13,7 @@ export function mountWorkflowModel(host) {
   // Supersample even on standard-density displays to keep fine edges crisp.
   renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio,2),3));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
   const scene=new THREE.Scene(),group=new THREE.Group();scene.add(group);
-  const navy=new THREE.MeshStandardMaterial({color:0x183544,metalness:.4,roughness:.3}),metal=new THREE.MeshStandardMaterial({color:0x8b9e95,metalness:.75,roughness:.25}),paper=new THREE.MeshStandardMaterial({color:0xedf1df,roughness:.5}),rubber=new THREE.MeshStandardMaterial({color:0x152d37,roughness:.75}),lime=new THREE.MeshStandardMaterial({color:0xbdd781,emissive:0xbdd781,emissiveIntensity:.2,roughness:.4});
+  const navy=new THREE.MeshStandardMaterial({color:0x183544,metalness:.4,roughness:.3}),metal=new THREE.MeshStandardMaterial({color:0x8b9e95,metalness:.75,roughness:.25}),paper=new THREE.MeshStandardMaterial({color:0xf2f1fa,roughness:.5}),rubber=new THREE.MeshStandardMaterial({color:0x152d37,roughness:.75}),lime=new THREE.MeshStandardMaterial({color:0x8b83f2,emissive:0x8b83f2,emissiveIntensity:.2,roughness:.4});
   const box=(parent,w,h,d,material,x=0,y=0,z=0)=>{const m=new THREE.Mesh(shape(w,h,d),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
   const disk=(parent,r,d,material,x,y,z)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d,64),material);m.rotation.x=Math.PI/2;m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m;};
   const record=new THREE.Group();group.add(record);record.rotation.z=.025;
@@ -26,7 +26,7 @@ export function mountWorkflowModel(host) {
   const badge=new THREE.Group();group.add(badge);disk(badge,.38,.1,metal,0,0,0);disk(badge,.35,.11,paper,0,0,.05);
   const head=new THREE.Mesh(new THREE.TorusGeometry(.076,.011,8,48),navy);head.position.set(0,.085,.12);badge.add(head);
   const shoulders=new THREE.Mesh(new THREE.TorusGeometry(.16,.013,8,50,Math.PI),navy);shoulders.position.set(0,-.15,.12);badge.add(shoulders);
-  const seal=new THREE.Group();group.add(seal);disk(seal,.22,.055,lime,0,0,0);const check=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.09,0,.035),new THREE.Vector3(-.025,-.065,.035),new THREE.Vector3(.105,.085,.035)]);seal.add(new THREE.Line(check,new THREE.LineBasicMaterial({color:0x486239})));
+  const seal=new THREE.Group();group.add(seal);disk(seal,.22,.055,lime,0,0,0);const check=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-.09,0,.035),new THREE.Vector3(-.025,-.065,.035),new THREE.Vector3(.105,.085,.035)]);seal.add(new THREE.Line(check,new THREE.LineBasicMaterial({color:0x413c72})));
   const ticket=new THREE.Group();group.add(ticket);box(ticket,.33,.19,.015,paper);box(ticket,.19,.013,.005,lime,0,.015,.025);
   // An identity card physically taps the reader; context stays on the record.
   const tapCard=new THREE.Group();group.add(tapCard);box(tapCard,.53,.75,.025,paper);box(tapCard,.43,.14,.01,navy,0,.23,.025);disk(tapCard,.075,.01,lime,0,.04,.025);box(tapCard,.31,.015,.006,metal,0,-.15,.025);box(tapCard,.22,.015,.006,metal,0,-.21,.025);
@@ -37,12 +37,12 @@ export function mountWorkflowModel(host) {
   });
   // Visible handoff path and a record copy that travels all the way to its owner.
   const routeCurve=new THREE.CubicBezierCurve3(new THREE.Vector3(.68,.24,.56),new THREE.Vector3(1.6,.43,.76),new THREE.Vector3(1.68,-.73,.94),new THREE.Vector3(1.16,-.8,.87));
-  const route=new THREE.Mesh(new THREE.TubeGeometry(routeCurve,80,.007,8,false),new THREE.MeshBasicMaterial({color:0x8ca263,transparent:true,opacity:.38}));group.add(route);
+  const route=new THREE.Mesh(new THREE.TubeGeometry(routeCurve,80,.007,8,false),new THREE.MeshBasicMaterial({color:0x827aca,transparent:true,opacity:.38}));group.add(route);
   const inbox=new THREE.Group();group.add(inbox);box(inbox,.7,.055,.3,metal,1.16,-1.015,.76);box(inbox,.66,.024,.26,navy,1.16,-.977,.76);
   box(ticket,.26,.013,.005,metal,0,-.035,.026);
-  const reviewFocus=new THREE.Mesh(new THREE.TorusGeometry(.45,.009,8,64),new THREE.MeshBasicMaterial({color:0x97b16a}));group.add(reviewFocus);
-  const waves=Array.from({length:3},()=>{const ring=new THREE.Mesh(new THREE.TorusGeometry(.22,.004,6,64),new THREE.MeshBasicMaterial({color:0x96b45a,transparent:true,opacity:0,depthWrite:false}));group.add(ring);return ring;});
-  scene.add(new THREE.HemisphereLight(0xffffed,0x475767,2.1));const key=new THREE.DirectionalLight(0xfff9e7,4);key.position.set(-3,6,5);key.castShadow=true;key.shadow.mapSize.set(2048,2048);key.shadow.normalBias=.008;key.shadow.radius=2;Object.assign(key.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:.5,far:15});key.shadow.camera.updateProjectionMatrix();scene.add(key);const fill=new THREE.DirectionalLight(0xc8e0df,1.4);fill.position.set(4,1,3);scene.add(fill);const rim=new THREE.DirectionalLight(0xe2f6b5,2.2);rim.position.set(3,3,-3);scene.add(rim);
+  const reviewFocus=new THREE.Mesh(new THREE.TorusGeometry(.45,.009,8,64),new THREE.MeshBasicMaterial({color:0x8e86df}));group.add(reviewFocus);
+  const waves=Array.from({length:3},()=>{const ring=new THREE.Mesh(new THREE.TorusGeometry(.22,.004,6,64),new THREE.MeshBasicMaterial({color:0x8e86df,transparent:true,opacity:0,depthWrite:false}));group.add(ring);return ring;});
+  scene.add(new THREE.HemisphereLight(0xf5f4ff,0x475767,2.1));const key=new THREE.DirectionalLight(0xf7f7ff,4);key.position.set(-3,6,5);key.castShadow=true;key.shadow.mapSize.set(2048,2048);key.shadow.normalBias=.008;key.shadow.radius=2;Object.assign(key.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:.5,far:15});key.shadow.camera.updateProjectionMatrix();scene.add(key);const fill=new THREE.DirectionalLight(0xc8e0df,1.4);fill.position.set(4,1,3);scene.add(fill);const rim=new THREE.DirectionalLight(0xcac5ff,2.2);rim.position.set(3,3,-3);scene.add(rim);
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(9,9),new THREE.ShadowMaterial({opacity:.12}));floor.rotation.x=-Math.PI/2;floor.position.y=-1.16;floor.receiveShadow=true;scene.add(floor);
   const camera=new THREE.PerspectiveCamera(34,1,.1,30);camera.position.set(1.35,.9,4.7);camera.lookAt(0,-.17,0);
   holder.append(renderer.domElement);holder.classList.add('is-rendered');renderer.domElement.setAttribute('aria-hidden','true');
@@ -85,10 +85,3 @@ export function mountWorkflowModel(host) {
   renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();cancelAnimationFrame(frame);holder.classList.remove('is-rendered');renderer.domElement.remove();pause.hidden=true;});
   window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();reduce.removeEventListener('change',sync);scene.traverse(object=>{object.geometry?.dispose();object.material?.map?.dispose();object.material?.dispose();});renderer.dispose();},{once:true});
 }
-
-
-
-
-
-
-

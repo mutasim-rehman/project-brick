@@ -8,7 +8,9 @@
     "build": "vite build && node scripts/build-pages.mjs",
     "preview": "vite preview",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node scripts/verify-site.mjs"
+    "test:browser": "node scripts/verify-site.mjs",
+    "test:cinematic": "node scripts/verify-cinematic.mjs",
+    "test:editorial": "node scripts/verify-editorial.mjs"
   },
   "devDependencies": {
     "vite": "^8.3.0"

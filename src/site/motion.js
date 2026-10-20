@@ -27,6 +27,8 @@ const revealSelectors = [
 
 export function bindReveals() {
   bindReadingProgress();
+  // The shared editorial motion owns these entrances; avoid double transforms.
+  if(document.body.classList.contains('editorial-site'))return;
   if (!('IntersectionObserver' in window)) return;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (reduce.matches) return;
