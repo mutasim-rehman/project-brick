@@ -13,6 +13,9 @@ try {
   await page.goto(root);
   await page.locator('.cinema-canvas canvas').waitFor();
   await page.waitForTimeout(1000);
+  const initialProgress=await page.locator('.cinema-canvas').getAttribute('data-build-progress');
+  await page.waitForTimeout(1000);
+  assert.equal(await page.locator('.cinema-canvas').getAttribute('data-build-progress'),initialProgress,'Build must stay still without scroll');
   assert.equal(await page.locator('h1').count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   await page.screenshot({ path: `${output}/desktop.png` });
@@ -24,7 +27,11 @@ try {
   });
   await page.waitForTimeout(1500);
   assert.equal(await page.locator('[data-cinema-state]').innerText(), 'ONE CONNECTED PICTURE');
+  assert.equal(await page.locator('.cinema-canvas').getAttribute('data-exterior'),'complete');
   await page.screenshot({ path: `${output}/assembled.png` });
+  await page.evaluate(()=>scrollTo(0,0));
+  await page.waitForTimeout(1000);
+  assert.equal(await page.locator('.cinema-canvas').getAttribute('data-build-progress'),initialProgress,'Scrolling back must reverse the build');
   await page.locator('.cinema-record-journey').evaluate(node => scrollTo(0, node.offsetTop + node.offsetHeight - innerHeight));
   await page.waitForTimeout(1500);
   await page.screenshot({ path: `${output}/handoff.png` });

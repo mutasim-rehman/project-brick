@@ -10,11 +10,11 @@ Run `npm run dev` and open the URL printed by Vite. The experiment is the `/` ro
 
 Inspired by the pacing and coordinated scenes on lusion.co, with original construction imagery and Site Killick's navy, warm paper and citron palette:
 
-- A blue drafting surface draws a floor plan, footings, three storeys, facade windows and roof details in fine architectural linework. The orthographic camera moves from an overhead plan to an angled building view. The build runs automatically on arrival; scrolling can advance it. Mouse movement gently changes the view.
+- A blue drafting surface draws a floor plan, footings, three storeys, facade windows and roof details in fine architectural linework. The orthographic camera moves from an overhead plan to an angled building view. The build follows scroll position in both directions, with no automatic playback. At completion, internal linework fades away and a depth-occluding exterior shell reveals only the visible outside edges and windows. Mouse movement gently changes the view.
 - A second scroll sequence brings scattered attendance, tool and work records into alignment, then reveals the responsible people.
 - Editorial headings reveal as they enter the viewport; the existing interactive site plan remains available below the story.
 - The scene loads separately from the page. A CSS blueprint illustration remains available if graphics initialization fails.
-- Pause controls stop the automatic drafting sequence and pointer motion. Reduced motion starts with the complete structure, removes long pinned sequences and displays records immediately. Mobile displays the record sequence as readable stacked cards.
+- Pause controls stop pointer motion; the building continues to follow intentional scrolling. Reduced motion starts with the finished exterior, removes long pinned sequences and displays records immediately. Mobile displays the record sequence as readable stacked cards.
 
 ## Validation
 

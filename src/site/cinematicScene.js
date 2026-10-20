@@ -30,7 +30,7 @@ export function createCinematicScene(host, { paused = false } = {}) {
     const material = new THREE.LineBasicMaterial({ color, transparent:true, opacity, depthWrite:false });
     root.add(new THREE.LineSegments(geometry, material));
     geometries.push(geometry); materials.push(material);
-    phases.push({ geometry, start, end, count:buffer.length/3 });
+    phases.push({ geometry, material, opacity, start, end, count:buffer.length/3 });
   };
   // Double wall lines, rooms, door arcs and stair core form the initial floor plan.
   const plan = [];
@@ -104,13 +104,60 @@ export function createCinematicScene(host, { paused = false } = {}) {
   line(dimensions,[-4.8,floor,-2.4],[-4.8,floor,2.4]);
   for(const z of [-2.4,2.4]) line(dimensions,[-5.05,floor,z],[-4.55,floor,z]);
   phase(dimensions,.02,.2,.45);
+  // The final shell writes depth, so windows and edges on the far side are hidden.
+  // Construction linework fades out instead of showing through the finished facade.
+  const exterior=new THREE.Group();root.add(exterior);
+  const exteriorMaterials=[];
+  const shell=(x,y,z,w,h,d)=>{
+    const geometry=new THREE.BoxGeometry(w,h,d);
+    const material=new THREE.MeshBasicMaterial({color:0x194b7c,transparent:true,opacity:0,depthWrite:true,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+    const mesh=new THREE.Mesh(geometry,material);mesh.position.set(x,y,z);exterior.add(mesh);
+    const edges=new THREE.EdgesGeometry(geometry);
+    const ink=new THREE.LineBasicMaterial({color:0xe1f5ff,transparent:true,opacity:0});
+    const outline=new THREE.LineSegments(edges,ink);outline.position.copy(mesh.position);exterior.add(outline);
+    geometries.push(geometry,edges);materials.push(material,ink);
+    exteriorMaterials.push({material,max:1},{material:ink,max:.9});
+  };
+  shell(0,floor+height*1.5,0,7.7,height*3,4.9);
+  shell(0,floor+height*3+.17,0,8.12,.18,5.16);
+  shell(0,floor+height*3+.32,0,7.94,.12,4.98);
+  shell(0,floor-.08,0,8.08,.16,5.24);
+  for(let i=0;i<3;i++)shell(-2.8,floor-.22+i*.07,2.7-i*.15,1.6,.07,.9-i*.2);
+  shell(-2.8,floor+1.38,2.85,1.8,.1,1.1);
+  const exteriorDetails=[];
+  for(let storey=0;storey<3;storey++){
+    const y=floor+storey*height+.32;
+    for(const z of [-2.46,2.46])for(let bay=0;bay<4;bay++){
+      const x=-3.8+bay*1.9+.35,w=1.2,h=1.04;
+      const p=[[x,y,z],[x+w,y,z],[x+w,y+h,z],[x,y+h,z]];
+      p.forEach((a,i)=>line(exteriorDetails,a,p[(i+1)%4]));
+      line(exteriorDetails,[x+w/2,y,z],[x+w/2,y+h,z]);
+      line(exteriorDetails,[x,y+.13,z],[x+w,y+.13,z]);
+    }
+    for(const x of [-3.86,3.86])for(const z of [-1.95,.45]){
+      const p=[[x,y,z],[x,y,z+1.5],[x,y+1.04,z+1.5],[x,y+1.04,z]];
+      p.forEach((a,i)=>line(exteriorDetails,a,p[(i+1)%4]));
+      line(exteriorDetails,[x,y,z+.75],[x,y+1.04,z+.75]);
+    }
+    const belt=floor+(storey+1)*height-.06;
+    rectangle(exteriorDetails,-3.86,-2.46,3.86,2.46,belt);
+    // Vertical facade pilasters stay on the skin, separate from the internal frame.
+    for(const z of [-2.46,2.46])for(const x of xs){
+      line(exteriorDetails,[x,floor,z],[x,floor+height*3,z]);
+    }
+  }
+  const facadeGeometry=new THREE.BufferGeometry();
+  facadeGeometry.setAttribute('position',new THREE.Float32BufferAttribute(exteriorDetails,3));
+  const facadeInk=new THREE.LineBasicMaterial({color:0xc5ecff,transparent:true,opacity:0,depthWrite:false});
+  exterior.add(new THREE.LineSegments(facadeGeometry,facadeInk));
+  geometries.push(facadeGeometry);materials.push(facadeInk);exteriorMaterials.push({material:facadeInk,max:.85});
   const grid=new THREE.GridHelper(60,120,0x3971a0,0x285983);
   grid.position.y=floor-.35; scene.add(grid);
   grid.material.transparent=true; grid.material.opacity=.3; grid.material.depthWrite=false;
   const journey=document.querySelector('.cinema-journey');
   const copy=document.querySelector('.cinema-scene-copy');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  let frame=0,disposed=false,visible=true,elapsed=0,last=0;
+  let frame=0,disposed=false,visible=true;
   const pointer=new THREE.Vector2(), pointerTarget=new THREE.Vector2();
   const onPointer=event=>{
     if(paused||reduced.matches||event.pointerType!=='mouse')return;
@@ -127,16 +174,14 @@ export function createCinematicScene(host, { paused = false } = {}) {
   };
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(host);
   const ease=t=>t*t*(3-2*t);
-  function render(time){
+  function render(){
     if(disposed)return;
     frame=requestAnimationFrame(render);
-    if(!visible||document.hidden){last=time;return;}
-    if(!paused&&!reduced.matches)elapsed+=Math.min((time-last)/1000,.05);
-    last=time;
+    if(!visible||document.hidden)return;
     const rect=journey.getBoundingClientRect();
     const scroll=Math.max(0,Math.min(1,-rect.top/Math.max(1,journey.offsetHeight-innerHeight)));
-    // The landing screen draws itself even before the first scroll.
-    const progress=reduced.matches?1:Math.max(scroll,Math.min(1,elapsed/12));
+    // A starter plan is visible on arrival; every subsequent stage follows scroll.
+    const progress=reduced.matches?1:.12+scroll*.88;
     const tilt=ease(Math.min(1,progress/.55));
     if(!paused)pointer.lerp(pointerTarget,.035);
     camera.position.set(10*tilt+pointer.x*.6,19-9*tilt,1+13*tilt);
@@ -146,10 +191,16 @@ export function createCinematicScene(host, { paused = false } = {}) {
     root.position.y=narrow?.65:-.6;
     root.rotation.y=-.12+pointer.x*.045;
     root.scale.setScalar(narrow?.58:.76);
-    phases.forEach(({geometry,start,end,count})=>{
+    const completion=ease(Math.max(0,Math.min(1,(progress-.82)/.16)));
+    phases.forEach(({geometry,material,opacity,start,end,count})=>{
       const amount=Math.max(0,Math.min(1,(progress-start)/(end-start)));
       geometry.setDrawRange(0,Math.floor(count*amount/2)*2);
+      material.opacity=opacity*(1-completion);
     });
+    exterior.visible=completion>0;
+    exteriorMaterials.forEach(({material,max})=>{material.opacity=completion*max;});
+    host.dataset.buildProgress=progress.toFixed(4);
+    host.dataset.exterior=completion===1?'complete':'building';
     renderer.render(scene,camera);
     const reveal=ease(Math.max(0,Math.min(1,(progress-.65)/.3)));
     copy.style.opacity=String(reveal);
