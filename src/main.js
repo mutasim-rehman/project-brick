@@ -21,6 +21,8 @@ import './site/visualPages.css';
 import './site/homeNarrative.css';
 import './site/designSystem.css';
 import './site/cinematicHome.css';
+import './site/editorialTheme.css';
+import { bindEditorialTheme } from './site/editorialTheme.js';
 import { cinematicHome, bindCinematicHome } from './site/cinematicHome.js';
 import { bindVisualPages } from './site/visualPages.js';
 import { bindExperiences } from './site/experiences.js';
@@ -41,6 +43,7 @@ const refreshIcons = () => createIcons({ icons, attrs: { 'stroke-width': 1.6 } }
 const path = location.pathname.replace(/\/$/, '') || '/';
 document.body.classList.toggle('blueprint-home', path === '/');
 document.body.classList.toggle('cinematic-home', path === '/');
+document.body.classList.toggle('editorial-site', path !== '/');
 const nav = [['/platform','Platform'],['/hardware','Hardware'],['/how-it-works','How It Works'],['/pricing','Pricing'],['/about','About'],['/contact','Contact']];
 const titles = { '/':'A whole site. A lighter mind.', '/platform':'Explore the platform', '/hardware':'Four pieces of hardware', '/how-it-works':'A working day, connected', '/pricing':'Pricing', '/contact':'Contact', '/about':'About & Trust', '/legal':'Trust & policies', '/sign-in':'Workspace access' };
 const policy = path.startsWith('/legal/') ? policies.find(p => p.slug === path.split('/')[2]) : null;
@@ -66,3 +69,4 @@ bindVisualPages();
 if (path === '/hardware') bindHardware();
 
 bindInteractionPolish();
+if(path!=='/')bindEditorialTheme();

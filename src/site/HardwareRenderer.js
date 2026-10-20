@@ -1,13 +1,13 @@
 import { createSceneRenderer } from './sceneRenderer.js';
 import * as THREE from 'three';
 
-const lime = 0xcde875;
+const lime = 0x83dce9;
 const materials = {
   body: new THREE.MeshStandardMaterial({ color: 0x112a3a, roughness: .38, metalness: .35 }),
   edge: new THREE.MeshStandardMaterial({ color: 0x667b81, roughness: .24, metalness: .85 }),
   rubber: new THREE.MeshStandardMaterial({ color: 0x17232a, roughness: .85, metalness: .05 }),
   glass: new THREE.MeshPhysicalMaterial({ color: 0x132b34, roughness: .12, metalness: .3, clearcoat: 1, clearcoatRoughness: .1 }),
-  cream: new THREE.MeshStandardMaterial({ color: 0xe9efdd, roughness: .3, metalness: .15 }),
+  cream: new THREE.MeshStandardMaterial({ color: 0xf0effa, roughness: .3, metalness: .15 }),
   gold: new THREE.MeshStandardMaterial({ color: 0xcfad58, roughness: .26, metalness: .95 }),
 };
 
@@ -148,9 +148,9 @@ export function mountHardwareModels() {
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
     renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;renderer.outputColorSpace=THREE.SRGBColorSpace;
     const scene=new THREE.Scene();
-    scene.add(new THREE.HemisphereLight(0xf9ffe8,0x354452,2.2));
-    const key=new THREE.DirectionalLight(0xfff8df,4.5);key.position.set(-2,7,4);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-3;key.shadow.camera.right=3;key.shadow.camera.top=3;key.shadow.camera.bottom=-3;key.shadow.normalBias=.03;key.shadow.radius=4;scene.add(key);
-    const rim=new THREE.DirectionalLight(0xe0f5a7,3);rim.position.set(4,2,-2);scene.add(rim);
+    scene.add(new THREE.HemisphereLight(0xf4f3ff,0x354452,2.2));
+    const key=new THREE.DirectionalLight(0xf7f7ff,4.5);key.position.set(-2,7,4);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-3;key.shadow.camera.right=3;key.shadow.camera.top=3;key.shadow.camera.bottom=-3;key.shadow.normalBias=.03;key.shadow.radius=4;scene.add(key);
+    const rim=new THREE.DirectionalLight(0xc5c2ff,3);rim.position.set(4,2,-2);scene.add(rim);
     const fill=new THREE.DirectionalLight(0xb3d8e9,1.4);fill.position.set(-4,-1,3);scene.add(fill);
     const {group,update}=model(host.dataset.scene);scene.add(group);
     const ground=new THREE.Mesh(new THREE.PlaneGeometry(8,8),new THREE.ShadowMaterial({opacity:.11}));ground.rotation.x=-Math.PI/2;ground.position.y=host.dataset.scene==='nfc-badge'?-1.06:host.dataset.scene==='guard-tag'?-.82:host.dataset.scene==='tool-tag'?-.84:-.69;ground.receiveShadow=true;scene.add(ground);
@@ -183,4 +183,3 @@ export function mountHardwareModels() {
     window.addEventListener('pagehide',()=>{cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();reduce.removeEventListener('change',sync);scene.traverse(object=>{object.geometry?.dispose();const list=Array.isArray(object.material)?object.material:[object.material];list.filter(Boolean).forEach(material=>{material.map?.dispose();if(!Object.values(materials).includes(material))material.dispose();});});renderer.dispose();},{once:true});
   });
 }
-

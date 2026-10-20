@@ -27,3 +27,9 @@ Inspired by the pacing and coordinated scenes on lusion.co, with original constr
 The existing `npm test` suite has eight failing assertions involving older layout contracts and removed pricing/contact exports. Those test files and their imported implementation files are unchanged from `main`; the two construction tests pass. The existing `test:browser` also targets obsolete construction-stage selectors, so use the focused check for this branch's homepage.
 
 This is a local visual experiment, with no deployment or merge. Performance on physical low-end mobile devices remains to be evaluated before production adoption.
+
+## Shared theme across pages
+
+The other routes use `editorialTheme.css` and `editorialTheme.js`: shared neutral palette, regular-weight typography, consistent header/footer/buttons, and masked word entrances on editorial headings. Marketing introductions include a scroll-driven cyan stroke. Legal/access pages remain quieter. Existing product tabs, review/reset controls, workflow stages, hardware scrolling, contact behavior and policy content retain their original controllers. Hardware and workflow renderers use neutral lighting and cool accent colors.
+
+`npm run test:editorial` checks all 20 non-home routes at 1440px and 390px, the six product workflows and review/reset controls, four workflow stages, four hardware selectors, pricing accordion, mobile menu, and reduced motion. Visual captures are saved to `artifacts/editorial-theme/` (ignored by Git).
